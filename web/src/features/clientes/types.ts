@@ -1,16 +1,19 @@
 export interface Cliente {
   id: number;
   nombre: string;
-  email: string;
+  /** En la app actual algunos clientes solo tienen teléfono. */
   telefono: string | null;
-  estado: "activo" | "inactivo";
-  created_at: string;
+  /** Puede venir vacío: hay clientes registrados sin correo. */
+  email: string | null;
+  /** Número de citas del cliente (withCount). */
+  total_citas: number;
+  /** Fecha de su cita más reciente. Null si nunca tuvo una. */
+  ultima_cita: string | null;
 }
 
-/** Payload de creación/edición (lo que acepta el endpoint de Laravel). */
+/** Payload de creación/edición. */
 export interface ClientePayload {
   nombre: string;
-  email: string;
   telefono?: string | null;
-  estado: Cliente["estado"];
+  email?: string | null;
 }

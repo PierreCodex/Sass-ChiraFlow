@@ -12,5 +12,24 @@ export const env = {
   /** Nombre visible de la app (títulos, metadata). */
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Mi SaaS",
 
+  /**
+   * Formato de números y fechas.
+   *
+   * Los valores por defecto son los reales del proyecto, no genéricos:
+   * `.env.local` no se sube al repo, así que en un despliegue sin variables
+   * configuradas (Vercel, preview) la app tiene que verse bien igual.
+   */
+  locale: process.env.NEXT_PUBLIC_LOCALE ?? "es-PE",
+
+  /** Código ISO de la moneda: PEN, USD, MXN, COP… */
+  currency: process.env.NEXT_PUBLIC_CURRENCY ?? "PEN",
+
+  /**
+   * Si es true, la capa de servicios devuelve datos ficticios en vez de llamar
+   * a Laravel. Ponlo en false cuando el backend esté listo: los hooks y los
+   * componentes no cambian.
+   */
+  usarMocks: process.env.NEXT_PUBLIC_USE_MOCKS !== "false",
+
   isProd: process.env.NODE_ENV === "production",
 } as const;

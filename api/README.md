@@ -47,6 +47,8 @@ SANCTUM_STATEFUL_DOMAINS=app.tudominio.com
 
 ## Endpoints que espera el frontend
 
+### Ya consumidos por pantallas construidas
+
 | Método | Ruta | Usado por |
 |---|---|---|
 | GET | `/sanctum/csrf-cookie` | `fetchCsrfCookie()` antes de cada login/register |
@@ -54,8 +56,63 @@ SANCTUM_STATEFUL_DOMAINS=app.tudominio.com
 | POST | `/api/register` | `authApi.register` |
 | POST | `/api/logout` | `authApi.logout` |
 | GET | `/api/user` | `authApi.me` |
+| GET | `/api/dashboard` | Dashboard completo (ver forma abajo) |
+| GET | `/api/suscripcion` | Banner de prueba gratuita + "Mi Plan" |
+| GET | `/api/planes` | Pantalla "Mi Plan" |
 | GET | `/api/clientes` | `clientesApi.list` — debe devolver `->paginate()` |
 | GET/POST/PUT/DELETE | `/api/clientes/{id}` | resto de `clientesApi` |
+
+### Pendientes (rutas del frontend ya creadas, sin implementar)
+
+`/api/citas`, `/api/servicios`, `/api/categorias`, `/api/empleados`, `/api/locales`,
+`/api/caja`, `/api/inventario`, `/api/reportes`, `/api/whatsapp`,
+`/api/configuracion`, `/api/soporte/tickets`.
+
+### Forma de `GET /api/dashboard`
+
+```json
+{
+  "data": {
+    "citas_hoy": 0,
+    "citas_pendientes": 14,
+    "total_clientes": 11,
+    "ingresos_hoy": 0,
+    "ventas_ultimos_dias": [
+      { "fecha": "2026-08-03", "total": 0 },
+      { "fecha": "2026-08-07", "total": 40 }
+    ],
+    "citas_del_dia": [
+      {
+        "id": 1,
+        "hora": "14:30",
+        "cliente": "Ana Torres",
+        "servicio": "Consulta general",
+        "empleado": "Dr. Pérez",
+        "estado": "confirmada"
+      }
+    ]
+  }
+}
+```
+
+`estado` acepta: `pendiente`, `confirmada`, `atendida`, `cancelada`, `no_asistio`
+(ver `web/src/features/citas/constants.ts`).
+
+### Forma de `GET /api/suscripcion`
+
+```json
+{
+  "data": {
+    "estado": "prueba",
+    "plan": null,
+    "dias_restantes": 5,
+    "renueva_el": null
+  }
+}
+```
+
+`estado` acepta: `prueba`, `activa`, `vencida`, `cancelada`. El banner se oculta
+solo cuando es `activa`.
 
 El frontend asume las respuestas estándar de Laravel: `{ data: ... }` para un
 recurso, y `{ data, links, meta }` para colecciones paginadas. Los errores de

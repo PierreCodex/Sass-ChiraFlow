@@ -1,0 +1,148 @@
+/*
+  Ajustes propios del calendario de citas.
+  Se cargan DESPUÉS de Calendar.css (el de la plantilla Modernize), que se deja
+  intacto para poder actualizarlo desde el repo de referencia.
+*/
+
+/* La hora ya la pinta nuestro componente de evento: la etiqueta de RBC sobra. */
+.rbc-event-label {
+  display: none;
+}
+
+/* No manejamos citas de día completo. */
+.rbc-allday-cell {
+  display: none;
+}
+
+/* Altura suficiente para las 3 líneas del bloque en una franja de 30 min. */
+.rbc-timeslot-group {
+  min-height: 58px;
+}
+
+/* El padding y el borde los pone nuestro componente. */
+.rbc-event,
+.rbc-day-slot .rbc-event {
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rbc-event:focus {
+  outline: none;
+}
+
+/* Cabecera de recursos: centrada y sin la línea doble. */
+.rbc-time-header-content > .rbc-row.rbc-row-resource {
+  border-bottom: none;
+}
+
+/* La franja horaria de la izquierda, alineada con las filas. */
+.rbc-time-gutter .rbc-timeslot-group {
+  font-size: 0.75rem;
+}
+
+/*
+  En vista de día todas las columnas son el mismo día, así que teñir "hoy"
+  pinta la rejilla entera de azul y no aporta nada.
+*/
+.rbc-today {
+  background-color: transparent;
+}
+
+/*
+  Franja fuera de la jornada del profesional de esa columna: fuera de su
+  horario, en un break, o día no laborable / con excepción.
+  La aplica slotPropGetter en CalendarioCitas.tsx.
+*/
+.rbc-day-slot .rbc-time-slot.slot-no-disponible {
+  background-color: rgba(99, 115, 129, 0.07);
+  /* Rayado diagonal: se distingue del hueco libre incluso sin color. */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(99, 115, 129, 0.06) 6px,
+    rgba(99, 115, 129, 0.06) 12px
+  );
+  cursor: not-allowed;
+}
+
+/*
+  Hueco libre y dentro de la jornada: al pasar el ratón se resalta, para que
+  se vea dónde sí se puede agendar.
+*/
+.rbc-day-slot .rbc-time-slot:not(.slot-no-disponible) {
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.rbc-day-slot .rbc-time-slot:not(.slot-no-disponible):hover {
+  background-color: rgba(93, 135, 255, 0.14);
+}
+
+/* ------------------------------------------------------------------ */
+/* Modo oscuro                                                         */
+/* ------------------------------------------------------------------ */
+/*
+  El CSS de react-big-calendar solo contempla modo claro y se carga SIN capa,
+  mientras que los estilos de MUI van dentro de @layer mui (enableCssLayer en
+  AppRouterCacheProvider). El CSS sin capa gana siempre, así que esto no se
+  puede resolver con `sx`: hay que corregirlo aquí.
+
+  `.darkbg` es la misma clase que ya usa Calendar.css de la plantilla; la
+  aplica CalendarioCitas.tsx según theme.palette.mode.
+*/
+.darkbg .rbc-time-view,
+.darkbg .rbc-time-header,
+.darkbg .rbc-time-header-content,
+.darkbg .rbc-time-header-gutter,
+.darkbg .rbc-time-content,
+.darkbg .rbc-time-gutter,
+.darkbg .rbc-timeslot-group,
+.darkbg .rbc-day-slot,
+.darkbg .rbc-today {
+  background-color: transparent;
+}
+
+.darkbg .rbc-time-view,
+.darkbg .rbc-time-content,
+.darkbg .rbc-time-content > * + * > *,
+.darkbg .rbc-timeslot-group,
+.darkbg .rbc-time-header-content,
+.darkbg .rbc-time-header.rbc-overflowing,
+.darkbg .rbc-header,
+.darkbg .rbc-day-slot .rbc-time-slot {
+  border-color: #343e54;
+}
+
+/* Las horas de la izquierda y las cabeceras, legibles sobre fondo oscuro. */
+.darkbg .rbc-label,
+.darkbg .rbc-time-gutter,
+.darkbg .rbc-header {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/*
+  La rejilla tiene scroll propio. Sin esto el navegador pinta una barra de
+  scroll clara sobre el fondo oscuro.
+*/
+.darkbg .rbc-time-content {
+  color-scheme: dark;
+}
+
+/* En oscuro, "no disponible" se marca oscureciendo en vez de aclarando. */
+.darkbg .rbc-day-slot .rbc-time-slot.slot-no-disponible {
+  background-color: rgba(0, 0, 0, 0.22);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.035) 6px,
+    rgba(255, 255, 255, 0.035) 12px
+  );
+}
+
+.darkbg .rbc-day-slot .rbc-time-slot:not(.slot-no-disponible):hover {
+  background-color: rgba(93, 135, 255, 0.2);
+}

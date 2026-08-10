@@ -1,127 +1,91 @@
 "use client";
-import { useState } from "react";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 
-import { toApiError } from "@/lib/api/client";
+import DataTable, { type Columna } from "@/components/shared/DataTable";
+import BuscadorTabla from "@/components/shared/BuscadorTabla";
+import { usePaginacion } from "@/hooks/usePaginacion";
+import { formatFecha } from "@/lib/format";
 import { useClientes } from "../hooks/useClientes";
+import type { Cliente } from "../types";
+
+const columnas: Columna<Cliente>[] = [
+  {
+    id: "nombre",
+    label: "Nombre",
+    render: (cliente) => (
+      <Typography variant="subtitle2" fontWeight={600}>
+        {cliente.nombre}
+      </Typography>
+    ),
+  },
+  {
+    id: "telefono",
+    label: "Teléfono",
+    render: (cliente) => (
+      <Typography variant="body2" color="textSecondary" noWrap>
+        {cliente.telefono || "—"}
+      </Typography>
+    ),
+  },
+  {
+    id: "email",
+    label: "Email",
+    render: (cliente) => (
+      <Typography variant="body2" color="textSecondary">
+        {cliente.email || "—"}
+      </Typography>
+    ),
+  },
+  {
+    id: "total_citas",
+    label: "Citas",
+    align: "center",
+    render: (cliente) => (
+      <Typography variant="subtitle2" fontWeight={600}>
+        {cliente.total_citas}
+      </Typography>
+    ),
+  },
+  {
+    id: "ultima_cita",
+    label: "Última cita",
+    render: (cliente) => (
+      <Typography variant="body2" color="textSecondary" noWrap>
+        {cliente.ultima_cita ? formatFecha(cliente.ultima_cita) : "—"}
+      </Typography>
+    ),
+  },
+];
 
 const ClientesTable = () => {
-  const [page, setPage] = useState(0); // MUI cuenta desde 0, Laravel desde 1
-  const [perPage, setPerPage] = useState(10);
-
-  const { data, isPending, isError, error } = useClientes({
-    page: page + 1,
-    per_page: perPage,
-  });
-
-  if (isPending) {
-    return (
-      <Stack spacing={1}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} variant="rectangular" height={48} />
-        ))}
-      </Stack>
-    );
-  }
-
-  if (isError) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
-  }
-
-  if (data.data.length === 0) {
-    return (
-      <Box py={5} textAlign="center">
-        <Typography color="textSecondary">
-          Todavía no hay clientes registrados.
-        </Typography>
-      </Box>
-    );
-  }
+  const { page, perPage, search, setPage, setPerPage, buscar, params } =
+    usePaginacion();
+  const { data, isPending, error } = useClientes(params);
 
   return (
-    <Box>
-      <Box sx={{ overflowX: "auto" }}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Nombre
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Email
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Teléfono
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Estado
-                </Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.data.map((cliente) => (
-              <TableRow key={cliente.id}>
-                <TableCell>
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    {cliente.nombre}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="body2">
-                    {cliente.email}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="body2">
-                    {cliente.telefono ?? "—"}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Chip
-                    size="small"
-                    label={cliente.estado}
-                    color={cliente.estado === "activo" ? "success" : "default"}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Box>
+    <>
+      <Stack direction="row" justifyContent="flex-end" mb={2}>
+        <BuscadorTabla
+          valor={search}
+          onChange={buscar}
+          placeholder="Buscar por nombre, teléfono o email…"
+        />
+      </Stack>
 
-      <TablePagination
-        component="div"
-        count={data.meta.total}
+      <DataTable
+        columnas={columnas}
+        datos={data}
+        cargando={isPending}
+        error={error}
         page={page}
-        onPageChange={(_, nuevaPagina) => setPage(nuevaPagina)}
-        rowsPerPage={perPage}
-        rowsPerPageOptions={[10, 25, 50]}
-        onRowsPerPageChange={(e) => {
-          setPerPage(parseInt(e.target.value, 10));
-          setPage(0);
-        }}
-        labelRowsPerPage="Filas por página"
+        perPage={perPage}
+        onPageChange={setPage}
+        onPerPageChange={setPerPage}
+        mensajeVacio="No se encontraron clientes."
+        minWidth={720}
       />
-    </Box>
+    </>
   );
 };
 

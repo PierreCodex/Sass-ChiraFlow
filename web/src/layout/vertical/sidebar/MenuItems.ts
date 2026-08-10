@@ -1,9 +1,20 @@
 import { uniqueId } from "lodash";
 import {
   IconLayoutDashboard,
+  IconCalendarEvent,
+  IconCalendar,
   IconUsers,
+  IconListDetails,
+  IconCategory,
+  IconUserCheck,
+  IconBuildingStore,
+  IconChartBar,
+  IconCreditCard,
+  IconBrandWhatsapp,
   IconSettings,
-  IconPoint,
+  IconCashRegister,
+  IconPackage,
+  IconLifebuoy,
 } from "@tabler/icons-react";
 
 interface MenuitemsType {
@@ -30,13 +41,25 @@ interface MenuitemsType {
 const Menuitems: MenuitemsType[] = [
   {
     navlabel: true,
-    subheader: "General",
+    subheader: "Principal",
   },
   {
     id: uniqueId(),
     title: "Dashboard",
     icon: IconLayoutDashboard,
     href: "/",
+  },
+  {
+    id: uniqueId(),
+    title: "Citas",
+    icon: IconCalendarEvent,
+    href: "/citas",
+  },
+  {
+    id: uniqueId(),
+    title: "Calendario",
+    icon: IconCalendar,
+    href: "/calendario",
   },
 
   {
@@ -49,24 +72,95 @@ const Menuitems: MenuitemsType[] = [
     icon: IconUsers,
     href: "/clientes",
   },
-
   {
-    navlabel: true,
-    subheader: "Sistema",
+    id: uniqueId(),
+    title: "Servicios",
+    icon: IconListDetails,
+    href: "/servicios",
   },
   {
     id: uniqueId(),
-    title: "Ajustes",
+    title: "Categorías",
+    icon: IconCategory,
+    href: "/categorias",
+  },
+  {
+    id: uniqueId(),
+    title: "Empleados",
+    icon: IconUserCheck,
+    href: "/empleados",
+  },
+  {
+    id: uniqueId(),
+    title: "Locales",
+    icon: IconBuildingStore,
+    href: "/locales",
+  },
+
+  {
+    navlabel: true,
+    subheader: "Operación",
+  },
+  {
+    id: uniqueId(),
+    title: "Caja",
+    icon: IconCashRegister,
+    href: "/caja",
+  },
+  {
+    id: uniqueId(),
+    title: "Inventario",
+    icon: IconPackage,
+    href: "/inventario",
+  },
+  {
+    id: uniqueId(),
+    title: "Reportes",
+    icon: IconChartBar,
+    href: "/reportes",
+  },
+
+  {
+    navlabel: true,
+    subheader: "Cuenta",
+  },
+  {
+    id: uniqueId(),
+    title: "Mi Plan",
+    icon: IconCreditCard,
+    href: "/mi-plan",
+  },
+  {
+    id: uniqueId(),
+    title: "WhatsApp",
+    icon: IconBrandWhatsapp,
+    href: "/whatsapp",
+  },
+  {
+    id: uniqueId(),
+    title: "Configuración",
     icon: IconSettings,
-    href: "/ajustes",
+    href: "/configuracion",
     children: [
       {
         id: uniqueId(),
+        title: "General",
+        icon: IconSettings,
+        href: "/configuracion",
+      },
+      {
+        id: uniqueId(),
         title: "Mi perfil",
-        icon: IconPoint,
-        href: "/ajustes/perfil",
+        icon: IconUserCheck,
+        href: "/configuracion/perfil",
       },
     ],
+  },
+  {
+    id: uniqueId(),
+    title: "Soporte",
+    icon: IconLifebuoy,
+    href: "/soporte",
   },
 ];
 

@@ -5,6 +5,10 @@ export interface Usuario {
   id: number;
   name: string;
   email: string;
+  avatar_url: string | null;
+  rol: string | null;
+  /** Tenant al que pertenece el usuario (el negocio/clínica). */
+  negocio: { id: number; nombre: string } | null;
 }
 
 export interface LoginPayload {

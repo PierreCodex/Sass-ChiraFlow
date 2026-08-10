@@ -1,60 +1,27 @@
 "use client";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import PageContainer from "@/components/container/PageContainer";
-// components
-import SalesOverview from "@/features/dashboard/components/SalesOverview";
-import YearlyBreakup from "@/features/dashboard/components/YearlyBreakup";
-import RecentTransactions from "@/features/dashboard/components/RecentTransactions";
-import ProductPerformance from "@/features/dashboard/components/ProductPerformance";
-import Blog from "@/features/dashboard/components/Blog";
-import MonthlyEarnings from "@/features/dashboard/components/MonthlyEarnings";
 
-export default function Dashboard() {
+import PageContainer from "@/components/container/PageContainer";
+import StatsCards from "@/features/dashboard/components/StatsCards";
+import VentasChart from "@/features/dashboard/components/VentasChart";
+import CitasDeHoy from "@/features/dashboard/components/CitasDeHoy";
+
+export default function DashboardPage() {
   return (
-    (<PageContainer title="Dashboard" description="this is Dashboard">
+    <PageContainer title="Dashboard" description="Resumen del día">
       <Box mt={3}>
-        <Grid container spacing={3}>
-          <Grid
-            size={{
-              xs: 12,
-              lg: 8
-            }}>
-            <SalesOverview />
+        <StatsCards />
+
+        <Grid container spacing={3} mt={0}>
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <VentasChart />
           </Grid>
-          <Grid
-            size={{
-              xs: 12,
-              lg: 4
-            }}>
-            <Grid container spacing={3}>
-              <Grid size={12}>
-                <YearlyBreakup />
-              </Grid>
-              <Grid size={12}>
-                <MonthlyEarnings />
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid
-            size={{
-              xs: 12,
-              lg: 4
-            }}>
-            <RecentTransactions />
-          </Grid>
-          <Grid
-            size={{
-              xs: 12,
-              lg: 8
-            }}>
-            <ProductPerformance />
-          </Grid>
-          <Grid size={12}>
-            <Blog />
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <CitasDeHoy />
           </Grid>
         </Grid>
       </Box>
-    </PageContainer>)
+    </PageContainer>
   );
 }

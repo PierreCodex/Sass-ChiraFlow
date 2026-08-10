@@ -10,6 +10,7 @@ import Navigation from "@/layout/horizontal/navbar/Navigation";
 import HorizontalHeader from "@/layout/horizontal/header/Header";
 import { CustomizerContext } from "@/context/customizerContext";
 import config from "@/context/config";
+import TrialBanner from "@/features/suscripcion/components/TrialBanner";
 
 const MainWrapper = styled("div")(() => ({
   display: "flex",
@@ -84,9 +85,8 @@ export default function RootLayout({
           {/* ------------------------------------------- */}
 
           <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            {/* <Outlet /> */}
+            <TrialBanner />
             {children}
-            {/* <Index /> */}
           </Box>
 
           {/* ------------------------------------------- */}
