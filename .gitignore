@@ -1,0 +1,23 @@
+# dependencias
+node_modules/
+vendor/
+
+# entorno
+.env
+.env.*.local
+
+# builds
+.next/
+out/
+build/
+
+# laravel
+/api/storage/*.key
+/api/public/storage
+/api/public/hot
+
+# editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

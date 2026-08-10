@@ -1,0 +1,50 @@
+{
+  "name": "mi-saas-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/server": "^11.11.0",
+    "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/lab": "^7.0.1-beta.19",
+    "@mui/material": "^7.3.5",
+    "@mui/material-nextjs": "^7.3.5",
+    "@mui/system": "^7.3.5",
+    "@tabler/icons-react": "^3.35.0",
+    "@tanstack/react-query": "^5.90.2",
+    "apexcharts": "5.3.6",
+    "axios": "^1.13.1",
+    "i18next": "^25.6.3",
+    "lodash": "^4.17.21",
+    "next": "^16.0.5",
+    "nextjs-toploader": "^3.9.17",
+    "react": "^19.2.0",
+    "react-apexcharts": "^1.8.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.65.0",
+    "react-i18next": "^16.3.5",
+    "simplebar-react": "^3.3.2",
+    "stylis-plugin-rtl": "^2.1.1",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.90.2",
+    "@types/lodash": "^4.17.21",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "typescript": "^5.9.3"
+  }
+}
