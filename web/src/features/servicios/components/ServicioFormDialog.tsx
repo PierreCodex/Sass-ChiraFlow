@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
@@ -25,10 +25,11 @@ import { useTheme } from "@mui/material/styles";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
+import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useTodasLasCategorias } from "@/features/categorias/hooks/useCategorias";
 import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
-import { TIPOS_SERVICIO } from "../constants";
+import { TIPOS_CON_SESIONES, TIPOS_SERVICIO } from "../constants";
 import { useActualizarServicio, useCrearServicio } from "../hooks/useServicios";
 import {
   servicioSchema,
@@ -67,6 +68,9 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
     defaultValues: valoresIniciales,
   });
 
+  const tipo = useWatch({ control, name: "tipo" });
+  const muestraSesiones = TIPOS_CON_SESIONES.includes(tipo);
+
   useEffect(() => {
     if (!abierto) return;
 
@@ -81,6 +85,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
             color: servicio.color,
             categoria_id: servicio.categoria?.id ?? null,
             tipo: servicio.tipo,
+            max_sesiones: servicio.max_sesiones,
             precio: servicio.precio,
             duracion_min: servicio.duracion_min,
             imagen_principal: servicio.imagen_principal
@@ -103,6 +108,8 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
       color: valores.color,
       categoria_id: valores.categoria_id,
       tipo: valores.tipo,
+      // Solo se envía si el tipo lo usa.
+      max_sesiones: muestraSesiones ? valores.max_sesiones : null,
       precio: valores.precio,
       duracion_min: valores.duracion_min,
       imagen_principal: valores.imagen_principal[0]?.file ?? null,
@@ -167,7 +174,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
 
         <Divider />
 
-        <DialogContent>
+        <DialogContent sx={formularioCompacto}>
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}
@@ -195,7 +202,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <CustomFormLabel htmlFor="categoria_id">Categoría</CustomFormLabel>
               <Controller
                 name="categoria_id"
@@ -223,7 +230,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <CustomFormLabel htmlFor="tipo">Tipo de servicio</CustomFormLabel>
               <Controller
                 name="tipo"
@@ -246,6 +253,56 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
                 )}
               />
             </Grid>
+
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <CustomFormLabel htmlFor="color">Color</CustomFormLabel>
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <Box
+                    component="input"
+                    {...field}
+                    type="color"
+                    id="color"
+                    sx={{
+                      width: "100%",
+                      height: 48,
+                      p: 0.5,
+                      cursor: "pointer",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      bgcolor: "background.paper",
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Solo los tipos que se venden por sesiones lo usan. */}
+            {muestraSesiones ? (
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <CustomFormLabel htmlFor="max_sesiones">
+                  Sesiones incluidas
+                </CustomFormLabel>
+                <Controller
+                  name="max_sesiones"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomTextField
+                      {...field}
+                      value={field.value ?? ""}
+                      id="max_sesiones"
+                      type="number"
+                      fullWidth
+                      error={!!errors.max_sesiones}
+                      helperText={errors.max_sesiones?.message}
+                    />
+                  )}
+                />
+              </Grid>
+            ) : null}
 
             <Grid size={12}>
               <CustomFormLabel htmlFor="descripcion">Descripción</CustomFormLabel>
@@ -331,32 +388,6 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomFormLabel htmlFor="color">Color</CustomFormLabel>
-              <Controller
-                name="color"
-                control={control}
-                render={({ field }) => (
-                  <Box
-                    component="input"
-                    {...field}
-                    type="color"
-                    id="color"
-                    sx={{
-                      width: "100%",
-                      height: 48,
-                      p: 0.5,
-                      cursor: "pointer",
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      bgcolor: "background.paper",
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid size={12}>
               <CustomFormLabel htmlFor="galeria">
                 Galería de trabajos (máx. {MAX_GALERIA} imágenes)
               </CustomFormLabel>
@@ -387,7 +418,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
                     {empleados.map((empleado) => {
                       const marcado = field.value.includes(empleado.id);
                       return (
-                        <Grid key={empleado.id} size={{ xs: 12, sm: 6 }}>
+                        <Grid key={empleado.id} size={{ xs: 12, sm: 6, md: 4 }}>
                           <Paper
                             variant="outlined"
                             sx={{ px: 1.5, borderColor: marcado ? "primary.main" : undefined }}

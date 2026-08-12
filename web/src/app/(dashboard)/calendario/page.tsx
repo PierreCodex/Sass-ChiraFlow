@@ -38,7 +38,7 @@ export default function CalendarioPage() {
   const [preseleccion, setPreseleccion] = useState<{
     fecha: string;
     hora_inicio: string;
-    empleado_id: number | null;
+    empleado_id?: number;
   } | null>(null);
 
   const { data: citas = [], isPending, error } = useCitasDelDia(fecha);
@@ -67,12 +67,12 @@ export default function CalendarioPage() {
 
   const abrirNueva = () => {
     setCitaEditando(null);
-    setPreseleccion({ fecha, hora_inicio: "", empleado_id: null });
+    setPreseleccion({ fecha, hora_inicio: "" });
     setFormAbierto(true);
   };
 
   /** Clic en un hueco libre: arranca el formulario en esa hora y profesional. */
-  const abrirEnHueco = (inicio: Date, empleadoId: number | null) => {
+  const abrirEnHueco = (inicio: Date, empleadoId: number) => {
     setCitaEditando(null);
     setPreseleccion({
       fecha,

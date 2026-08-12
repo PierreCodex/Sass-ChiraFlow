@@ -135,8 +135,33 @@ y permite decidir columna por columna. Se atenúa cuando el profesional:
 el motivo en rojo: la nota de la excepción (*"Permiso por emergencia
 familiar"*) o "No atiende hoy". El avatar se atenúa también.
 
-**Prioridad.** Una excepción con `disponible: false` gana sobre el horario
-semanal: deja el día entero sin atención aunque el horario diga que trabaja.
+### Precedencia — copiada del backend
+
+`disponibilidad.ts` replica exactamente `ReservaController::generarHorarios`
+de Laravel. El orden importa:
+
+| # | Situación | Resultado |
+|---|---|---|
+| 1 | Excepción con `disponible: false` | No atiende. Se muestra la nota |
+| 2 | Excepción con `disponible: true` | **Manda su propio `desde`/`hasta`**, reemplazando el horario habitual |
+| 3 | Horario propio y el día activo | Ese horario, con sus breaks |
+| 4 | Horario propio pero el día inactivo | No laborable |
+| 5 | **Sin horario propio** | **Rige el horario del negocio** |
+
+Las dos que más se olvidan:
+
+**Una excepción puede añadir disponibilidad, no solo quitarla.** Sirve para
+medio turno, un refuerzo o cubrir a un compañero. Por eso el formulario de
+Empleados muestra "Desde" y "Hasta" cuando la excepción es `Disponible`.
+
+**Un profesional sin horario propio no se queda sin agenda**: hereda el del
+negocio (`Configuración → horario.apertura / horario.cierre`, por defecto
+09:00–20:00). Antes lo dábamos por "no atiende", que dejaba fuera a cualquier
+profesional recién creado.
+
+`JornadaDia.origen` indica cuál de las cinco reglas se aplicó
+(`personalizado`, `excepcion`, `excepcion_inactiva`, `no_laborable`,
+`negocio`), útil para depurar.
 
 **Sin horario conocido** — la columna "Sin asignar", o un profesional que no
 está en la lista de activos — no se atenúa nada: no hay información que

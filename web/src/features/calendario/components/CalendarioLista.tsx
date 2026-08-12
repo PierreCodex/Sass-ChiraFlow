@@ -71,7 +71,7 @@ const CalendarioLista = ({ citas, onSeleccionarCita }: Props) => {
               </Typography>
               <Typography variant="body2" color="textSecondary" noWrap>
                 {cita.servicio.nombre}
-                {cita.empleado ? ` · ${cita.empleado.nombre}` : " · Sin asignar"}
+                {` · ${cita.empleado.nombre}`}
               </Typography>
             </Box>
 

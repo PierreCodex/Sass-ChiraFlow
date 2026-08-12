@@ -36,20 +36,22 @@ const recurso = crearRecurso<Cita, CitaPayload>({
             color: servicio.color,
           }
         : undefined,
-      empleado: empleado ? { id: empleado.id, nombre: empleado.nombre } : null,
+      empleado: empleado
+        ? { id: empleado.id, nombre: empleado.nombre }
+        : undefined,
       hora_fin: calcularHoraFin(
         payload.hora_inicio,
         servicio?.duracion_min ?? 30
       ),
       productos: (payload.productos ?? []).flatMap((linea) => {
-        const producto = productosMock.find((p) => p.id === linea.producto_id);
+        const producto = productosMock.find((p) => p.id === linea.id);
         if (!producto) return [];
         return [
           {
             producto_id: producto.id,
             nombre: producto.nombre,
             cantidad: linea.cantidad,
-            precio_unitario: producto.precio,
+            precio_unitario: producto.precio_venta,
           },
         ];
       }),

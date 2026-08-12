@@ -19,7 +19,7 @@
 
 | # | Campo | Control | Obligatorio |
 |---|---|---|---|
-| 1 | Profesional | Select | No (permite "Sin asignar") |
+| 1 | Profesional | Select | **Sí** |
 | 2 | Servicio | Select con precio en la etiqueta | Sí |
 | 3 | Fecha | `input[type=date]` | Sí |
 | 4 | Hora inicio | `input[type=time]` | Sí |
@@ -191,7 +191,7 @@ JSON normal (no sube archivos).
   "monto": 65,
   "estado": "pendiente",
   "notas": "quiero lo urgente",
-  "productos": [{ "producto_id": 6, "cantidad": 1 }]
+  "productos": [{ "id": 6, "cantidad": 1 }]
 }
 ```
 
@@ -217,7 +217,7 @@ JSON normal (no sube archivos).
 | `cliente_telefono` | string \| null | ✅ | |
 | `cliente_email` | string \| null | ✅ | |
 | `servicio` | objeto | ✅ | Con `duracion_min` y `precio` |
-| `empleado` | objeto \| null | ✅ | Puede quedar sin asignar |
+| `empleado` | objeto | ✅ | **Obligatorio**: `citas.user_id` no es nullable |
 | `productos` | array | ✅ | Puede venir vacío |
 
 ### Estados de la cita
@@ -225,15 +225,17 @@ JSON normal (no sube archivos).
 `web/src/features/citas/constants.ts` — única fuente de verdad, también la usa
 el dashboard.
 
+Verificado contra el enum real de la tabla `citas`:
+
 | Valor | Etiqueta | Color |
 |---|---|---|
 | `pendiente` | Pendiente | warning |
 | `confirmada` | Confirmada | info |
-| `atendida` | Atendida | success |
+| `completada` | Completada | success |
 | `cancelada` | Cancelada | error |
-| `no_asistio` | No asistió | default |
 
-Solo tengo evidencia de "Pendiente". **Pásame la lista real del select.**
+Antes tenía `atendida` (es **`completada`**) y me había inventado
+**`no_asistio`**, que no existe.
 
 ### Descartado respecto a la maqueta anterior
 
@@ -274,7 +276,20 @@ backend pasa a ser un query param.
 - [ ] **¿Qué hace el backend cuando el cliente se escribe a mano?**
       ¿Crea uno nuevo? ¿Lo busca por teléfono? ¿Deja la cita sin vincular?
       De esto depende que `total_citas` de Clientes cuadre.
-- [ ] ¿La cita se asigna a un local?
+- [ ] ¿La cita se asigna a un local? (existe `citas.local_id` en el backend)
+
+### Verificado contra el backend
+
+El Blade de editar cita manda `productos[i][id]` y `productos[i][cantidad]`,
+así que la clave de cada línea es **`id`**, no `producto_id`.
+
+Existen la tabla `cita_servicio` (varios servicios por cita) y las columnas
+`cliente_apellido` / `cliente_documento`, pero **el panel no las usa**: su
+formulario envía un solo `servicio_id` y no pide apellido ni documento. Son
+para la página pública de reservas.
+
+La columna `citas.fuente` (`web` · `panel` · `publica`) registra de dónde vino
+cada reserva. Todavía no se muestra en ninguna vista.
 - [ ] ¿Se valida que el profesional esté disponible según su horario? (ver
       [empleados.md](empleados.md))
 - [ ] ¿Los productos descuentan stock al guardar la cita, o al cobrarla en Caja?

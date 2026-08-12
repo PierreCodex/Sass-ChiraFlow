@@ -1,12 +1,7 @@
 "use client";
 import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import {
   IconCalendarEvent,
   IconClockHour4,
@@ -14,43 +9,10 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 
+import StatCard, { type StatCardProps } from "@/components/shared/StatCard";
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useResumenDashboard } from "../hooks/useDashboard";
-
-interface StatCardProps {
-  titulo: string;
-  valor: string | number;
-  icono: React.ReactNode;
-  color: "primary" | "secondary" | "success" | "warning";
-}
-
-const StatCard = ({ titulo, valor, icono, color }: StatCardProps) => (
-  <Card elevation={9}>
-    <CardContent sx={{ p: 3 }}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Avatar
-          sx={{
-            bgcolor: `${color}.light`,
-            color: `${color}.main`,
-            width: 48,
-            height: 48,
-          }}
-        >
-          {icono}
-        </Avatar>
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle2" color="textSecondary">
-            {titulo}
-          </Typography>
-          <Typography variant="h4" fontWeight={700}>
-            {valor}
-          </Typography>
-        </Stack>
-      </Stack>
-    </CardContent>
-  </Card>
-);
 
 const StatsCards = () => {
   const { data, isPending, isError, error } = useResumenDashboard();

@@ -1,8 +1,5 @@
-/**
- * Solo tengo evidencia del valor "Normal". Pendiente confirmar la lista
- * completa — ver docs/vistas/servicios.md
- */
-export type TipoServicio = "normal";
+/** Valores reales de `servicios.tipo`. */
+export type TipoServicio = "normal" | "sesiones" | "clases" | "paquete";
 
 export interface Servicio {
   id: number;
@@ -13,6 +10,8 @@ export interface Servicio {
   /** Puede no tener categoría: en la tabla se muestra "-". */
   categoria: { id: number; nombre: string } | null;
   tipo: TipoServicio;
+  /** Solo para los tipos `sesiones` y `paquete`. */
+  max_sesiones: number | null;
   duracion_min: number;
   precio: number;
   activo: boolean;
@@ -30,6 +29,7 @@ export interface ServicioPayload {
   color: string;
   categoria_id: number | null;
   tipo: TipoServicio;
+  max_sesiones: number | null;
   duracion_min: number;
   precio: number;
   /** Archivo nuevo, o null para no tocar la imagen actual. */

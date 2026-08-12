@@ -29,6 +29,10 @@ interface Props {
 
 const HorarioTab = ({ control, errors }: Props) => {
   const horario = useWatch({ control, name: "horario" });
+  // Para saber qué excepciones muestran horario propio.
+  const excepcionesDisponibles = (
+    useWatch({ control, name: "excepciones" }) ?? []
+  ).map((e: any) => !!e?.disponible);
 
   const {
     fields: excepciones,
@@ -112,7 +116,53 @@ const HorarioTab = ({ control, errors }: Props) => {
                 />
               </Grid>
 
-              <Grid size={{ xs: 12, sm: 5 }}>
+              {/* Solo tienen sentido si ese día sí atiende: reemplazan su
+                  horario habitual (medio turno, refuerzo…). */}
+              {excepcionesDisponibles[i] ? (
+                <>
+                  <Grid size={{ xs: 6, sm: 2 }}>
+                    <CustomFormLabel htmlFor={`exc-desde-${i}`} sx={{ mt: 0 }}>
+                      Desde
+                    </CustomFormLabel>
+                    <Controller
+                      name={`excepciones.${i}.desde`}
+                      control={control}
+                      render={({ field }) => (
+                        <CustomTextField
+                          {...field}
+                          value={field.value ?? ""}
+                          id={`exc-desde-${i}`}
+                          type="time"
+                          fullWidth
+                          size="small"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid size={{ xs: 6, sm: 2 }}>
+                    <CustomFormLabel htmlFor={`exc-hasta-${i}`} sx={{ mt: 0 }}>
+                      Hasta
+                    </CustomFormLabel>
+                    <Controller
+                      name={`excepciones.${i}.hasta`}
+                      control={control}
+                      render={({ field }) => (
+                        <CustomTextField
+                          {...field}
+                          value={field.value ?? ""}
+                          id={`exc-hasta-${i}`}
+                          type="time"
+                          fullWidth
+                          size="small"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              ) : null}
+
+              <Grid size={{ xs: 12, sm: excepcionesDisponibles[i] ? 4 : 5 }}>
                 <CustomFormLabel htmlFor={`exc-nota-${i}`} sx={{ mt: 0 }}>
                   Nota
                 </CustomFormLabel>
@@ -132,7 +182,7 @@ const HorarioTab = ({ control, errors }: Props) => {
                 />
               </Grid>
 
-              <Grid size={{ xs: 12, sm: 1 }}>
+              <Grid size={{ xs: 12, sm: 2 }}>
                 <Box sx={{ mt: { xs: 0, sm: 4.5 } }}>
                   <Button
                     color="error"
@@ -155,6 +205,8 @@ const HorarioTab = ({ control, errors }: Props) => {
               agregarExcepcion({
                 fecha: new Date().toISOString().slice(0, 10),
                 disponible: false,
+                desde: null,
+                hasta: null,
                 nota: null,
               })
             }

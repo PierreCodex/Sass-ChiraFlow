@@ -2,14 +2,25 @@ import type { EstadoCita } from "./types";
 
 type ColorChip = "warning" | "info" | "success" | "error" | "default";
 
-/** Etiqueta y color de cada estado. Única fuente de verdad para toda la app. */
+/**
+ * Etiqueta y color de cada estado. Única fuente de verdad para toda la app.
+ *
+ * Los valores salen del enum real de la tabla `citas`:
+ *   enum('pendiente', 'confirmada', 'completada', 'cancelada')
+ */
 export const ESTADOS_CITA: Record<
   EstadoCita,
   { label: string; color: ColorChip }
 > = {
   pendiente: { label: "Pendiente", color: "warning" },
   confirmada: { label: "Confirmada", color: "info" },
-  atendida: { label: "Atendida", color: "success" },
+  completada: { label: "Completada", color: "success" },
   cancelada: { label: "Cancelada", color: "error" },
-  no_asistio: { label: "No asistió", color: "default" },
+};
+
+/** De dónde salió la reserva (columna `fuente` de la tabla `citas`). */
+export const FUENTES_CITA: Record<string, string> = {
+  web: "Web",
+  panel: "Panel",
+  publica: "Página pública",
 };

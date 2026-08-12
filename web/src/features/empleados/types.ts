@@ -1,10 +1,15 @@
-/** Roles vistos: "profesional" y "dueno" en la tabla, "Administrador" en el select. */
-export type RolEmpleado = "dueno" | "administrador" | "profesional";
+/** Enum real de `users.rol`. */
+export type RolEmpleado =
+  | "superadmin"
+  | "dueno"
+  | "admin"
+  | "profesional"
+  | "cliente";
 
-/** Vistos: "Por comisión" y "Sueldo + comisión". "Sueldo fijo" está inferido. */
-export type TipoPago = "comision" | "sueldo" | "sueldo_comision";
+/** Enum real de `users.tipo_pago`. */
+export type TipoPago = "comision" | "sueldo" | "ambos";
 
-/** Visto: "Quincenal". El resto están inferidos. */
+/** Enum real de `users.sueldo_periodo`. */
 export type PeriodoPago = "semanal" | "quincenal" | "mensual";
 
 /** Descanso dentro de la jornada de un día. */
@@ -24,10 +29,18 @@ export interface DiaHorario {
   breaks: BreakHorario[];
 }
 
-/** Permisos, emergencias o medio turno en una fecha concreta. */
+/**
+ * Permisos, emergencias o medio turno en una fecha concreta.
+ *
+ * Si `disponible` es true, `desde`/`hasta` **reemplazan** el horario habitual
+ * de ese día: sirve tanto para quitar disponibilidad como para añadirla con
+ * otro horario.
+ */
 export interface ExcepcionHorario {
   fecha: string; // "2026-08-10"
   disponible: boolean;
+  desde: string | null; // "09:00"
+  hasta: string | null; // "13:00"
   nota: string | null;
 }
 

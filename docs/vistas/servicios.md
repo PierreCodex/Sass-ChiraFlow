@@ -138,12 +138,21 @@ Asumo que al crear entra como `activo: true` y que se desactiva desde otro
 sitio. Pendiente: ¿el formulario de edición sí lo tiene? ¿O se desactiva desde
 la tabla?
 
-### `tipo` — pendiente
+### `tipo` — resuelto
 
-En la captura los dos servicios son "Normal". Lo modelé como enum con un solo
-valor (`web/src/features/servicios/constants.ts`), pero **necesito la lista
-completa**: si existen "Paquete", "Promoción", "Combo" u otros, hay que
-añadirlos ahí y el `select` del formulario los toma automáticamente.
+Valores reales de `servicios.tipo` (columna `string(30)`, por defecto
+`normal`):
+
+| Valor | Etiqueta |
+|---|---|
+| `normal` | Normal |
+| `sesiones` | Por sesiones |
+| `clases` | Clases |
+| `paquete` | Paquete |
+
+**`sesiones` y `paquete` usan además `max_sesiones`** (`unsignedSmallInteger`,
+nullable). Ese campo todavía **no está en el formulario**: falta añadirlo,
+visible solo cuando el tipo lo requiera.
 
 ### Descartado respecto a la maqueta anterior
 

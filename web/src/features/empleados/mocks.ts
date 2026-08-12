@@ -21,7 +21,7 @@ export const empleadosMock: Empleado[] = [
   {
     id: 2, nombre: "Dra. Carmen Ríos", foto_url: null, usuario: "criosr",
     rol: "profesional", cargo: "doctor cirujano", email: "carmen.rios@elrosal.pe",
-    telefono: "987 441 220", activo: true, tipo_pago: "sueldo_comision",
+    telefono: "987 441 220", activo: true, tipo_pago: "ambos",
     comision_porcentaje: 50, monto_sueldo: 12000, periodo_pago: "quincenal",
     horario: horarioConAlmuerzo(),
     // La excepción va en un día sin citas: si el cliente reserva desde la
@@ -31,7 +31,17 @@ export const empleadosMock: Empleado[] = [
       {
         fecha: haceDias(-1),
         disponible: false,
+        desde: null,
+        hasta: null,
         nota: "Permiso por emergencia familiar",
+      },
+      // Una excepción disponible reemplaza el horario del día: medio turno.
+      {
+        fecha: haceDias(-2),
+        disponible: true,
+        desde: "09:00",
+        hasta: "13:00",
+        nota: "Medio turno",
       },
     ],
   },
@@ -51,7 +61,7 @@ export const empleadosMock: Empleado[] = [
   },
   {
     id: 5, nombre: "Srta. Lucía Herrera", foto_url: null, usuario: "lherrera",
-    rol: "administrador", cargo: "Recepción", email: "lucia.herrera@elrosal.pe",
+    rol: "admin", cargo: "Recepción", email: "lucia.herrera@elrosal.pe",
     telefono: "931 208 776", activo: true, tipo_pago: "sueldo",
     comision_porcentaje: 0, monto_sueldo: 1800, periodo_pago: "mensual",
     horario: horarioPorDefecto(), excepciones: [],

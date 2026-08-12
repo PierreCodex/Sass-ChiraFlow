@@ -1,9 +1,8 @@
 export type EstadoCita =
   | "pendiente"
   | "confirmada"
-  | "atendida"
-  | "cancelada"
-  | "no_asistio";
+  | "completada"
+  | "cancelada";
 
 /** Producto vendido durante la cita. */
 export interface ProductoCita {
@@ -41,12 +40,13 @@ export interface Cita {
     /** Color del servicio: pinta el bloque en el calendario. */
     color: string;
   };
-  empleado: { id: number; nombre: string } | null;
+  /** Toda cita tiene profesional: `citas.user_id` no es nullable. */
+  empleado: { id: number; nombre: string };
   productos: ProductoCita[];
 }
 
 export interface CitaPayload {
-  empleado_id: number | null;
+  empleado_id: number;
   servicio_id: number;
   fecha: string;
   hora_inicio: string;
@@ -57,5 +57,6 @@ export interface CitaPayload {
   monto: number;
   estado: EstadoCita;
   notas: string | null;
-  productos: { producto_id: number; cantidad: number }[];
+  /** La clave es `id`, como la espera el backend: productos[i][id]. */
+  productos: { id: number; cantidad: number }[];
 }

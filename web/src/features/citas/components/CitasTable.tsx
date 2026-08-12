@@ -82,7 +82,7 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       label: "Atiende",
       render: (cita) => (
         <Typography variant="body2" color="textSecondary">
-          {cita.empleado?.nombre ?? "Sin asignar"}
+          {cita.empleado.nombre}
         </Typography>
       ),
     },

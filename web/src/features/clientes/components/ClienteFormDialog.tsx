@@ -18,6 +18,7 @@ import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
+import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useCrearCliente } from "../hooks/useClientes";
 import {
@@ -111,7 +112,7 @@ const ClienteFormDialog = ({ abierto, onCerrar }: Props) => {
 
         <Divider />
 
-        <DialogContent>
+        <DialogContent sx={formularioCompacto}>
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}

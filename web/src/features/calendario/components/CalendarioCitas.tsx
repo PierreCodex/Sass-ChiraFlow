@@ -12,6 +12,8 @@ import { useTheme } from "@mui/material/styles";
 
 import type { Cita } from "@/features/citas/types";
 import type { Empleado } from "@/features/empleados/types";
+import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
+import { horarioNegocio } from "@/features/configuracion/types";
 import {
   atiendeA,
   desplazarHora,
@@ -43,11 +45,8 @@ interface Props {
   profesionales: Empleado[];
   onSeleccionarCita: (cita: Cita) => void;
   /** Click en un hueco libre: crea una cita ahí. */
-  onSeleccionarHueco: (inicio: Date, empleadoId: number | null) => void;
+  onSeleccionarHueco: (inicio: Date, empleadoId: number) => void;
 }
-
-/** Id ficticio para agrupar las citas sin profesional asignado. */
-const SIN_ASIGNAR = -1;
 
 function aFecha(dia: string, hora: string) {
   return new Date(`${dia}T${hora}:00`);
@@ -61,8 +60,8 @@ const CalendarioCitas = ({
   onSeleccionarHueco,
 }: Props) => {
   const theme = useTheme();
-
-  const hayCitasSinAsignar = citas.some((cita) => !cita.empleado);
+  // Respaldo para los profesionales que no tienen horario propio.
+  const { data: configuracion } = useConfiguracion();
 
   /**
    * Columnas del calendario: un recurso por profesional.
@@ -71,6 +70,9 @@ const CalendarioCitas = ({
    * en la lista (por ejemplo, uno dado de baja). Sin esto, react-big-calendar
    * descarta en silencio los eventos cuyo recurso no existe, y la cita
    * desaparece de la vista.
+   *
+   * Toda cita tiene profesional (`citas.user_id` no es nullable), así que no
+   * hace falta una columna "Sin asignar".
    */
   const recursos = useMemo(() => {
     const lista = profesionales.map((empleado) => ({
@@ -80,8 +82,7 @@ const CalendarioCitas = ({
     }));
 
     citas.forEach((cita) => {
-      if (!cita.empleado) return;
-      if (lista.some((recurso) => recurso.id === cita.empleado!.id)) return;
+      if (lista.some((recurso) => recurso.id === cita.empleado.id)) return;
       lista.push({
         id: cita.empleado.id,
         nombre: cita.empleado.nombre,
@@ -89,11 +90,8 @@ const CalendarioCitas = ({
       });
     });
 
-    if (hayCitasSinAsignar) {
-      lista.push({ id: SIN_ASIGNAR, nombre: "Sin asignar", foto_url: null });
-    }
     return lista;
-  }, [profesionales, citas, hayCitasSinAsignar]);
+  }, [profesionales, citas]);
 
   const eventos: EventoCita[] = useMemo(
     () =>
@@ -102,7 +100,7 @@ const CalendarioCitas = ({
         title: cita.cliente_nombre,
         start: aFecha(cita.fecha, cita.hora_inicio),
         end: aFecha(cita.fecha, cita.hora_fin),
-        resourceId: cita.empleado?.id ?? SIN_ASIGNAR,
+        resourceId: cita.empleado.id,
         cita,
       })),
     [citas]
@@ -114,10 +112,13 @@ const CalendarioCitas = ({
   const jornadas = useMemo(() => {
     const mapa = new Map<number, JornadaDia>();
     profesionales.forEach((empleado) =>
-      mapa.set(empleado.id, jornadaDelDia(empleado, fechaISO))
+      mapa.set(
+        empleado.id,
+        jornadaDelDia(empleado, fechaISO, horarioNegocio(configuracion))
+      )
     );
     return mapa;
-  }, [profesionales, fechaISO]);
+  }, [profesionales, fechaISO, configuracion]);
 
   /**
    * Rango visible: el de las jornadas del día, ampliado si alguna cita cae
@@ -125,7 +126,7 @@ const CalendarioCitas = ({
    * cortada o directamente invisible.
    */
   const rango = useMemo(() => {
-    const base = rangoDelDia(profesionales, fechaISO);
+    const base = rangoDelDia(profesionales, fechaISO, horarioNegocio(configuracion));
 
     let desde = base.desde;
     let hasta = base.hasta;
@@ -140,7 +141,7 @@ const CalendarioCitas = ({
       desde: desplazarHora(desde, -30),
       hasta: desplazarHora(hasta, 30),
     };
-  }, [profesionales, citas, fechaISO]);
+  }, [profesionales, citas, fechaISO, configuracion]);
 
   return (
     <Box
@@ -204,16 +205,11 @@ const CalendarioCitas = ({
             return;
           }
 
-          onSeleccionarHueco(
-            hueco.start as Date,
-            idRecurso === SIN_ASIGNAR ? null : idRecurso
-          );
+          onSeleccionarHueco(hueco.start as Date, idRecurso);
         }}
         // Cada bloque toma el color de su servicio; las canceladas se atenúan.
         eventPropGetter={(evento) => {
-          const cancelada =
-            evento.cita.estado === "cancelada" ||
-            evento.cita.estado === "no_asistio";
+          const cancelada = evento.cita.estado === "cancelada";
           return {
             style: {
               backgroundColor: `${evento.cita.servicio.color}${cancelada ? "22" : "33"}`,

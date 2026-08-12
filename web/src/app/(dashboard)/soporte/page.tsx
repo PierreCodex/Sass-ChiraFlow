@@ -1,13 +1,60 @@
-import ModuloPendiente from "@/components/shared/ModuloPendiente";
+"use client";
+import { useState } from "react";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import { IconPlus } from "@tabler/icons-react";
 
-export const metadata = { title: "Soporte" };
+import PageContainer from "@/components/container/PageContainer";
+import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import DashboardCard from "@/components/shared/DashboardCard";
+import TicketsFiltro, {
+  type FiltroEstado,
+} from "@/features/soporte/components/TicketsFiltro";
+import TicketsTable from "@/features/soporte/components/TicketsTable";
+import TicketFormDialog from "@/features/soporte/components/TicketFormDialog";
+import TicketDetalleDialog from "@/features/soporte/components/TicketDetalleDialog";
+import type { Ticket } from "@/features/soporte/types";
+
+const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Soporte" }];
 
 export default function SoportePage() {
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [ticketVisto, setTicketVisto] = useState<Ticket | null>(null);
+  const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>(null);
+
   return (
-    <ModuloPendiente
-      titulo="Soporte"
-      descripcion="Tickets de ayuda, documentación y contacto directo con el equipo."
-      endpoint="/api/soporte/tickets"
-    />
+    <PageContainer title="Soporte" description="Tickets de ayuda">
+      <Breadcrumb title="Soporte" items={BCrumb} />
+
+      <Stack spacing={3}>
+        <TicketsFiltro valor={filtroEstado} onChange={setFiltroEstado} />
+
+        <DashboardCard
+          title="Mis tickets"
+          subtitle="Consultas enviadas al equipo de soporte"
+          action={
+            <Button
+              variant="contained"
+              startIcon={<IconPlus size={18} />}
+              onClick={() => setFormAbierto(true)}
+            >
+              Nuevo ticket
+            </Button>
+          }
+        >
+          <TicketsTable filtroEstado={filtroEstado} onVer={setTicketVisto} />
+        </DashboardCard>
+      </Stack>
+
+      <TicketFormDialog
+        abierto={formAbierto}
+        onCerrar={() => setFormAbierto(false)}
+      />
+
+      <TicketDetalleDialog
+        ticket={ticketVisto}
+        onCerrar={() => setTicketVisto(null)}
+      />
+    </PageContainer>
   );
 }

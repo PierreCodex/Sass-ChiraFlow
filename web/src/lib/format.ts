@@ -34,13 +34,19 @@ export function formatFechaLarga(fechaISO: string) {
   );
 }
 
-/** "14:30:00" | "2026-08-09T14:30:00" -> "14:30" */
+/**
+ * "14:30:00" | "2026-08-09T14:30:00" -> "14:30"
+ *
+ * Siempre en 24h: los horarios de trabajo y las citas se manejan así en todo
+ * el sistema, y `es-PE` por defecto formatearía "02:30 p. m.".
+ */
 export function formatHora(hora: string) {
   if (hora.includes("T")) {
     const fecha = new Date(hora);
     return fecha.toLocaleTimeString(env.locale, {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   }
   return hora.slice(0, 5);

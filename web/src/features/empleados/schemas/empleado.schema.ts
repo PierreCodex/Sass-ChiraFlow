@@ -46,6 +46,8 @@ const diaSchema = yup.object({
 const excepcionSchema = yup.object({
   fecha: yup.string().required("Elige una fecha"),
   disponible: yup.boolean().required(),
+  desde: textoOpcional,
+  hasta: textoOpcional,
   nota: textoOpcional,
 });
 
@@ -73,7 +75,7 @@ export const crearEmpleadoSchema = (esEdicion: boolean) =>
     telefono: textoOpcional,
     rol: yup
       .string()
-      .oneOf(["dueno", "administrador", "profesional"] as const)
+      .oneOf(["superadmin", "dueno", "admin", "profesional", "cliente"] as const)
       .required(),
     cargo: textoOpcional,
     activo: yup.boolean().required(),
@@ -81,7 +83,7 @@ export const crearEmpleadoSchema = (esEdicion: boolean) =>
     // --- Pago ---
     tipo_pago: yup
       .string()
-      .oneOf(["comision", "sueldo", "sueldo_comision"] as const)
+      .oneOf(["comision", "sueldo", "ambos"] as const)
       .required(),
     comision_porcentaje: yup
       .number()
@@ -130,7 +132,7 @@ export const valoresIniciales: EmpleadoFormValues = {
   password: "",
   email: null,
   telefono: null,
-  rol: "administrador",
+  rol: "admin",
   cargo: null,
   activo: true,
   tipo_pago: "comision",

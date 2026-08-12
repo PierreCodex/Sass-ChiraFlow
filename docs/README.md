@@ -13,19 +13,19 @@ checklist para validar cada maqueta contra la app actual.
 | [Dashboard](vistas/dashboard.md) | `/` | ✅ Fiel a la app actual |
 | [Suscripción](vistas/suscripcion.md) | (banner global) | ✅ Fiel a la app actual |
 | [Clientes](vistas/clientes.md) | `/clientes` | ✅ Validado contra la app actual |
-| [Citas](vistas/citas.md) | `/citas` | ✅ Formulario validado · ⚠️ tabla supuesta |
+| [Citas](vistas/citas.md) | `/citas` | ✅ Validado contra el backend · ⚠️ tabla supuesta |
 | [Servicios](vistas/servicios.md) | `/servicios` | ✅ Validado contra la app actual |
-| [Categorías](vistas/categorias.md) | `/categorias` | ⚠️ Campos supuestos |
+| [Categorías](vistas/categorias.md) | `/categorias` | ✅ Validado contra el código Laravel |
 | [Empleados](vistas/empleados.md) | `/empleados` | ✅ Validado contra la app actual |
-| [Locales](vistas/locales.md) | `/locales` | ⚠️ Campos supuestos |
+| [Locales](vistas/locales.md) | `/locales` | ✅ Las 4 pestañas validadas contra el código Laravel |
 | [Calendario](vistas/calendario.md) | `/calendario` | ✅ Validado contra la app actual |
-| Caja | `/caja` | ⬜ Sin maquetar |
-| Inventario | `/inventario` | ⬜ Sin maquetar (existe `Producto` para Citas) |
-| Reportes | `/reportes` | ⬜ Sin maquetar |
+| [Caja](vistas/caja.md) | `/caja` | ✅ Validado contra el código Laravel · ⚠️ propone cambios de esquema |
+| [Inventario](vistas/inventario.md) | `/inventario` | ✅ Validado contra el código Laravel · ⚠️ falta `update` en backend |
+| [Reportes](vistas/reportes.md) | `/reportes` | ✅ Validado contra el código Laravel · ⚠️ una gráfica cambia de forma |
 | Mi Plan | `/mi-plan` | ⬜ Sin maquetar |
 | WhatsApp | `/whatsapp` | ⬜ Sin maquetar |
-| Configuración | `/configuracion` | ⬜ Sin maquetar (ya existe el ajuste de intervalo de agenda) |
-| Soporte | `/soporte` | ⬜ Sin maquetar |
+| [Configuración](vistas/configuracion.md) | `/configuracion` | ✅ Validado contra el código Laravel |
+| [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
 
 **Estados:** ✅ construido a partir de la app real · ⚠️ construido con campos
 que inventé, pendientes de validar · ⬜ solo la ruta, sin pantalla.

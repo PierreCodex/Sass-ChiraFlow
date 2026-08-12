@@ -1,5 +1,5 @@
 import { crearHooksRecurso } from "@/lib/query/recurso-hooks";
-import type { Local } from "../types";
+import type { Local, LocalPayload } from "../types";
 import { localesApi } from "../services/locales.api";
 
 export const {
@@ -10,4 +10,4 @@ export const {
   useCrear: useCrearLocal,
   useActualizar: useActualizarLocal,
   useEliminar: useEliminarLocal,
-} = crearHooksRecurso<Local>("locales", localesApi);
+} = crearHooksRecurso<Local, LocalPayload>("locales", localesApi);

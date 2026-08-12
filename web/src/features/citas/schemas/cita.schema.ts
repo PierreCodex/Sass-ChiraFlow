@@ -8,7 +8,7 @@ const textoOpcional = yup
   .defined();
 
 const productoSchema = yup.object({
-  producto_id: yup
+  id: yup
     .number()
     .typeError("Elige un producto")
     .min(1, "Elige un producto")
@@ -25,8 +25,8 @@ export const citaSchema = yup.object({
   empleado_id: yup
     .number()
     .typeError("Elige un profesional")
-    .nullable()
-    .defined(),
+    .min(1, "Elige un profesional")
+    .required("El profesional es obligatorio"),
   servicio_id: yup
     .number()
     .typeError("Elige un servicio")
@@ -48,9 +48,8 @@ export const citaSchema = yup.object({
     .oneOf([
       "pendiente",
       "confirmada",
-      "atendida",
+      "completada",
       "cancelada",
-      "no_asistio",
     ] as const)
     .required(),
   notas: textoOpcional,
@@ -60,7 +59,7 @@ export const citaSchema = yup.object({
 export type CitaFormValues = yup.InferType<typeof citaSchema>;
 
 export const valoresIniciales: CitaFormValues = {
-  empleado_id: null,
+  empleado_id: 0,
   servicio_id: 0,
   fecha: new Date().toISOString().slice(0, 10),
   hora_inicio: "09:00",

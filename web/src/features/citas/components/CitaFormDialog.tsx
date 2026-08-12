@@ -29,6 +29,7 @@ import { IconPlus, IconX } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
+import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useTodosLosClientes } from "@/features/clientes/hooks/useClientes";
@@ -41,6 +42,7 @@ import {
   pasoDeAgenda,
 } from "@/features/calendario/disponibilidad";
 import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
+import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
 import SelectorHuecos from "./SelectorHuecos";
@@ -125,7 +127,11 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     const empleado = empleados.find((e) => e.id === empleadoId);
     if (!empleado) return { huecos: [], motivoVacio: null };
 
-    const jornada = jornadaDelDia(empleado, fechaElegida);
+    const jornada = jornadaDelDia(
+      empleado,
+      fechaElegida,
+      horarioNegocio(configuracion)
+    );
     if (!jornada.trabaja) {
       return {
         huecos: [],
@@ -137,7 +143,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     const ocupados = citasDelDia
       .filter(
         (c) =>
-          c.empleado?.id === empleadoId &&
+          c.empleado.id === empleadoId &&
           c.id !== cita?.id &&
           c.estado !== "cancelada"
       )
@@ -177,7 +183,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     reset(
       cita
         ? {
-            empleado_id: cita.empleado?.id ?? null,
+            empleado_id: cita.empleado.id,
             servicio_id: cita.servicio.id,
             fecha: cita.fecha,
             hora_inicio: cita.hora_inicio,
@@ -189,7 +195,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
             estado: cita.estado,
             notas: cita.notas,
             productos: cita.productos.map((p) => ({
-              producto_id: p.producto_id,
+              id: p.producto_id,
               cantidad: p.cantidad,
             })),
           }
@@ -253,7 +259,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
         <Divider />
 
-        <DialogContent>
+        <DialogContent sx={formularioCompacto}>
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}
@@ -271,10 +277,8 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 render={({ field }) => (
                   <CustomTextField
                     {...field}
-                    value={field.value ?? ""}
-                    onChange={(e: any) =>
-                      field.onChange(e.target.value === "" ? null : Number(e.target.value))
-                    }
+                    value={field.value || ""}
+                    onChange={(e: any) => field.onChange(Number(e.target.value))}
                     select
                     id="empleado_id"
                     fullWidth
@@ -282,7 +286,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     helperText={errors.empleado_id?.message}
                     slotProps={{ select: { displayEmpty: true } }}
                   >
-                    <MenuItem value="">Sin asignar</MenuItem>
+                    <MenuItem value="">-- Elegir profesional --</MenuItem>
                     {profesionales.map((empleado) => (
                       <MenuItem key={empleado.id} value={empleado.id}>
                         {empleado.nombre}
@@ -343,6 +347,23 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     error={!!errors.fecha}
                     helperText={errors.fecha?.message}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <CustomFormLabel htmlFor="estado">Estado</CustomFormLabel>
+              <Controller
+                name="estado"
+                control={control}
+                render={({ field }) => (
+                  <CustomTextField {...field} select id="estado" fullWidth>
+                    {Object.entries(ESTADOS_CITA).map(([valor, config]) => (
+                      <MenuItem key={valor} value={valor}>
+                        {config.label}
+                      </MenuItem>
+                    ))}
+                  </CustomTextField>
                 )}
               />
             </Grid>
@@ -473,23 +494,6 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomFormLabel htmlFor="estado">Estado</CustomFormLabel>
-              <Controller
-                name="estado"
-                control={control}
-                render={({ field }) => (
-                  <CustomTextField {...field} select id="estado" fullWidth>
-                    {Object.entries(ESTADOS_CITA).map(([valor, config]) => (
-                      <MenuItem key={valor} value={valor}>
-                        {config.label}
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
-                )}
-              />
-            </Grid>
-
             <Grid size={12}>
               <CustomFormLabel htmlFor="notas">Notas</CustomFormLabel>
               <Controller
@@ -519,7 +523,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 {filasProducto.map((fila, i) => (
                   <Stack key={fila.id} direction="row" spacing={1} alignItems="flex-start">
                     <Controller
-                      name={`productos.${i}.producto_id`}
+                      name={`productos.${i}.id`}
                       control={control}
                       render={({ field }) => (
                         <CustomTextField
@@ -529,14 +533,14 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                           select
                           fullWidth
                           size="small"
-                          error={!!errors.productos?.[i]?.producto_id}
-                          helperText={errors.productos?.[i]?.producto_id?.message}
+                          error={!!errors.productos?.[i]?.id}
+                          helperText={errors.productos?.[i]?.id?.message}
                           slotProps={{ select: { displayEmpty: true } }}
                         >
                           <MenuItem value="">-- Seleccionar producto --</MenuItem>
                           {productos.map((producto) => (
                             <MenuItem key={producto.id} value={producto.id}>
-                              {producto.nombre} ({formatMoneda(producto.precio)})
+                              {producto.nombre} ({formatMoneda(producto.precio_venta)})
                             </MenuItem>
                           ))}
                         </CustomTextField>
@@ -574,7 +578,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                   <Button
                     size="small"
                     startIcon={<IconPlus size={16} />}
-                    onClick={() => agregarProducto({ producto_id: 0, cantidad: 1 })}
+                    onClick={() => agregarProducto({ id: 0, cantidad: 1 })}
                   >
                     Agregar producto
                   </Button>

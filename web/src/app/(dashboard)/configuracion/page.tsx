@@ -1,13 +1,15 @@
-import ModuloPendiente from "@/components/shared/ModuloPendiente";
+"use client";
+import PageContainer from "@/components/container/PageContainer";
+import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import ConfiguracionForm from "@/features/configuracion/components/ConfiguracionForm";
 
-export const metadata = { title: "Configuración" };
+const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Configuración" }];
 
 export default function ConfiguracionPage() {
   return (
-    <ModuloPendiente
-      titulo="Configuración"
-      descripcion="Datos del negocio, horarios, zona horaria, moneda y políticas de reserva."
-      endpoint="/api/configuracion"
-    />
+    <PageContainer title="Configuración" description="Ajustes del negocio">
+      <Breadcrumb title="Configuración" items={BCrumb} />
+      <ConfiguracionForm />
+    </PageContainer>
   );
 }

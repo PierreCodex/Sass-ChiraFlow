@@ -27,11 +27,13 @@ import { useTheme } from "@mui/material/styles";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
+import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import {
   PAGO_INCLUYE_COMISION,
   PAGO_INCLUYE_SUELDO,
   PERIODOS_PAGO,
+  ROLES_ASIGNABLES,
   ROLES_EMPLEADO,
   TIPOS_PAGO,
   horarioPorDefecto,
@@ -226,7 +228,9 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
 
         <Divider />
 
-        <DialogContent>
+        {/* minHeight: sin esto el diálogo encoge al pasar a "Pago" (que tiene
+            pocos campos) y los botones saltan bajo el cursor. */}
+        <DialogContent sx={{ ...formularioCompacto, minHeight: 600 }}>
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}
@@ -360,9 +364,11 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
                   control={control}
                   render={({ field }) => (
                     <CustomTextField {...field} select id="rol" fullWidth>
-                      {Object.entries(ROLES_EMPLEADO).map(([valor, label]) => (
+                      {/* Solo los roles del negocio: `superadmin` es de la
+                          plataforma y `cliente` se crea al reservar. */}
+                      {ROLES_ASIGNABLES.map((valor) => (
                         <MenuItem key={valor} value={valor}>
-                          {label}
+                          {ROLES_EMPLEADO[valor]}
                         </MenuItem>
                       ))}
                     </CustomTextField>

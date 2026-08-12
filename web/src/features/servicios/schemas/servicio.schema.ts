@@ -1,5 +1,6 @@
 import * as yup from "yup";
 import type { ImagenSeleccionada } from "@/components/shared/CampoImagenes";
+import { TIPOS_CON_SESIONES } from "../constants";
 import { MAX_GALERIA } from "../types";
 
 /**
@@ -20,7 +21,22 @@ export const servicioSchema = yup.object({
     .transform((valor, original) => (original === "" ? null : valor))
     .nullable()
     .defined(),
-  tipo: yup.string().oneOf(["normal"] as const).required(),
+  tipo: yup.string().oneOf(["normal", "sesiones", "clases", "paquete"] as const).required(),
+  max_sesiones: yup
+    .number()
+    .transform((valor, original) =>
+      original === "" || original === null ? null : valor
+    )
+    .typeError("Escribe un número")
+    .integer("Debe ser un número entero")
+    .min(1, "Debe ser mayor que 0")
+    .nullable()
+    .defined()
+    // Obligatorio solo en los tipos que se venden por sesiones.
+    .test("requerido-por-tipo", "Indica cuántas sesiones incluye", function (valor) {
+      if (!TIPOS_CON_SESIONES.includes(this.parent.tipo)) return true;
+      return valor !== null && valor !== undefined;
+    }),
   precio: yup
     .number()
     .typeError("Escribe el precio")
@@ -48,6 +64,7 @@ export const valoresIniciales: ServicioFormValues = {
   color: "#763EBD",
   categoria_id: null,
   tipo: "normal",
+  max_sesiones: null,
   precio: 0,
   duracion_min: 30,
   imagen_principal: [],

@@ -1,9 +1,15 @@
 import { crearRecurso } from "@/lib/api/recurso";
-import type { Categoria } from "../types";
+import type { Categoria, CategoriaPayload } from "../types";
 import { categoriasMock } from "../mocks";
 
-export const categoriasApi = crearRecurso<Categoria>({
-  path: "categorias",
+export const categoriasApi = crearRecurso<Categoria, CategoriaPayload>({
+  path: "categorias-servicios",
   mocks: categoriasMock,
   camposBusqueda: ["nombre", "descripcion"],
+  // Sube imagen: no puede ir como JSON.
+  enviarComoFormData: true,
+  valoresPorDefecto: { servicios_count: 0, imagen_url: null },
+  alGuardarMock: (payload: CategoriaPayload) => ({
+    imagen_url: payload.imagen ? URL.createObjectURL(payload.imagen) : null,
+  }),
 });

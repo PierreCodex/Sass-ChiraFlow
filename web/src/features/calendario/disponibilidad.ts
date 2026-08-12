@@ -1,10 +1,22 @@
 import type { BreakHorario, Empleado } from "@/features/empleados/types";
+import type {
+  ConfiguracionAgenda,
+  HorarioNegocio,
+} from "@/features/configuracion/types";
 
 /** JS usa 0 = domingo; el horario del empleado usa ISO-8601 (1 = lunes). */
 export function diaIso(fechaISO: string) {
   const dia = new Date(`${fechaISO}T00:00:00`).getDay();
   return dia === 0 ? 7 : dia;
 }
+
+/** De dónde salió el horario que se está aplicando ese día. */
+export type OrigenJornada =
+  | "personalizado"
+  | "excepcion"
+  | "excepcion_inactiva"
+  | "no_laborable"
+  | "negocio";
 
 export interface JornadaDia {
   trabaja: boolean;
@@ -13,39 +25,73 @@ export interface JornadaDia {
   breaks: BreakHorario[];
   /** Nota de la excepción de ese día, si la hay. */
   nota: string | null;
+  origen: OrigenJornada;
 }
 
-const NO_TRABAJA: JornadaDia = {
-  trabaja: false,
-  desde: null,
-  hasta: null,
-  breaks: [],
-  nota: null,
-};
+function noTrabaja(origen: OrigenJornada, nota: string | null = null): JornadaDia {
+  return { trabaja: false, desde: null, hasta: null, breaks: [], nota, origen };
+}
 
 /**
  * Jornada de un profesional en una fecha concreta.
  *
- * Las excepciones mandan sobre el horario semanal: una excepción con
- * `disponible: false` deja el día entero sin atención, aunque el horario diga
- * que trabaja.
+ * Replica la precedencia de `ReservaController::generarHorarios` en Laravel:
+ *
+ * 1. Excepción con `disponible: false` → no atiende ese día.
+ * 2. Excepción con `disponible: true` → **manda su propio horario**, que puede
+ *    diferir del habitual (medio turno, refuerzo, cubrir a un compañero).
+ * 3. Horario propio y el día está activo → ese horario, con sus breaks.
+ * 4. Horario propio pero el día no está activo → no laborable.
+ * 5. **Sin horario propio → se usa el horario del negocio.** Un profesional
+ *    recién creado atiende en el horario general, no queda sin agenda.
  */
-export function jornadaDelDia(empleado: Empleado, fechaISO: string): JornadaDia {
+export function jornadaDelDia(
+  empleado: Empleado,
+  fechaISO: string,
+  horarioNegocio?: HorarioNegocio
+): JornadaDia {
   const excepcion = empleado.excepciones?.find((e) => e.fecha === fechaISO);
 
   if (excepcion && !excepcion.disponible) {
-    return { ...NO_TRABAJA, nota: excepcion.nota ?? "No disponible" };
+    return noTrabaja("excepcion_inactiva", excepcion.nota ?? "No disponible");
   }
 
-  const dia = empleado.horario?.find((h) => h.dia === diaIso(fechaISO));
-  if (!dia || !dia.activo) return NO_TRABAJA;
+  // Una excepción disponible reemplaza el horario del día.
+  if (excepcion?.disponible) {
+    return {
+      trabaja: true,
+      desde: excepcion.desde ?? "09:00",
+      hasta: excepcion.hasta ?? "18:00",
+      breaks: [],
+      nota: excepcion.nota ?? null,
+      origen: "excepcion",
+    };
+  }
 
+  const tieneHorarioPropio = !!empleado.horario?.length;
+  const dia = empleado.horario?.find((h) => h.dia === diaIso(fechaISO));
+
+  if (tieneHorarioPropio && dia?.activo) {
+    return {
+      trabaja: true,
+      desde: dia.desde,
+      hasta: dia.hasta,
+      breaks: dia.breaks ?? [],
+      nota: null,
+      origen: "personalizado",
+    };
+  }
+
+  if (tieneHorarioPropio) return noTrabaja("no_laborable");
+
+  // Sin horario propio: rige el del negocio.
   return {
     trabaja: true,
-    desde: dia.desde,
-    hasta: dia.hasta,
-    breaks: dia.breaks ?? [],
-    nota: excepcion?.nota ?? null,
+    desde: horarioNegocio?.apertura ?? "09:00",
+    hasta: horarioNegocio?.cierre ?? "20:00",
+    breaks: [],
+    nota: null,
+    origen: "negocio",
   };
 }
 
@@ -65,10 +111,11 @@ export function atiendeA(jornada: JornadaDia, hora: string) {
 export function rangoDelDia(
   empleados: Empleado[],
   fechaISO: string,
+  horarioNegocio?: HorarioNegocio,
   porDefecto = { desde: "08:00", hasta: "20:00" }
 ) {
   const jornadas = empleados
-    .map((empleado) => jornadaDelDia(empleado, fechaISO))
+    .map((empleado) => jornadaDelDia(empleado, fechaISO, horarioNegocio))
     .filter((jornada) => jornada.trabaja);
 
   if (jornadas.length === 0) return porDefecto;
@@ -102,8 +149,6 @@ export interface Ocupado {
   inicio: string;
   fin: string;
 }
-
-import type { ConfiguracionAgenda } from "@/features/configuracion/types";
 
 /** Paso de la rejilla si aún no se cargó la configuración del negocio. */
 export const PASO_AGENDA_POR_DEFECTO = 15;

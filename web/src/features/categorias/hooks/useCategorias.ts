@@ -1,5 +1,5 @@
 import { crearHooksRecurso } from "@/lib/query/recurso-hooks";
-import type { Categoria } from "../types";
+import type { Categoria, CategoriaPayload } from "../types";
 import { categoriasApi } from "../services/categorias.api";
 
 export const {
@@ -10,4 +10,4 @@ export const {
   useCrear: useCrearCategoria,
   useActualizar: useActualizarCategoria,
   useEliminar: useEliminarCategoria,
-} = crearHooksRecurso<Categoria>("categorias", categoriasApi);
+} = crearHooksRecurso<Categoria, CategoriaPayload>("categorias", categoriasApi);

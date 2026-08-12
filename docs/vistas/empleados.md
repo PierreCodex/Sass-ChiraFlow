@@ -178,11 +178,63 @@ profesionales de tu plan."]}}` se pinta solo en el campo Rol.
 
 ```json
 {
-  "fecha": "2026-08-10",
+  "fecha": "2026-08-13",
   "disponible": false,
+  "desde": null,
+  "hasta": null,
   "nota": "Permiso por emergencia familiar"
 }
 ```
+
+Con `disponible: true`, **`desde` y `hasta` reemplazan el horario de ese día**:
+
+```json
+{
+  "fecha": "2026-08-14",
+  "disponible": true,
+  "desde": "09:00",
+  "hasta": "13:00",
+  "nota": "Medio turno"
+}
+```
+
+Una excepción no solo quita disponibilidad: también puede añadirla con otro
+horario. El formulario muestra los campos de hora solo cuando es `Disponible`.
+
+---
+
+## ⚠️ Formato real del horario en Laravel
+
+El frontend trabaja con un **array de 7 días**, que es lo cómodo para
+renderizar. Laravel lo guarda distinto, en la columna JSON `users.horario`:
+
+```json
+{
+  "dias": {
+    "lunes":  { "activo": true, "inicio": "09:00", "fin": "18:00",
+                "breaks": [{ "inicio": "13:00", "fin": "14:00" }] },
+    "martes": { "activo": true, "inicio": "09:00", "fin": "18:00", "breaks": [] }
+  },
+  "excepciones": [
+    { "fecha": "2026-08-14", "activo": true,
+      "inicio": "09:00", "fin": "13:00", "nota": "Medio turno" }
+  ]
+}
+```
+
+Tres diferencias con el formato del frontend:
+
+| Concepto | Frontend | Laravel |
+|---|---|---|
+| Días | Array, `dia: 1..7` | Objeto, claves `lunes`…`domingo` sin tilde |
+| Horas | `desde` / `hasta` | `inicio` / `fin` |
+| Excepción disponible | `disponible` | `activo` |
+| Excepciones | Campo aparte | **Dentro** del mismo JSON `horario` |
+
+**Al conectar hace falta un adaptador** en
+`features/empleados/services/empleados.api.ts` que traduzca en ambos sentidos.
+No conviene cambiar el formato del frontend: el array indexado es lo que hace
+simple el `useFieldArray` del formulario.
 
 ### `tipo_pago` y `periodo_pago` — confirmados a medias
 

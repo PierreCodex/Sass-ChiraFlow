@@ -17,7 +17,7 @@ function resumenMock(): ResumenDashboard {
   const ventasUltimosDias = Array.from({ length: 7 }, (_, i) => {
     const fecha = haceDias(6 - i);
     const total = citasMock
-      .filter((cita) => cita.fecha === fecha && cita.estado === "atendida")
+      .filter((cita) => cita.fecha === fecha && cita.estado === "completada")
       .reduce((suma, cita) => suma + cita.monto, 0);
     return { fecha, total };
   });
@@ -28,7 +28,7 @@ function resumenMock(): ResumenDashboard {
       .length,
     total_clientes: clientesMock.length,
     ingresos_hoy: citasDeHoy
-      .filter((cita) => cita.estado === "atendida")
+      .filter((cita) => cita.estado === "completada")
       .reduce((suma, cita) => suma + cita.monto, 0),
     ventas_ultimos_dias: ventasUltimosDias,
     citas_del_dia: citasDeHoy.map((cita) => ({

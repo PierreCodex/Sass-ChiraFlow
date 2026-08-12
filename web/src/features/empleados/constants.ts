@@ -5,18 +5,34 @@ import type {
   TipoPago,
 } from "./types";
 
+/**
+ * Roles del enum real de `users.rol`:
+ *   enum('superadmin', 'dueno', 'admin', 'profesional', 'cliente')
+ */
 export const ROLES_EMPLEADO: Record<RolEmpleado, string> = {
+  superadmin: "Superadmin",
   dueno: "Dueño",
-  administrador: "Administrador",
+  admin: "Administrador",
   profesional: "Profesional",
+  cliente: "Cliente",
 };
 
+/**
+ * Roles que se ofrecen al dar de alta personal.
+ *
+ * `superadmin` es de la plataforma, no del negocio; `cliente` se crea al
+ * reservar, no desde aquí.
+ */
+export const ROLES_ASIGNABLES: RolEmpleado[] = ["dueno", "admin", "profesional"];
+
+/** `users.tipo_pago`: enum('comision', 'sueldo', 'ambos') */
 export const TIPOS_PAGO: Record<TipoPago, string> = {
   comision: "Por comisión",
   sueldo: "Sueldo fijo",
-  sueldo_comision: "Sueldo + comisión",
+  ambos: "Sueldo + comisión",
 };
 
+/** `users.sueldo_periodo`: enum('mensual', 'quincenal', 'semanal') */
 export const PERIODOS_PAGO: Record<PeriodoPago, string> = {
   semanal: "Semanal",
   quincenal: "Quincenal",
@@ -24,8 +40,8 @@ export const PERIODOS_PAGO: Record<PeriodoPago, string> = {
 };
 
 /** Qué campos de pago se muestran según el tipo elegido. */
-export const PAGO_INCLUYE_COMISION: TipoPago[] = ["comision", "sueldo_comision"];
-export const PAGO_INCLUYE_SUELDO: TipoPago[] = ["sueldo", "sueldo_comision"];
+export const PAGO_INCLUYE_COMISION: TipoPago[] = ["comision", "ambos"];
+export const PAGO_INCLUYE_SUELDO: TipoPago[] = ["sueldo", "ambos"];
 
 /** Solo los profesionales consumen cupo del plan. */
 export const ROL_QUE_CONSUME_PLAN: RolEmpleado = "profesional";

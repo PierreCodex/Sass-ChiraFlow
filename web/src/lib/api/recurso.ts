@@ -27,6 +27,12 @@ interface ConfigRecurso<T> {
    * multipart/form-data en vez de JSON.
    */
   enviarComoFormData?: boolean;
+  /**
+   * Filtros extra del listado (`estado`, `prioridad`…) en modo mock. Se aplica
+   * antes de buscar y paginar. Con el backend real los mismos parámetros
+   * viajan como query params y los resuelve Laravel.
+   */
+  filtrosMock?: (item: T, params: ListParams) => boolean;
 }
 
 /**
@@ -46,6 +52,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     valoresPorDefecto = {},
     alGuardarMock,
     enviarComoFormData = false,
+    filtrosMock,
   } = config;
 
   // Copia mutable: create/update/remove afectan a la sesión actual.
@@ -62,7 +69,10 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     list: async (params: ListParams = {}): Promise<Paginated<T>> => {
       if (env.usarMocks) {
         await delay();
-        return paginar(memoria, params, camposBusqueda);
+        const filtrados = filtrosMock
+          ? memoria.filter((item) => filtrosMock(item, params))
+          : memoria;
+        return paginar(filtrados, params, camposBusqueda);
       }
       const { data } = await api.get<Paginated<T>>(`/${path}`, { params });
       return data;

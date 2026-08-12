@@ -31,4 +31,9 @@ export interface ListParams {
   per_page?: number;
   search?: string;
   sort?: string;
+  /**
+   * Filtros propios de cada módulo (`estado`, `prioridad`…). Se envían tal
+   * cual como query params; en modo mock los resuelve `filtrosMock`.
+   */
+  [filtro: string]: string | number | undefined;
 }
