@@ -2,6 +2,7 @@ import type { Configuracion } from "./types";
 
 export const configuracionMock: Configuracion = {
   nombre: "CLINICA EL ROSAL",
+  slug: "clinica-el-rosal",
   descripcion:
     "Atención médica, odontología y laboratorio con más de 10 años de experiencia.",
   email: "contacto@elrosal.pe",

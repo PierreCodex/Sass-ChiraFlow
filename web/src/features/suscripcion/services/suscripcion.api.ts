@@ -1,39 +1,55 @@
 import { api } from "@/lib/api/client";
 import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
-import type { Plan, Suscripcion } from "../types";
+import type { Plan, SolicitudPlanPayload, Suscripcion } from "../types";
+import { planesMock, suscripcionMock } from "../mocks";
 
-const suscripcionMock: Suscripcion = {
-  estado: "prueba",
-  plan: null,
-  dias_restantes: 5,
-  renueva_el: null,
-};
-
-const planesMock: Plan[] = [
-  { id: 1, nombre: "Básico", precio: 49, periodo: "mensual" },
-  { id: 2, nombre: "Profesional", precio: 89, periodo: "mensual" },
-  { id: 3, nombre: "Empresarial", precio: 149, periodo: "mensual" },
-];
+// Copia mutable: los extras contratados cambian dentro de la sesión.
+let suscripcion: Suscripcion = { ...suscripcionMock };
 
 export const suscripcionApi = {
   /** Estado de la suscripción del tenant actual. */
   actual: async (): Promise<Suscripcion> => {
     if (env.usarMocks) {
       await delay(200);
-      return suscripcionMock;
+      return suscripcion;
     }
     const { data } = await api.get<{ data: Suscripcion }>("/suscripcion");
     return data.data;
   },
 
-  /** Planes disponibles para la pantalla "Mi Plan". */
+  /** Planes disponibles, ordenados por precio como en Laravel. */
   planes: async (): Promise<Plan[]> => {
     if (env.usarMocks) {
-      await delay(200);
-      return planesMock;
+      await delay(250);
+      return [...planesMock].sort(
+        (a, b) => a.precio_mensual - b.precio_mensual
+      );
     }
     const { data } = await api.get<{ data: Plan[] }>("/planes");
     return data.data;
+  },
+
+  /**
+   * Pide el cambio de plan.
+   *
+   * ⚠️ **No cobra nada.** `PlanController::solicitar` solo abre un ticket de
+   * soporte con el desglose para que el equipo contacte al negocio. Ver
+   * `docs/vistas/mi-plan.md`.
+   */
+  solicitar: async (payload: SolicitudPlanPayload): Promise<void> => {
+    if (env.usarMocks) {
+      await delay(600);
+      suscripcion = {
+        ...suscripcion,
+        extra_profesionales: payload.extra_profesionales,
+        extra_whatsapp: payload.extra_whatsapp,
+      };
+      return;
+    }
+    await api.post(`/plan/${payload.plan_id}/solicitar`, {
+      extra_profesionales: payload.extra_profesionales,
+      extra_whatsapp: payload.extra_whatsapp,
+    });
   },
 };

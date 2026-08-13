@@ -19,13 +19,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useTodasLasCategorias } from "@/features/categorias/hooks/useCategorias";
 import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
@@ -47,7 +46,6 @@ interface Props {
 
 const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
 
   const esEdicion = !!servicio;
   const crear = useCrearServicio();
@@ -145,11 +143,11 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="md"
-      fullScreen={pantallaChica}
     >
       {/* El form envuelve todo el diálogo, así que tiene que comportarse como
           la columna flex del Paper: si no, scrollea el diálogo entero y el

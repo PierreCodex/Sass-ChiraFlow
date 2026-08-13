@@ -23,13 +23,12 @@ import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { IconPlus, IconX } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useTodosLosClientes } from "@/features/clientes/hooks/useClientes";
@@ -65,7 +64,6 @@ interface Props {
 
 const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
 
   const esEdicion = !!cita;
   const crear = useCrearCita();
@@ -233,11 +231,11 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="sm"
-      fullScreen={pantallaChica}
     >
       <Box
         component="form"

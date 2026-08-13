@@ -22,13 +22,31 @@ checklist para validar cada maqueta contra la app actual.
 | [Caja](vistas/caja.md) | `/caja` | ✅ Validado contra el código Laravel · ⚠️ propone cambios de esquema |
 | [Inventario](vistas/inventario.md) | `/inventario` | ✅ Validado contra el código Laravel · ⚠️ falta `update` en backend |
 | [Reportes](vistas/reportes.md) | `/reportes` | ✅ Validado contra el código Laravel · ⚠️ una gráfica cambia de forma |
-| Mi Plan | `/mi-plan` | ⬜ Sin maquetar |
-| WhatsApp | `/whatsapp` | ⬜ Sin maquetar |
+| [Mi Plan](vistas/mi-plan.md) | `/mi-plan` | ✅ Validado contra el código Laravel · ⚠️ no hay pasarela de pago |
+| [WhatsApp](vistas/whatsapp.md) | `/whatsapp` | ✅ Validado contra el código Laravel |
 | [Configuración](vistas/configuracion.md) | `/configuracion` | ✅ Validado contra el código Laravel |
 | [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
 
-**Estados:** ✅ construido a partir de la app real · ⚠️ construido con campos
-que inventé, pendientes de validar · ⬜ solo la ruta, sin pantalla.
+> **Documentos de conjunto**
+> - [lectura-del-backend.md](lectura-del-backend.md) — qué pretendía el
+>   backend actual, qué conservar y qué rehacer
+> - [plan-backend.md](plan-backend.md) — cómo levantar el backend nuevo:
+>   decisiones, orden de construcción y tablas que faltan
+> - [flujos.md](flujos.md) — 12 diagramas del sistema, listos para Excalidraw
+
+### Fuera del panel
+
+| Vista | Ruta | Estado |
+|---|---|---|
+| [Tienda pública](vistas/tienda-publica.md) | `{slug}.dominio.com` · `/reservar/{slug}` | ✅ Validado contra el código Laravel · ⚠️ falta mapa y SEO |
+
+**Estados:** ✅ construido a partir de la app real · ⚠️ tiene una decisión
+abierta o una divergencia deliberada, explicada en su ficha.
+
+> **El maquetado está completo.** Las 16 vistas del panel más la tienda
+> pública están construidas con datos ficticios y documentadas. El siguiente
+> paso es la conexión con Laravel: apagar `NEXT_PUBLIC_USE_MOCKS` y resolver
+> los pendientes que cada ficha lista al final.
 
 Para añadir una vista nueva, copia [`vistas/_plantilla.md`](vistas/_plantilla.md).
 
@@ -119,6 +137,39 @@ features/<modulo>/services/       el fetch (o el mock)
         ↓
 lib/api/client.ts                 axios
 ```
+
+### Los diálogos en móvil
+
+Los 19 diálogos comparten `dialogoResponsive`
+(`components/shared/estilos-formulario.ts`). En escritorio no cambia nada:
+siguen centrados con su `maxWidth`. **Por debajo de `sm` se anclan abajo como
+hoja inferior**, ocupando solo lo que necesitan.
+
+Antes cada diálogo decidía por su cuenta con `fullScreen={pantallaChica}`, y
+eso daba dos problemas:
+
+- **Espacio muerto.** `fullScreen` mira el ancho de la pantalla, no el
+  contenido: el formulario de cliente son tres campos y ocupaba 844px con 450
+  en blanco.
+- **No había cómo salir.** A pantalla completa no queda fondo que tocar y los
+  diálogos no llevan aspa: para cerrar había que bajar hasta "Cancelar".
+
+Además solo 9 de 19 lo aplicaban, así que el comportamiento cambiaba de un
+módulo a otro.
+
+Ahora cada uno se ajusta a su contenido, con tope del 92% del alto:
+
+| Diálogo | Alto en móvil |
+|---|---|
+| Confirmar eliminación | 194 px |
+| Nuevo cliente | 453 px |
+| Nuevo producto | 527 px |
+| Nuevo ticket | 605 px |
+| Servicio · Cita · Local · Plantilla | 776 px (tope) |
+
+El estilo incluye también `minHeight: 0` en `DialogContent`: un hijo flex no
+encoge por debajo de su contenido, y en Empleados eso empujaba la botonera 8px
+fuera del panel, donde no se podía pulsar.
 
 ### El switch de datos ficticios
 

@@ -24,6 +24,7 @@ import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
 import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import EnlaceTienda from "./EnlaceTienda";
 import { toApiError } from "@/lib/api/client";
 import { useConfiguracion, useGuardarConfiguracion } from "../hooks/useConfiguracion";
 import {
@@ -138,7 +139,17 @@ const ConfiguracionForm = () => {
   const errorGeneral = guardar.isError ? toApiError(guardar.error) : null;
 
   return (
-    <BlankCard>
+    <Stack spacing={3}>
+      {/*
+        Encima de las pestañas y siempre visible, como en la app actual: es lo
+        que el dueño viene a buscar cuando entra aquí.
+      */}
+      <EnlaceTienda
+        slug={configuracion!.slug}
+        nombreNegocio={configuracion!.nombre}
+      />
+
+      <BlankCard>
       <Box component="form" onSubmit={onSubmit} noValidate>
         <Box px={3} pt={1}>
           <Tabs
@@ -589,7 +600,8 @@ const ConfiguracionForm = () => {
           </Button>
         </Box>
       </Box>
-    </BlankCard>
+      </BlankCard>
+    </Stack>
   );
 };
 

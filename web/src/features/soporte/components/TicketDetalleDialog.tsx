@@ -10,6 +10,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+
+import { dialogoResponsive } from "@/components/shared/estilos-formulario";
 import { IconHeadset, IconUser } from "@tabler/icons-react";
 
 import { formatFecha, formatHora } from "@/lib/format";
@@ -70,7 +72,8 @@ const TicketDetalleDialog = ({ ticket, onCerrar }: Props) => {
   const prioridad = ticket ? PRIORIDADES_TICKET[ticket.prioridad] : null;
 
   return (
-    <Dialog open={!!ticket} onClose={onCerrar} fullWidth maxWidth="sm">
+    <Dialog
+      sx={dialogoResponsive} open={!!ticket} onClose={onCerrar} fullWidth maxWidth="sm">
       {ticket ? (
         <>
           <DialogTitle component="div">

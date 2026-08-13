@@ -14,13 +14,12 @@ import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useActualizarCategoria, useCrearCategoria } from "../hooks/useCategorias";
 import {
@@ -38,7 +37,6 @@ interface Props {
 
 const CategoriaFormDialog = ({ abierto, categoria, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
 
   const esEdicion = !!categoria;
   const crear = useCrearCategoria();
@@ -110,11 +108,11 @@ const CategoriaFormDialog = ({ abierto, categoria, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="sm"
-      fullScreen={pantallaChica}
     >
       <Box
         component="form"

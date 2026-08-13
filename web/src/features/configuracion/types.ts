@@ -36,6 +36,14 @@ export interface HorarioNegocio {
 export interface Configuracion {
   // --- Negocio ---
   nombre: string;
+  /**
+   * Identificador del negocio en la URL: `clinica-el-rosal`.
+   *
+   * Es lo que forma su subdominio y su enlace público de reservas. Se genera
+   * al registrarse a partir del nombre y **no se edita aquí**: cambiarlo
+   * rompería todos los enlaces que el negocio ya repartió.
+   */
+  slug: string;
   descripcion: string | null;
   email: string | null;
   telefono: string | null;

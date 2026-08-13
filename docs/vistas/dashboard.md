@@ -18,6 +18,7 @@ la gráfica de ventas de la semana y la lista de citas de hoy.
 
 | Elemento | Componente | Descripción |
 |---|---|---|
+| Enlace de la tienda | `EnlaceTiendaDashboard.tsx` | URL pública + Ver mi sitio · Copiar · Compartir |
 | KPIs | `StatsCards.tsx` | Citas hoy, Pendientes, Clientes, Ingresos hoy |
 | Gráfica | `VentasChart.tsx` | Barras, ventas de los últimos 7 días |
 | Lista | `CitasDeHoy.tsx` | Citas del día con hora, cliente, servicio y estado |
@@ -110,6 +111,25 @@ Sin parámetros.
 | `estado` | enum | `pendiente` · `confirmada` · `atendida` · `cancelada` · `no_asistio` |
 
 Los colores de cada estado están en `web/src/features/citas/constants.ts`.
+
+---
+
+## El enlace de la tienda
+
+Lo primero de la pantalla. Muestra la URL pública del negocio y tres acciones:
+**Ver mi sitio**, **Copiar** y **Compartir** (abre WhatsApp con el mensaje ya
+escrito: *"Ya puedes reservar tu cita en X desde aquí: …"*).
+
+La URL se arma igual que `subdominio_url()` en Laravel: con
+`NEXT_PUBLIC_APP_DOMAIN` puesto va por subdominio, y sin él por ruta. Así lo
+que se ve en el panel es **exactamente** lo que el negocio va a repartir.
+
+El mismo componente aparece en Configuración, encima de las pestañas, tal como
+en la app actual.
+
+> El botón de **copiar** no está en el Blade y es la acción que más se hace:
+> el dueño no quiere abrir su web, quiere pegar el enlace en su Instagram o su
+> estado de WhatsApp.
 
 ---
 

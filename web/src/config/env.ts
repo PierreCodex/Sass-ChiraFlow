@@ -13,6 +13,15 @@ export const env = {
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Mi SaaS",
 
   /**
+   * Dominio raíz para las tiendas públicas por subdominio:
+   * `mademoiselle.lienaben.com`. Equivale a `config('app.domain')` en Laravel.
+   *
+   * Si queda vacío, el middleware no reescribe nada y las tiendas se sirven
+   * solo por ruta (`/reservar/{slug}`), igual que el fallback del backend.
+   */
+  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN ?? "",
+
+  /**
    * Formato de números y fechas.
    *
    * Los valores por defecto son los reales del proyecto, no genéricos:

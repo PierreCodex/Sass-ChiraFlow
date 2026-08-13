@@ -16,12 +16,11 @@ import Grid from "@mui/material/Grid";
 import InputAdornment from "@mui/material/InputAdornment";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useActualizarProducto, useCrearProducto } from "../hooks/useProductos";
 import type { Producto, ProductoPayload } from "../types";
@@ -83,7 +82,6 @@ interface Props {
 
 const ProductoFormDialog = ({ abierto, producto, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
 
   const esEdicion = !!producto;
   const crear = useCrearProducto();
@@ -150,11 +148,11 @@ const ProductoFormDialog = ({ abierto, producto, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="sm"
-      fullScreen={pantallaChica}
     >
       <Box
         component="form"

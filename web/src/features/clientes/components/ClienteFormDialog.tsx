@@ -13,12 +13,11 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useCrearCliente } from "../hooks/useClientes";
 import {
@@ -34,7 +33,6 @@ interface Props {
 
 const ClienteFormDialog = ({ abierto, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
   const crear = useCrearCliente();
 
   const {
@@ -79,11 +77,11 @@ const ClienteFormDialog = ({ abierto, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={crear.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="sm"
-      fullScreen={pantallaChica}
     >
       {/* Mismo motivo que en ServicioFormDialog: el form es la columna flex
           del Paper, para que scrollee el contenido y no el diálogo entero. */}

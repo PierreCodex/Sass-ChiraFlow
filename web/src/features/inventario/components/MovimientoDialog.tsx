@@ -19,7 +19,7 @@ import Typography from "@mui/material/Typography";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useRegistrarMovimiento } from "../hooks/useProductos";
 import type { MovimientoPayload, Producto } from "../types";
@@ -108,6 +108,7 @@ const MovimientoDialog = ({ producto, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={!!producto}
       onClose={registrar.isPending ? undefined : onCerrar}
       fullWidth

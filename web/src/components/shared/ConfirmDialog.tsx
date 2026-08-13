@@ -7,6 +7,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
 
+import { dialogoResponsive } from "@/components/shared/estilos-formulario";
+
 interface Props {
   abierto: boolean;
   titulo: string;
@@ -33,6 +35,7 @@ const ConfirmDialog = ({
   onCancelar,
 }: Props) => (
   <Dialog
+      sx={dialogoResponsive}
     open={abierto}
     onClose={cargando ? undefined : onCancelar}
     maxWidth="xs"

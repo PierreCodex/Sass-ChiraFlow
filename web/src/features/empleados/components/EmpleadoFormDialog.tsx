@@ -21,13 +21,12 @@ import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
-import { formularioCompacto } from "@/components/shared/estilos-formulario";
+import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import {
   PAGO_INCLUYE_COMISION,
@@ -58,7 +57,6 @@ const PESTANAS = ["Datos", "Pago", "Horario"];
 
 const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
   const theme = useTheme();
-  const pantallaChica = useMediaQuery(theme.breakpoints.down("sm"));
   const [pestana, setPestana] = useState(0);
 
   const esEdicion = !!empleado;
@@ -180,11 +178,11 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
 
   return (
     <Dialog
+      sx={dialogoResponsive}
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
       maxWidth="md"
-      fullScreen={pantallaChica}
     >
       <Box
         component="form"
