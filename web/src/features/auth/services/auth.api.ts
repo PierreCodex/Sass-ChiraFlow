@@ -1,4 +1,6 @@
 import { api, fetchCsrfCookie } from "@/lib/api/client";
+import { env } from "@/config/env";
+import { delay } from "@/lib/mock-utils";
 import type { ApiResource } from "@/lib/api/types";
 
 export interface Usuario {
@@ -17,11 +19,23 @@ export interface LoginPayload {
   remember?: boolean;
 }
 
+/**
+ * Mismos campos que valida `Publico\HomeController@registroPrueba` en
+ * Laravel: crea el negocio en modo "prueba" y a su dueño en un solo paso.
+ */
 export interface RegisterPayload {
-  name: string;
+  categoria_id: number;
+  categoria_otro_detalle?: string;
+  cantidad_profesionales: number;
+  nombre_negocio: string;
+  nombre: string;
+  apellido: string;
   email: string;
+  telefono: string;
+  documento: string;
+  usuario: string;
   password: string;
-  password_confirmation: string;
+  terminos: boolean;
 }
 
 /**
@@ -35,9 +49,25 @@ export const authApi = {
     return data.data;
   },
 
-  register: async (payload: RegisterPayload) => {
+  register: async (payload: RegisterPayload): Promise<Usuario> => {
+    if (env.usarMocks) {
+      await delay(600);
+      // Equivalente a `Auth::login($user)` + redirect al dashboard: en mock
+      // no hay sesión real, solo se resuelve para que el form redirija.
+      return {
+        id: 1,
+        name: `${payload.nombre} ${payload.apellido}`,
+        email: payload.email,
+        avatar_url: null,
+        rol: "dueno",
+        negocio: { id: 1, nombre: payload.nombre_negocio },
+      };
+    }
     await fetchCsrfCookie();
-    const { data } = await api.post<ApiResource<Usuario>>("/register", payload);
+    const { data } = await api.post<ApiResource<Usuario>>(
+      "/registro-prueba",
+      payload
+    );
     return data.data;
   },
 

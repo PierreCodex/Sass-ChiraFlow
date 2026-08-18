@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authApi } from "../services/auth.api";
+import { authApi, type RegisterPayload } from "../services/auth.api";
 
 export const authKeys = {
   usuario: ["auth", "usuario"] as const,
@@ -16,6 +16,20 @@ export function useUsuarioActual() {
     queryFn: authApi.me,
     staleTime: 5 * 60 * 1000,
     retry: false,
+  });
+}
+
+/** Registra el negocio en prueba + su dueño, e inicia sesión (como `registroPrueba` en Laravel). */
+export function useRegistrarNegocio() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: RegisterPayload) => authApi.register(payload),
+    onSuccess: (usuario) => {
+      queryClient.setQueryData(authKeys.usuario, usuario);
+      router.push("/");
+    },
   });
 }
 

@@ -34,6 +34,16 @@ export function formatFechaLarga(fechaISO: string) {
   );
 }
 
+/** "Clinica El Rosal" -> "CE" (iniciales de las primeras dos palabras). */
+export function iniciales(nombre: string) {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((palabra) => palabra[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 /**
  * "14:30:00" | "2026-08-09T14:30:00" -> "14:30"
  *

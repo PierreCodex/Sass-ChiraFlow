@@ -1,4 +1,4 @@
-import Menuitems from './MenuItems';
+import Menuitems, { type MenuitemsType } from './MenuItems';
 import { usePathname } from "next/navigation";
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -10,7 +10,12 @@ import { useContext } from 'react';
 
 import { CustomizerContext } from '@/context/customizerContext';
 
-const SidebarItems = () => {
+interface Props {
+  /** Por defecto el menú del negocio (`MenuItems.ts`). El panel superadmin pasa el suyo. */
+  items?: MenuitemsType[];
+}
+
+const SidebarItems = ({ items = Menuitems }: Props) => {
   const pathname = usePathname();
   const pathDirect = pathname;
   const pathWithoutLastPart = pathname.slice(0, pathname.lastIndexOf('/'));
@@ -22,7 +27,7 @@ const SidebarItems = () => {
   return (
     <Box sx={{ px: 3 }}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item) => {
+        {items.map((item) => {
           // {/********SubHeader**********/}
           if (item.subheader) {
             return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;
