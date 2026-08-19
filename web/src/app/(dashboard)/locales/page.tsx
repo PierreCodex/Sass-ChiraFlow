@@ -1,12 +1,15 @@
 "use client";
 import { useState } from "react";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CardContent from "@mui/material/CardContent";
 import Divider from "@mui/material/Divider";
+import Link from "next/link";
 import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { IconPlus } from "@tabler/icons-react";
 
@@ -21,6 +24,7 @@ import ServiciosDelNegocio from "@/features/locales/components/ServiciosDelNegoc
 import GruposTable from "@/features/locales/components/GruposTable";
 import GrupoFormDialog from "@/features/locales/components/GrupoFormDialog";
 import { useEliminarLocal } from "@/features/locales/hooks/useLocales";
+import { useLimiteLocales } from "@/features/locales/hooks/useLimiteLocales";
 import { useEliminarGrupo } from "@/features/locales/hooks/useRecursos";
 import type { Grupo, Local } from "@/features/locales/types";
 import { toApiError } from "@/lib/api/client";
@@ -47,6 +51,8 @@ export default function LocalesPage() {
 
   const eliminar = useEliminarLocal();
   const eliminarGrupo = useEliminarGrupo();
+  const { planActual, maxSucursales, alcanzado, cargando: cargandoLimite } =
+    useLimiteLocales();
 
   const abrirNuevoGrupo = () => {
     setGrupoEditando(null);
@@ -66,6 +72,9 @@ export default function LocalesPage() {
   };
 
   const abrirNuevo = () => {
+    // Defensa extra además del botón deshabilitado: si de algún modo se
+    // llega a llamar igual (ej. cambios futuros), no deja abrir el form.
+    if (alcanzado) return;
     setLocalEditando(null);
     setFormAbierto(true);
   };
@@ -108,6 +117,31 @@ export default function LocalesPage() {
         <CardContent sx={{ p: 3 }}>
           {pestana === 0 ? (
             <>
+              {!cargandoLimite && alcanzado ? (
+                <Alert
+                  severity="warning"
+                  variant="outlined"
+                  sx={{ mb: 3, alignItems: "center", "& .MuiAlert-message": { flexGrow: 1 } }}
+                  action={
+                    <Button
+                      component={Link}
+                      href="/mi-plan"
+                      color="warning"
+                      variant="contained"
+                      size="small"
+                      disableElevation
+                      sx={{ whiteSpace: "nowrap" }}
+                    >
+                      Ver planes
+                    </Button>
+                  }
+                >
+                  Tu plan actual ({planActual?.nombre}) permite {maxSucursales}{" "}
+                  local{maxSucursales === 1 ? "" : "es"}. Para agregar más locales,
+                  actualiza tu plan.
+                </Alert>
+              ) : null}
+
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -118,14 +152,21 @@ export default function LocalesPage() {
                   Sedes donde atiendes. El local principal se edita desde
                   Configuración.
                 </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<IconPlus size={18} />}
-                  onClick={abrirNuevo}
-                  sx={{ whiteSpace: "nowrap" }}
+                <Tooltip
+                  title={alcanzado ? "Llegaste al límite de locales de tu plan" : ""}
                 >
-                  Agregar local
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={<IconPlus size={18} />}
+                      onClick={abrirNuevo}
+                      disabled={alcanzado}
+                      sx={{ whiteSpace: "nowrap" }}
+                    >
+                      Agregar local
+                    </Button>
+                  </span>
+                </Tooltip>
               </Stack>
 
               <LocalesGrid

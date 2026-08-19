@@ -1,4 +1,4 @@
-import type { EstadoCita } from "./types";
+import type { EstadoCita, EstadoPago } from "./types";
 
 type ColorChip = "warning" | "info" | "success" | "error" | "default";
 
@@ -16,6 +16,13 @@ export const ESTADOS_CITA: Record<
   confirmada: { label: "Confirmada", color: "info" },
   completada: { label: "Completada", color: "success" },
   cancelada: { label: "Cancelada", color: "error" },
+};
+
+/** Estado del comprobante QR que subió el cliente al reservar. */
+export const ESTADOS_PAGO: Record<EstadoPago, { label: string; color: ColorChip }> = {
+  pendiente: { label: "Pago pendiente", color: "warning" },
+  confirmado: { label: "Pago confirmado", color: "success" },
+  rechazado: { label: "Pago rechazado", color: "error" },
 };
 
 /** De dónde salió la reserva (columna `fuente` de la tabla `citas`). */

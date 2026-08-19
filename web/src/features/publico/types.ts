@@ -13,6 +13,10 @@ export interface NegocioPublico {
   slug: string;
   telefono: string | null;
   email: string | null;
+  /** Mismos 3 campos que configura el negocio en Configuración → Pagos QR. */
+  pago_qr_activo: boolean;
+  pago_qr_url: string | null;
+  pago_qr_instrucciones: string | null;
 }
 
 /**
@@ -148,6 +152,9 @@ export interface ReservaPayload extends DatosCliente {
     fecha: string;
     hora_inicio: string;
   }[];
+  /** Solo van informados si el cliente eligió "Pagar ahora" con QR. */
+  metodo_pago?: "ahora" | "local" | null;
+  comprobante_pago_url?: string | null;
 }
 
 /** Lo que devuelve el backend tras reservar, para el comprobante. */

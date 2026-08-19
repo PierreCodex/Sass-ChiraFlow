@@ -7,6 +7,7 @@ import Link from "next/link";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import { IconCheck, IconMinus } from "@tabler/icons-react";
 
 import { toApiError } from "@/lib/api/client";
@@ -29,6 +30,7 @@ function todasLasFeatures(planes: Plan[]): string[] {
 const PlanesCards = () => {
   const { data: planes, isPending, isError, error } = usePlanes();
   const { data: negocios } = useNegocios({ per_page: 200 });
+  const theme = useTheme();
 
   if (isPending) {
     return (
@@ -80,9 +82,9 @@ const PlanesCards = () => {
                     return (
                       <Stack key={clave} direction="row" spacing={1} alignItems="center">
                         {incluida ? (
-                          <IconCheck size={16} color="var(--mui-palette-success-main, #13deb9)" />
+                          <IconCheck size={16} color={theme.palette.success.main} />
                         ) : (
-                          <IconMinus size={16} color="var(--mui-palette-text-disabled, #a1aab2)" />
+                          <IconMinus size={16} color={theme.palette.text.disabled} />
                         )}
                         <Typography
                           variant="body2"

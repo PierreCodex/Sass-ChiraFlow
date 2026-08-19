@@ -25,6 +25,7 @@ import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
 import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import EnlaceTienda from "./EnlaceTienda";
+import PlanYLimites from "./PlanYLimites";
 import { toApiError } from "@/lib/api/client";
 import { useConfiguracion, useGuardarConfiguracion } from "../hooks/useConfiguracion";
 import {
@@ -34,7 +35,9 @@ import {
 } from "../schemas/configuracion.schema";
 import type { Configuracion } from "../types";
 
-const PESTANAS = ["Negocio", "Agenda", "Marca", "Sitio público"];
+const PESTANAS = ["Negocio", "Agenda", "Marca", "Sitio público", "Pagos QR", "Plan y límites"];
+/** Única pestaña sin formulario propio: es de solo lectura. */
+const PESTANA_PLAN = 5;
 
 /** Campo de color con la misma pinta que en el resto de formularios. */
 const CampoColor = ({ id, value, onChange }: any) => (
@@ -89,6 +92,7 @@ const ConfiguracionForm = () => {
       ...configuracion,
       logo: configuracion.logo_url ? [{ url: configuracion.logo_url }] : [],
       cover: configuracion.cover_url ? [{ url: configuracion.cover_url }] : [],
+      pago_qr: configuracion.pago_qr_url ? [{ url: configuracion.pago_qr_url }] : [],
       modo_intervalo: configuracion.agenda.modo_intervalo,
       intervalo_min: configuracion.agenda.intervalo_min,
     });
@@ -101,6 +105,7 @@ const ConfiguracionForm = () => {
         ...valores,
         logo_url: valores.logo[0]?.url ?? null,
         cover_url: valores.cover[0]?.url ?? null,
+        pago_qr_url: valores.pago_qr[0]?.url ?? null,
         agenda: {
           modo_intervalo: valores.modo_intervalo,
           intervalo_min: valores.intervalo_min,
@@ -590,15 +595,91 @@ const ConfiguracionForm = () => {
               )}
             />
           </Box>
+
+          {/* ------------------------------------------------ Pagos QR */}
+          <Box hidden={pestana !== 4}>
+            <Controller
+              name="pago_qr_activo"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  sx={{ mb: 2 }}
+                  control={
+                    <Switch
+                      checked={!!field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body1">Activar pagos con QR</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Los clientes verán tu código QR al finalizar la reserva y podrán
+                        subir el comprobante.
+                      </Typography>
+                    </Box>
+                  }
+                />
+              )}
+            />
+
+            <CustomFormLabel htmlFor="pago_qr">Código QR de pago</CustomFormLabel>
+            <Controller
+              name="pago_qr"
+              control={control}
+              render={({ field }) => (
+                <CampoImagenes
+                  valor={field.value ?? []}
+                  onChange={field.onChange}
+                  max={1}
+                  textoBoton="Elegir archivo"
+                  ayuda="Sube tu QR de Yape, Plin o banco. PNG, JPG o WebP. Máx. 2 MB."
+                />
+              )}
+            />
+
+            <Box mt={3}>
+              <CustomFormLabel htmlFor="pago_qr_instrucciones">
+                Instrucciones de pago
+              </CustomFormLabel>
+              <Controller
+                name="pago_qr_instrucciones"
+                control={control}
+                render={({ field }) => (
+                  <CustomTextField
+                    {...field}
+                    value={field.value ?? ""}
+                    id="pago_qr_instrucciones"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    placeholder="Ej: JAIRO ISAEL - YAPE"
+                    error={!!errors.pago_qr_instrucciones}
+                    helperText={
+                      errors.pago_qr_instrucciones?.message ??
+                      "Este mensaje se mostrará al cliente junto al QR."
+                    }
+                  />
+                )}
+              />
+            </Box>
+          </Box>
+
+          {/* ------------------------------------------------ Plan y límites */}
+          <Box hidden={pestana !== PESTANA_PLAN}>
+            <PlanYLimites />
+          </Box>
         </CardContent>
 
         <Divider />
 
-        <Box sx={{ p: 3 }}>
-          <Button type="submit" variant="contained" disabled={guardar.isPending}>
-            {guardar.isPending ? "Guardando…" : "Guardar cambios"}
-          </Button>
-        </Box>
+        {pestana !== PESTANA_PLAN ? (
+          <Box sx={{ p: 3 }}>
+            <Button type="submit" variant="contained" disabled={guardar.isPending}>
+              {guardar.isPending ? "Guardando…" : "Guardar configuración"}
+            </Button>
+          </Box>
+        ) : null}
       </Box>
       </BlankCard>
     </Stack>

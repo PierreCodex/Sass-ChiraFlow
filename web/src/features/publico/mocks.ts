@@ -28,6 +28,11 @@ export const negocioMock: NegocioPublico = {
   slug: "clinica-el-rosal",
   telefono: "976645666",
   email: "contacto@elrosal.pe",
+  // Mismos valores que `configuracionMock` (Configuración → Pagos QR),
+  // para que la tienda pública y el panel del negocio muestren lo mismo.
+  pago_qr_activo: true,
+  pago_qr_url: null,
+  pago_qr_instrucciones: "JAIRO ISAEL - YAPE",
 };
 
 function aServicioPublico(servicio: (typeof serviciosMock)[number]): ServicioPublico {

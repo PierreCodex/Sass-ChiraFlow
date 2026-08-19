@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import { IconCheck, IconCircle } from "@tabler/icons-react";
 
 interface Props {
@@ -23,6 +24,7 @@ const REQUISITOS = [
  * escala de colores rojo→amarillo→verde.
  */
 const PasswordStrength = ({ password }: Props) => {
+  const theme = useTheme();
   const resultados = REQUISITOS.map((r) => ({ ...r, ok: r.test(password) }));
   const pasados = resultados.filter((r) => r.ok).length;
 
@@ -47,9 +49,9 @@ const PasswordStrength = ({ password }: Props) => {
         {resultados.map((r) => (
           <Stack key={r.key} direction="row" spacing={0.75} alignItems="center">
             {r.ok ? (
-              <IconCheck size={14} color="var(--mui-palette-success-main, #13deb9)" />
+              <IconCheck size={14} color={theme.palette.success.main} />
             ) : (
-              <IconCircle size={14} color="var(--mui-palette-text-disabled, #a1aab2)" />
+              <IconCircle size={14} color={theme.palette.text.disabled} />
             )}
             <Typography
               variant="caption"
