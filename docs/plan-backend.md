@@ -50,19 +50,37 @@ api.midominio.com      -> Laravel
 
 Con eso:
 
-- `SANCTUM_STATEFUL_DOMAINS=app.midominio.com`
-- `SESSION_DOMAIN=.midominio.com` — nunca llega a las tiendas
+- La cookie de sesión del panel es del dominio del panel y de nadie más
 - Las rutas de tienda son **públicas**: no necesitan cookie, solo `throttle`
 
 Cambiar esto con clientes en producción significa migrar dominios y romper
 enlaces que los negocios ya repartieron a sus clientes.
 
+> **Decisión tomada.** Se separan los dominios. El motivo ya no es la cookie
+> —con el BFF la sesión no se derrama, ver más abajo— sino el
+> `dominio_personalizado` que promete el plan Pro.
+
 ### Autenticación
 
-**Sanctum en modo SPA (cookies httpOnly)** para el panel. Es lo que ya asume
-la maqueta (`env.apiRoot` existe para pedir `/sanctum/csrf-cookie`).
+**Sanctum por tokens, detrás de un BFF en Next.** Decidido y ya montado en la
+maqueta; sustituye al modo SPA con cookies que planteaba este documento.
 
-Nada de tokens en `localStorage`: con XSS se los lleva cualquiera.
+```
+navegador ──/api/*──> BFF (Next, servidor) ──Bearer──> Laravel
+```
+
+- El token **nunca toca el navegador**: vive en una cookie httpOnly que solo
+  lee el BFF. Nada de `localStorage`, que con un XSS se lo lleva cualquiera.
+- Laravel solo recibe tráfico del BFF: **no hace falta CORS**, ni
+  `SANCTUM_STATEFUL_DOMAINS`, ni `SESSION_DOMAIN`, ni `statefulApi()`, ni
+  `/sanctum/csrf-cookie`.
+- Lo que tiene que implementar Laravel: `POST /login` → `{ data: { token,
+  usuario } }` y `POST /logout` revocando **solo** el token en uso.
+- El BFF manda `X-Tenant` con el id del negocio. Si se resuelve el inquilino
+  desde el token, la cabecera sobra.
+
+El contrato completo está en [`api-contract.md`](api-contract.md) § "Base y
+transporte".
 
 Las rutas públicas de la tienda no llevan autenticación de ningún tipo.
 

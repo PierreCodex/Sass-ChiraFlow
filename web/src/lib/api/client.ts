@@ -1,43 +1,30 @@
 import axios, { AxiosError } from "axios";
-import { env } from "@/config/env";
 
 /**
- * Cliente HTTP único contra la API de Laravel.
+ * Cliente HTTP único. **No habla con Laravel: habla con el BFF de Next.**
  *
- * Está configurado para Sanctum en modo SPA (cookies):
- *  - withCredentials: true  -> envía la cookie de sesión
- *  - withXSRFToken: true    -> reenvía el header X-XSRF-TOKEN que Laravel espera
+ * La base es relativa (`/api`), o sea el mismo origen que la app. De ahí para
+ * adentro se ocupa `app/api/[...path]/route.ts`, que adjunta el
+ * `Authorization: Bearer` y el `X-Tenant` antes de reenviar a Laravel.
  *
- * Si en su lugar usas tokens Bearer, borra esas dos opciones y descomenta
- * el bloque del interceptor de request marcado como "TOKEN BEARER".
+ * Por eso aquí no hay nada de sesión:
+ *  - el token vive en una cookie **httpOnly** que solo lee el BFF; este código,
+ *    que corre en el navegador, no puede verlo ni por error;
+ *  - no hay `withCredentials` ni `withXSRFToken` que valgan: al ser mismo
+ *    origen, la cookie viaja sola y no hay CSRF de Sanctum que negociar.
+ *
+ * El interceptor de request que adjuntaba el Bearer **no va aquí**. Un token
+ * accesible desde JS es un token que cualquier script de terceros puede leer;
+ * esa lógica es del servidor y vive en el BFF.
  */
 export const api = axios.create({
-  baseURL: env.apiUrl,
-  withCredentials: true,
-  withXSRFToken: true,
+  baseURL: "/api",
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
     "X-Requested-With": "XMLHttpRequest",
   },
 });
-
-// --- TOKEN BEARER (alternativa a cookies) ---------------------------------
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
-
-/**
- * Sanctum exige pedir la cookie CSRF antes del primer POST (login, register…).
- * Llamar una vez desde el formulario de login.
- */
-export async function fetchCsrfCookie() {
-  await axios.get(`${env.apiRoot}/sanctum/csrf-cookie`, {
-    withCredentials: true,
-  });
-}
 
 /** Forma del error de validación 422 de Laravel. */
 export interface LaravelValidationError {

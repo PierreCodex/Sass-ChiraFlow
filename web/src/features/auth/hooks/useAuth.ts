@@ -4,7 +4,28 @@ import { authApi } from "../services/auth.api";
 
 export const authKeys = {
   usuario: ["auth", "usuario"] as const,
+  categoriasNegocio: ["auth", "categorias-negocio"] as const,
 };
+
+/**
+ * Catálogo del select "Tipo de negocio". Es público y prácticamente estático:
+ * se cachea toda la sesión para no repetirlo en cada render del registro.
+ */
+export function useCategoriasNegocio() {
+  return useQuery({
+    queryKey: authKeys.categoriasNegocio,
+    queryFn: authApi.categoriasNegocio,
+    staleTime: Infinity,
+  });
+}
+
+export function useRegistro() {
+  return useMutation({ mutationFn: authApi.register });
+}
+
+export function useReenviarVerificacion() {
+  return useMutation({ mutationFn: authApi.reenviarVerificacion });
+}
 
 /**
  * Usuario autenticado. Devuelve `undefined` mientras carga y lanza error si

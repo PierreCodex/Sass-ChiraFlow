@@ -3,11 +3,18 @@
  * Todo lo que se use en el navegador debe llevar el prefijo NEXT_PUBLIC_.
  */
 export const env = {
-  /** URL base de la API de Laravel, ej: http://localhost:8000/api */
-  apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api",
-
-  /** Raíz de Laravel (sin /api). Necesaria para el CSRF cookie de Sanctum. */
-  apiRoot: process.env.NEXT_PUBLIC_API_ROOT ?? "http://localhost:8000",
+  /**
+   * URL de Laravel, ej: `http://localhost:8000/api`.
+   *
+   * **Solo la usa el BFF**, en el servidor: el navegador le habla al proxy de
+   * Next (`/api`), nunca a Laravel directo. `API_URL` —sin `NEXT_PUBLIC_`—
+   * tiene prioridad y es lo suyo en producción: así la URL del backend deja de
+   * viajar en el bundle del cliente.
+   */
+  apiUrl:
+    process.env.API_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "http://localhost:8000/api",
 
   /** Nombre visible de la app (títulos, metadata). */
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Mi SaaS",
