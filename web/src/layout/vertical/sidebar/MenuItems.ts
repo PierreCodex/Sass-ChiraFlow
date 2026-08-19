@@ -17,7 +17,7 @@ import {
   IconLifebuoy,
 } from "@tabler/icons-react";
 
-interface MenuitemsType {
+export interface MenuitemsType {
   [x: string]: any;
   id?: string;
   navlabel?: boolean;

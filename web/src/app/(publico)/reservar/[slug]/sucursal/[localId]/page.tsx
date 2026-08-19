@@ -137,8 +137,10 @@ export default function SucursalPage({
         abierto={wizardAbierto}
         slug={slug}
         localId={idLocal}
+        negocio={negocio}
         lineas={carrito.lineas}
         profesionales={profesionales}
+        onEliminarLinea={carrito.quitar}
         onCerrar={() => setWizardAbierto(false)}
         onConfirmada={(reserva) => {
           setWizardAbierto(false);

@@ -27,6 +27,10 @@ export const configuracionMock: Configuracion = {
   mostrar_en_marketplace: false,
   terminos_servicio: null,
 
+  pago_qr_activo: true,
+  pago_qr_url: null,
+  pago_qr_instrucciones: "JAIRO ISAEL - YAPE",
+
   agenda: {
     // Por defecto la agenda se encadena con la duración del servicio: es lo
     // que evita dejar huecos que nadie puede reservar.

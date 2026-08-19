@@ -69,6 +69,14 @@ export interface Configuracion {
   mostrar_en_marketplace: boolean;
   terminos_servicio: string | null;
 
+  // --- Pagos QR ---
+  /** Si está apagado, la tienda pública solo ofrece "Pagar en el local". */
+  pago_qr_activo: boolean;
+  /** QR de Yape/Plin/banco que sube el negocio. */
+  pago_qr_url: string | null;
+  /** Texto libre junto al QR en la tienda pública, ej. "JAIRO ISAEL - YAPE". */
+  pago_qr_instrucciones: string | null;
+
   /**
    * Ajuste propio del panel: todavía **no existe en el backend**. Define cómo
    * se generan los huecos de reserva (ver `disponibilidad.ts`).

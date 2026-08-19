@@ -6,13 +6,20 @@ import SidebarItems from "./SidebarItems";
 import Logo from "../../shared/logo/Logo";
 import { CustomizerContext } from "@/context/customizerContext";
 import config from '@/context/config'
+import type { MenuitemsType } from "./MenuItems";
 
 import Scrollbar from "@/components/custom-scroll/Scrollbar";
 import { Profile } from "./SidebarProfile/Profile";
 import { useContext } from "react";
 
+interface Props {
+  /** Menú a mostrar. Por defecto el del negocio; el panel superadmin pasa el suyo. */
+  items?: MenuitemsType[];
+  /** A dónde lleva el logo. Por defecto el dashboard del negocio. */
+  logoHref?: string;
+}
 
-const Sidebar = () => {
+const Sidebar = ({ items, logoHref }: Props = {}) => {
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
   const {
     isCollapse,
@@ -87,13 +94,13 @@ const Sidebar = () => {
               {/* Logo */}
               {/* ------------------------------------------- */}
               <Box px={3}>
-                <Logo />
+                <Logo href={logoHref} />
               </Box>
               <Scrollbar sx={{ height: "calc(100% - 190px)" }}>
                 {/* ------------------------------------------- */}
                 {/* Sidebar Items */}
                 {/* ------------------------------------------- */}
-                <SidebarItems />
+                <SidebarItems items={items} />
               </Scrollbar>
               <Profile />
             </Box>
@@ -119,12 +126,12 @@ const Sidebar = () => {
           {/* Logo */}
           {/* ------------------------------------------- */}
           <Box px={2}>
-            <Logo />
+            <Logo href={logoHref} />
           </Box>
           {/* ------------------------------------------- */}
           {/* Sidebar For Mobile */}
           {/* ------------------------------------------- */}
-          <SidebarItems />
+          <SidebarItems items={items} />
         </Drawer>
       )}
     </>

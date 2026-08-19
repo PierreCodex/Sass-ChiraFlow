@@ -14,6 +14,32 @@ export const publicoKeys = {
     duracion: number
   ) =>
     ["publico", slug, localId, "horarios", profesionalId, fecha, duracion] as const,
+  horariosAgregados: (
+    slug: string,
+    localId: number,
+    profesionalIds: number[],
+    fecha: string,
+    duracion: number
+  ) =>
+    ["publico", slug, localId, "horarios-agregados", profesionalIds, fecha, duracion] as const,
+  profesionalesLibres: (
+    slug: string,
+    localId: number,
+    profesionalIds: number[],
+    fecha: string,
+    hora: string,
+    duracion: number
+  ) =>
+    [
+      "publico",
+      slug,
+      localId,
+      "profesionales-libres",
+      profesionalIds,
+      fecha,
+      hora,
+      duracion,
+    ] as const,
 };
 
 /** Negocio + sedes. El catálogo no cambia mientras el cliente reserva. */
@@ -62,6 +88,63 @@ export function useHorarios(
         duracion_min: duracionMin,
       }),
     enabled: !!profesionalId && !!fecha && duracionMin > 0,
+    staleTime: 30 * 1000,
+  });
+}
+
+/** Horas libres de una fecha sin fijar profesional: unión de todos los dados. */
+export function useHorariosAgregados(
+  slug: string,
+  localId: number,
+  profesionalIds: number[],
+  fecha: string | null,
+  duracionMin: number
+) {
+  return useQuery({
+    queryKey: publicoKeys.horariosAgregados(
+      slug,
+      localId,
+      profesionalIds,
+      fecha ?? "",
+      duracionMin
+    ),
+    queryFn: () =>
+      publicoApi.horariosAgregados(slug, localId, {
+        profesional_ids: profesionalIds,
+        fecha: fecha!,
+        duracion_min: duracionMin,
+      }),
+    enabled: profesionalIds.length > 0 && !!fecha && duracionMin > 0,
+    staleTime: 30 * 1000,
+  });
+}
+
+/** De esos profesionales, cuáles siguen libres a una fecha+hora ya elegidas. */
+export function useProfesionalesLibres(
+  slug: string,
+  localId: number,
+  profesionalIds: number[],
+  fecha: string | null,
+  hora: string | null,
+  duracionMin: number
+) {
+  return useQuery({
+    queryKey: publicoKeys.profesionalesLibres(
+      slug,
+      localId,
+      profesionalIds,
+      fecha ?? "",
+      hora ?? "",
+      duracionMin
+    ),
+    queryFn: () =>
+      publicoApi.profesionalesLibres(slug, localId, {
+        profesional_ids: profesionalIds,
+        fecha: fecha!,
+        hora_inicio: hora!,
+        duracion_min: duracionMin,
+      }),
+    enabled: profesionalIds.length > 0 && !!fecha && !!hora && duracionMin > 0,
     staleTime: 30 * 1000,
   });
 }

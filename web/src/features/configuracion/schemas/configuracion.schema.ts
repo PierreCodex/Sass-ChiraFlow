@@ -64,6 +64,10 @@ export const configuracionSchema = yup.object({
   mostrar_en_marketplace: yup.boolean().required(),
   terminos_servicio: texto(10000),
 
+  pago_qr_activo: yup.boolean().required(),
+  pago_qr: yup.array<any, ImagenSeleccionada>().max(1).defined(),
+  pago_qr_instrucciones: texto(500),
+
   modo_intervalo: yup
     .string()
     .oneOf(["duracion_servicio", "fijo"] as const)
@@ -96,4 +100,5 @@ export const CAMPOS_POR_PESTANA: Record<number, string[]> = {
   1: ["horario_apertura", "horario_cierre", "modo_intervalo", "intervalo_min"],
   2: ["logo", "cover", "color_primario", "color_secundario"],
   3: ["sitio_publico_activo", "mostrar_en_marketplace", "terminos_servicio"],
+  4: ["pago_qr_activo", "pago_qr", "pago_qr_instrucciones"],
 };

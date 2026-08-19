@@ -6,7 +6,12 @@ import config from '@/context/config'
 import Image from "next/image";
 import { useContext } from "react";
 
-const Logo = () => {
+interface Props {
+  /** A dónde lleva el logo al hacer click. Por defecto, el dashboard del negocio. */
+  href?: string;
+}
+
+const Logo = ({ href = "/" }: Props) => {
   const { isCollapse, isSidebarHover, activeDir, activeMode } = useContext(CustomizerContext);
 
   const TopbarHeight = config.topbarHeight;
@@ -21,7 +26,7 @@ const Logo = () => {
 
   if (activeDir === "ltr") {
     return (
-      <LinkStyled href="/">
+      <LinkStyled href={href}>
         {activeMode === "dark" ? (
           <Image
             src="/images/logos/light-logo.svg"
@@ -44,7 +49,7 @@ const Logo = () => {
   }
 
   return (
-    <LinkStyled href="/">
+    <LinkStyled href={href}>
       {activeMode === "dark" ? (
         <Image
           src="/images/logos/dark-rtl-logo.svg"

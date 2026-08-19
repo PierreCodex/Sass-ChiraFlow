@@ -22,6 +22,7 @@
     "@mui/system": "^7.3.5",
     "@tabler/icons-react": "^3.35.0",
     "@tanstack/react-query": "^5.90.2",
+    "@types/react-slick": "^0.23.13",
     "apexcharts": "5.3.6",
     "axios": "^1.13.1",
     "i18next": "^25.6.3",
@@ -35,7 +36,9 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.65.0",
     "react-i18next": "^16.3.5",
+    "react-slick": "^0.31.0",
     "simplebar-react": "^3.3.2",
+    "slick-carousel": "^1.8.1",
     "stylis-plugin-rtl": "^2.1.1",
     "yup": "^1.7.1"
   },
