@@ -1,388 +1,393 @@
 "use client";
-import { useEffect } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import Link from "next/link";
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
+import {
+  IconEye,
+  IconEyeOff,
+  IconHelpCircle,
+  IconMailCheck,
+} from "@tabler/icons-react";
 
-import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
+import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
+import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
-import { categoriasNegocioMock, CANTIDAD_PROFESIONALES, PAISES_TELEFONO } from "../mocks";
-import { useRegistrarNegocio } from "../hooks/useAuth";
+import { registerType } from "@/types/auth/auth";
+
+import {
+  useCategoriasNegocio,
+  useRegistro,
+  useReenviarVerificacion,
+} from "../hooks/useAuth";
 import {
   registroSchema,
-  valoresInicialesRegistro,
+  valoresIniciales,
   type RegistroFormValues,
 } from "../schemas/registro.schema";
-import PasswordStrength from "./PasswordStrength";
-import type { registerType } from "@/types/auth/auth";
+import {
+  normalizarTelefono,
+  PREFIJO_TELEFONO,
+  RANGOS_PROFESIONALES,
+  separarNombre,
+  soloDigitos,
+} from "../types";
 
-const OTROS_ID = categoriasNegocioMock.find((c) => c.slug === "otros")!.id;
+/** Campos del backend que no tienen control propio en pantalla. */
+const CAMPOS_DEL_NOMBRE = ["nombre", "apellido"];
 
-/**
- * Mismo formulario que el modal `#modal-prueba` de `public/home.blade.php`:
- * categoría del negocio, cantidad de profesionales, datos del negocio, datos
- * del dueño, teléfono con código de país, contraseña con medidor de
- * fortaleza y aceptación de términos. Crea el negocio en modo prueba (10
- * días) y a su dueño en un solo paso.
- */
-const AuthRegister = ({ subtitle }: registerType) => {
-  const registrar = useRegistrarNegocio();
+const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
+  const [verPassword, setVerPassword] = useState(false);
+
+  const { data: categorias = [], isError: fallanCategorias } =
+    useCategoriasNegocio();
+  const registro = useRegistro();
+  const reenvio = useReenviarVerificacion();
 
   const {
     control,
     handleSubmit,
-    watch,
     setError,
     formState: { errors },
   } = useForm<RegistroFormValues>({
     resolver: yupResolver(registroSchema),
-    defaultValues: valoresInicialesRegistro,
+    defaultValues: valoresIniciales,
   });
 
-  const categoriaId = watch("categoria_id");
-  const password = watch("password");
-
   const onSubmit = handleSubmit((valores) => {
-    registrar.mutate(
+    const { nombre, apellido } = separarNombre(valores.nombre_completo);
+
+    registro.mutate(
       {
-        categoria_id: valores.categoria_id,
-        categoria_otro_detalle: valores.categoria_otro_detalle || undefined,
-        cantidad_profesionales: valores.cantidad_profesionales,
-        nombre_negocio: valores.nombre_negocio,
-        nombre: valores.nombre,
-        apellido: valores.apellido,
+        tipo_negocio_id: valores.tipo_negocio_id,
+        rango_profesionales: valores.rango_profesionales,
+        nombre,
+        apellido,
         email: valores.email,
-        telefono: `${valores.telefono_pais}${valores.telefono_numero}`,
-        documento: valores.documento,
-        usuario: valores.usuario,
+        telefono: normalizarTelefono(valores.telefono),
         password: valores.password,
-        terminos: valores.terminos,
+        // El formulario no pide confirmación (la referencia tampoco la tiene),
+        // pero el backend valida `confirmed`.
+        password_confirmation: valores.password,
       },
       {
         onError: (error) => {
           const apiError = toApiError(error);
-          if (apiError.errors) {
-            Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
-              setError(campo as keyof RegistroFormValues, { message: mensajes[0] });
-            });
-          }
+          if (!apiError.errors) return;
+
+          Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
+            // `nombre` y `apellido` salen de un único campo en pantalla.
+            const destino = CAMPOS_DEL_NOMBRE.includes(campo)
+              ? "nombre_completo"
+              : (campo as keyof RegistroFormValues);
+            setError(destino, { message: mensajes[0] });
+          });
         },
       }
     );
   });
 
-  return (
-    <Box component="form" onSubmit={onSubmit} noValidate>
-      <Typography variant="h4" fontWeight={700} textAlign="center" mb={0.5}>
-        ¡Simplifica tu vida con Mi SaaS!
-      </Typography>
-      <Typography variant="body2" color="textSecondary" textAlign="center" mb={2}>
-        Prueba nuestra plataforma gratis por 10 días
-      </Typography>
+  const errorGeneral = registro.isError ? toApiError(registro.error) : null;
 
-      {registrar.isError && !toApiError(registrar.error).errors ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {toApiError(registrar.error).message}
-        </Alert>
+  // Registrado: el alta no abre sesión, así que el siguiente paso es el correo.
+  if (registro.isSuccess) {
+    const email = registro.data.email;
+
+    return (
+      <Stack alignItems="center" textAlign="center" spacing={2} py={2}>
+        <Box color="success.main" display="flex">
+          <IconMailCheck size={48} stroke={1.5} />
+        </Box>
+        <Typography variant="h4" fontWeight={700}>
+          Revisa tu correo
+        </Typography>
+        <Typography color="textSecondary">
+          Te enviamos un enlace a <strong>{email}</strong> para verificar tu
+          cuenta. Ábrelo y podrás entrar a tu panel.
+        </Typography>
+
+        {reenvio.isSuccess ? (
+          <Alert severity="success" sx={{ width: "100%" }}>
+            Te reenviamos el enlace.
+          </Alert>
+        ) : null}
+
+        <Button
+          variant="outlined"
+          fullWidth
+          disabled={reenvio.isPending}
+          onClick={() => reenvio.mutate(email)}
+        >
+          {reenvio.isPending ? "Enviando…" : "Reenviar el enlace"}
+        </Button>
+        <Typography
+          component={Link}
+          href="/login"
+          fontWeight={500}
+          sx={{ textDecoration: "none", color: "primary.main" }}
+        >
+          Ir a iniciar sesión
+        </Typography>
+      </Stack>
+    );
+  }
+
+  return (
+    <>
+      {title ? (
+        <Typography fontWeight="700" variant="h3" mb={1}>
+          {title}
+        </Typography>
       ) : null}
 
-      <Grid container spacing={0}>
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="categoria_id">¿Qué tipo de negocio tienes?</CustomFormLabel>
-          <Controller
-            name="categoria_id"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                select
-                id="categoria_id"
-                fullWidth
-                value={field.value || ""}
-                error={!!errors.categoria_id}
-                helperText={errors.categoria_id?.message}
-              >
-                <MenuItem value="" disabled>
-                  Selecciona una categoría
-                </MenuItem>
-                {categoriasNegocioMock.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.nombre}
-                  </MenuItem>
-                ))}
-              </CustomTextField>
-            )}
-          />
-        </Grid>
+      {subtext}
 
-        {categoriaId === OTROS_ID ? (
-          <Grid size={12}>
-            <CustomFormLabel htmlFor="categoria_otro_detalle">
-              Cuéntanos de qué trata tu negocio
+      <Box component="form" onSubmit={onSubmit} noValidate sx={formularioCompacto}>
+        {errorGeneral && !errorGeneral.errors ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorGeneral.message}
+          </Alert>
+        ) : null}
+
+        {fallanCategorias ? (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            No pudimos cargar los tipos de negocio. Recarga la página.
+          </Alert>
+        ) : null}
+
+        <Stack>
+          <Box>
+            <CustomFormLabel htmlFor="tipo_negocio_id" sx={{ mt: 0 }}>
+              ¿Qué tipo de negocio tienes?
             </CustomFormLabel>
             <Controller
-              name="categoria_otro_detalle"
+              name="tipo_negocio_id"
               control={control}
               render={({ field }) => (
                 <CustomTextField
                   {...field}
-                  id="categoria_otro_detalle"
+                  value={field.value ?? ""}
+                  select
+                  id="tipo_negocio_id"
                   fullWidth
-                  multiline
-                  rows={2}
-                  error={!!errors.categoria_otro_detalle}
-                  helperText={errors.categoria_otro_detalle?.message}
-                />
-              )}
-            />
-          </Grid>
-        ) : null}
-
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="cantidad_profesionales">
-            ¿Cuántos profesionales atienden en tu negocio?
-          </CustomFormLabel>
-          <Controller
-            name="cantidad_profesionales"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                select
-                id="cantidad_profesionales"
-                fullWidth
-                value={field.value || ""}
-                error={!!errors.cantidad_profesionales}
-                helperText={errors.cantidad_profesionales?.message}
-              >
-                <MenuItem value="" disabled>
-                  Selecciona una opción
-                </MenuItem>
-                {CANTIDAD_PROFESIONALES.map((c) => (
-                  <MenuItem key={c.value} value={c.value}>
-                    {c.label}
+                  error={!!errors.tipo_negocio_id}
+                  helperText={errors.tipo_negocio_id?.message}
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value="" disabled>
+                    Selecciona tu rubro
                   </MenuItem>
-                ))}
-              </CustomTextField>
-            )}
-          />
-        </Grid>
-
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="nombre_negocio">Nombre del negocio</CustomFormLabel>
-          <Controller
-            name="nombre_negocio"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="nombre_negocio"
-                fullWidth
-                error={!!errors.nombre_negocio}
-                helperText={errors.nombre_negocio?.message}
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6 }} pr={{ sm: 1 }}>
-          <CustomFormLabel htmlFor="nombre">Tu nombre</CustomFormLabel>
-          <Controller
-            name="nombre"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="nombre"
-                fullWidth
-                error={!!errors.nombre}
-                helperText={errors.nombre?.message}
-              />
-            )}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} pl={{ sm: 1 }}>
-          <CustomFormLabel htmlFor="apellido">Apellido</CustomFormLabel>
-          <Controller
-            name="apellido"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="apellido"
-                fullWidth
-                error={!!errors.apellido}
-                helperText={errors.apellido?.message}
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="email">Email</CustomFormLabel>
-          <Controller
-            name="email"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="email"
-                type="email"
-                fullWidth
-                error={!!errors.email}
-                helperText={errors.email?.message}
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="telefono_numero">Teléfono</CustomFormLabel>
-          <Stack direction="row" spacing={1}>
-            <Controller
-              name="telefono_pais"
-              control={control}
-              render={({ field }) => (
-                <CustomTextField {...field} select sx={{ minWidth: 110 }}>
-                  {PAISES_TELEFONO.map((p) => (
-                    <MenuItem key={p.code} value={p.code}>
-                      {p.flag} {p.code}
+                  {categorias.map((categoria) => (
+                    <MenuItem key={categoria.id} value={categoria.id}>
+                      {categoria.nombre}
                     </MenuItem>
                   ))}
                 </CustomTextField>
               )}
             />
+          </Box>
+
+          <Box>
+            <CustomFormLabel htmlFor="rango_profesionales">
+              {/* Inline y no un Stack: si la etiqueta parte en dos líneas, el
+                  icono tiene que quedarse pegado a la última palabra. */}
+              ¿Cuántos profesionales atienden en tu negocio?{" "}
+              <Tooltip title="Nos sirve para preparar tu agenda. Podrás agregar o quitar profesionales cuando quieras.">
+                <Box
+                  component="span"
+                  sx={{
+                    display: "inline-flex",
+                    verticalAlign: "text-bottom",
+                    color: "text.secondary",
+                  }}
+                >
+                  <IconHelpCircle size={16} />
+                </Box>
+              </Tooltip>
+            </CustomFormLabel>
             <Controller
-              name="telefono_numero"
+              name="rango_profesionales"
               control={control}
               render={({ field }) => (
                 <CustomTextField
                   {...field}
-                  id="telefono_numero"
+                  select
+                  id="rango_profesionales"
                   fullWidth
-                  placeholder="999 999 999"
-                  error={!!errors.telefono_numero}
-                  helperText={errors.telefono_numero?.message}
+                  error={!!errors.rango_profesionales}
+                  helperText={errors.rango_profesionales?.message}
+                  slotProps={{ select: { displayEmpty: true } }}
+                >
+                  <MenuItem value="" disabled>
+                    Selecciona una opción
+                  </MenuItem>
+                  {RANGOS_PROFESIONALES.map((rango) => (
+                    <MenuItem key={rango.valor} value={rango.valor}>
+                      {rango.etiqueta}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              )}
+            />
+          </Box>
+
+          <Box>
+            <CustomFormLabel htmlFor="nombre_completo">
+              Nombre y apellido
+            </CustomFormLabel>
+            <Controller
+              name="nombre_completo"
+              control={control}
+              render={({ field }) => (
+                <CustomTextField
+                  {...field}
+                  id="nombre_completo"
+                  fullWidth
+                  placeholder="Ingresa tu nombre y apellido"
+                  error={!!errors.nombre_completo}
+                  helperText={errors.nombre_completo?.message}
                 />
               )}
             />
-          </Stack>
-        </Grid>
+          </Box>
 
-        <Grid size={{ xs: 12, sm: 6 }} pr={{ sm: 1 }}>
-          <CustomFormLabel htmlFor="documento">Documento</CustomFormLabel>
-          <Controller
-            name="documento"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="documento"
-                fullWidth
-                error={!!errors.documento}
-                helperText={errors.documento?.message}
-              />
-            )}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} pl={{ sm: 1 }}>
-          <CustomFormLabel htmlFor="usuario">Usuario</CustomFormLabel>
-          <Controller
-            name="usuario"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="usuario"
-                fullWidth
-                error={!!errors.usuario}
-                helperText={errors.usuario?.message}
-              />
-            )}
-          />
-        </Grid>
+          <Box>
+            <CustomFormLabel htmlFor="email">Email</CustomFormLabel>
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <CustomTextField
+                  {...field}
+                  id="email"
+                  type="email"
+                  fullWidth
+                  placeholder="Ingresa tu email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
+              )}
+            />
+          </Box>
 
-        <Grid size={12}>
-          <CustomFormLabel htmlFor="password">Contraseña</CustomFormLabel>
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <CustomTextField
-                {...field}
-                id="password"
-                type="password"
-                fullWidth
-                error={!!errors.password}
-                helperText={errors.password?.message}
-              />
-            )}
-          />
-          <PasswordStrength password={password} />
-        </Grid>
+          <Box>
+            <CustomFormLabel htmlFor="telefono">Teléfono</CustomFormLabel>
+            <Controller
+              name="telefono"
+              control={control}
+              render={({ field }) => (
+                <CustomTextField
+                  {...field}
+                  // Solo Perú por ahora: el prefijo es fijo y no se escribe.
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    field.onChange(soloDigitos(e.target.value).slice(0, 9))
+                  }
+                  id="telefono"
+                  type="tel"
+                  fullWidth
+                  placeholder="987654321"
+                  error={!!errors.telefono}
+                  helperText={errors.telefono?.message}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {PREFIJO_TELEFONO}
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
 
-        <Grid size={12}>
-          <Controller
-            name="terminos"
-            control={control}
-            render={({ field }) => (
-              <FormControlLabel
-                sx={{ mt: 2, alignItems: "flex-start" }}
-                control={
-                  <Checkbox
-                    checked={field.value}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    sx={{ mt: -0.5 }}
-                  />
-                }
-                label={
-                  <Typography variant="body2" color="textSecondary">
-                    Al crear tu cuenta, aceptas nuestros{" "}
-                    <Link href="/terminos" target="_blank">
-                      términos y condiciones
-                    </Link>{" "}
-                    y nuestra{" "}
-                    <Link href="/privacidad" target="_blank">
-                      política de privacidad
-                    </Link>
-                    .
-                  </Typography>
-                }
-              />
-            )}
-          />
-          {errors.terminos ? (
-            <Typography variant="caption" color="error.main" display="block">
-              {errors.terminos.message}
-            </Typography>
-          ) : null}
-        </Grid>
-      </Grid>
+          <Box>
+            <CustomFormLabel htmlFor="password">Contraseña</CustomFormLabel>
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <CustomTextField
+                  {...field}
+                  id="password"
+                  type={verPassword ? "text" : "password"}
+                  fullWidth
+                  placeholder="Crea tu contraseña"
+                  error={!!errors.password}
+                  helperText={errors.password?.message ?? "Mínimo 8 caracteres."}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setVerPassword((v) => !v)}
+                            edge="end"
+                            aria-label={
+                              verPassword
+                                ? "Ocultar contraseña"
+                                : "Mostrar contraseña"
+                            }
+                          >
+                            {verPassword ? (
+                              <IconEyeOff size={20} />
+                            ) : (
+                              <IconEye size={20} />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
+        </Stack>
 
-      <Button
-        color="primary"
-        variant="contained"
-        size="large"
-        fullWidth
-        type="submit"
-        disabled={registrar.isPending}
-        sx={{ mt: 3 }}
-      >
-        {registrar.isPending ? "Creando cuenta…" : "Crear cuenta gratis"}
-      </Button>
+        <Button
+          color="primary"
+          variant="contained"
+          size="large"
+          fullWidth
+          type="submit"
+          disabled={registro.isPending}
+          sx={{ mt: 3 }}
+        >
+          {registro.isPending ? "Creando tu cuenta…" : "Crear cuenta gratis"}
+        </Button>
+
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          textAlign="center"
+          mt={1.5}
+        >
+          Al crear tu cuenta, aceptas nuestros{" "}
+          <Typography
+            component={Link}
+            href="/terminos"
+            variant="body2"
+            sx={{ textDecoration: "none", color: "primary.main" }}
+          >
+            términos y condiciones
+          </Typography>
+        </Typography>
+      </Box>
+
       {subtitle}
-    </Box>
+    </>
   );
 };
 

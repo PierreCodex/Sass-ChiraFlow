@@ -1,75 +1,69 @@
 import * as yup from "yup";
-import { categoriasNegocioMock } from "../mocks";
 
-const OTROS_ID = categoriasNegocioMock.find((c) => c.slug === "otros")!.id;
+import { RANGOS_PROFESIONALES, soloDigitos } from "../types";
+
+const valoresRango = RANGOS_PROFESIONALES.map((r) => r.valor);
 
 /**
- * Mismas reglas que `Publico\HomeController@registroPrueba` en Laravel:
- * categoría, cantidad de profesionales, datos del negocio, datos del dueño,
- * teléfono con código de país, contraseña fuerte (min 8, mayúscula,
- * minúscula, número, símbolo) y aceptar términos.
+ * Los campos tal como se ven en pantalla. No coinciden uno a uno con el
+ * payload: "nombre y apellido" es un campo que se parte en dos al enviar, y
+ * el teléfono se escribe en 9 dígitos y viaja como `+51…`.
  */
 export const registroSchema = yup.object({
-  categoria_id: yup
+  tipo_negocio_id: yup
     .number()
-    .typeError("Selecciona una categoría")
-    .required("Selecciona una categoría"),
-  categoria_otro_detalle: yup.string().when("categoria_id", {
-    is: OTROS_ID,
-    then: (schema) =>
-      schema.trim().required("Cuéntanos de qué trata tu negocio").max(500),
-    otherwise: (schema) => schema.strip(),
-  }),
-  cantidad_profesionales: yup
-    .number()
-    .typeError("Selecciona una opción")
-    .required("Selecciona una opción"),
-  nombre_negocio: yup.string().trim().required("El nombre del negocio es obligatorio").max(150),
-  nombre: yup.string().trim().required("Tu nombre es obligatorio").max(150),
-  apellido: yup.string().trim().required("Tu apellido es obligatorio").max(150),
-  email: yup.string().trim().email("Escribe un correo válido").required("El correo es obligatorio"),
-  telefono_pais: yup.string().required(),
-  telefono_numero: yup
+    .typeError("Elige el tipo de negocio.")
+    .required("Elige el tipo de negocio."),
+
+  rango_profesionales: yup
+    .string()
+    .oneOf(valoresRango, "Selecciona una opción.")
+    .required("Selecciona una opción."),
+
+  nombre_completo: yup
     .string()
     .trim()
-    .required("El teléfono es obligatorio")
-    .matches(/^[0-9]{6,14}$/, "Solo números, sin espacios (6 a 14 dígitos)"),
-  documento: yup.string().trim().required("El documento es obligatorio").max(30),
-  usuario: yup
+    .required("Ingresa tu nombre y apellido.")
+    .max(300, "Máximo 300 caracteres.")
+    .test(
+      "dos-palabras",
+      "Ingresa tu nombre y tu apellido.",
+      (valor) => (valor ?? "").trim().split(/\s+/).length >= 2
+    ),
+
+  email: yup
     .string()
     .trim()
-    .required("El usuario es obligatorio")
-    .min(3, "Mínimo 3 caracteres")
-    .max(100)
-    .matches(/^[a-zA-Z0-9_-]+$/, "Solo letras, números, guiones y guion bajo"),
+    .required("Ingresa tu email.")
+    .email("El email no es válido.")
+    .max(150, "Máximo 150 caracteres."),
+
+  telefono: yup
+    .string()
+    .required("Ingresa tu teléfono.")
+    .test(
+      "nueve-digitos",
+      "El teléfono debe tener 9 dígitos.",
+      (valor) => soloDigitos(valor ?? "").length === 9
+    ),
+
   password: yup
     .string()
-    .required("La contraseña es obligatoria")
-    .min(8, "Mínimo 8 caracteres")
-    .matches(/[A-Z]/, "Debe tener una mayúscula")
-    .matches(/[a-z]/, "Debe tener una minúscula")
-    .matches(/[0-9]/, "Debe tener un número")
-    .matches(/[^A-Za-z0-9]/, "Debe tener un símbolo"),
-  terminos: yup
-    .boolean()
-    .oneOf([true], "Debes aceptar los términos y la política de privacidad")
-    .required(),
+    .required("Crea tu contraseña.")
+    .min(8, "Mínimo 8 caracteres."),
 });
 
 export type RegistroFormValues = yup.InferType<typeof registroSchema>;
 
-export const valoresInicialesRegistro: RegistroFormValues = {
-  categoria_id: 0,
-  categoria_otro_detalle: "",
-  cantidad_profesionales: 0,
-  nombre_negocio: "",
-  nombre: "",
-  apellido: "",
+/**
+ * Los dos selects arrancan vacíos, que no es un valor válido del esquema: el
+ * `as` mantiene el placeholder ("Selecciona una opción") sin abrir el tipo.
+ */
+export const valoresIniciales: RegistroFormValues = {
+  tipo_negocio_id: undefined as unknown as number,
+  rango_profesionales: "" as RegistroFormValues["rango_profesionales"],
+  nombre_completo: "",
   email: "",
-  telefono_pais: "+51",
-  telefono_numero: "",
-  documento: "",
-  usuario: "",
+  telefono: "",
   password: "",
-  terminos: false,
 };

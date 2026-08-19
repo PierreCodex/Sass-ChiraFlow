@@ -1,7 +1,6 @@
-import { api, fetchCsrfCookie } from "@/lib/api/client";
-import { env } from "@/config/env";
-import { delay } from "@/lib/mock-utils";
+import { api } from "@/lib/api/client";
 import type { ApiResource } from "@/lib/api/types";
+import type { CategoriaNegocio, RangoProfesionales } from "../types";
 
 export interface Usuario {
   id: number;
@@ -20,59 +19,64 @@ export interface LoginPayload {
 }
 
 /**
- * Mismos campos que valida `Publico\HomeController@registroPrueba` en
- * Laravel: crea el negocio en modo "prueba" y a su dueño en un solo paso.
+ * Payload cerrado del registro (contrato § Registro y onboarding).
+ *
+ * No pide el nombre del negocio: eso lo fija el paso 1 del onboarding. El
+ * teléfono viaja ya normalizado (`+51987654321`) y `nombre`/`apellido` salen
+ * de partir el campo único del formulario.
  */
 export interface RegisterPayload {
-  categoria_id: number;
-  categoria_otro_detalle?: string;
-  cantidad_profesionales: number;
-  nombre_negocio: string;
+  tipo_negocio_id: number;
+  rango_profesionales: RangoProfesionales;
   nombre: string;
   apellido: string;
   email: string;
   telefono: string;
-  documento: string;
-  usuario: string;
   password: string;
-  terminos: boolean;
+  password_confirmation: string;
 }
 
 /**
- * Endpoints de autenticación contra Laravel + Sanctum (modo SPA / cookies).
- * Cada POST que abre sesión necesita primero la cookie CSRF.
+ * Endpoints de autenticación.
+ *
+ * `login` y `logout` van contra el **BFF de Next** (`/api/auth/*`), que es
+ * quien guarda y borra la cookie httpOnly con el token de Sanctum. El resto
+ * atraviesa el proxy: el token lo pone el servidor, aquí no se toca.
  */
 export const authApi = {
   login: async (payload: LoginPayload) => {
-    await fetchCsrfCookie();
-    const { data } = await api.post<ApiResource<Usuario>>("/login", payload);
-    return data.data;
-  },
-
-  register: async (payload: RegisterPayload): Promise<Usuario> => {
-    if (env.usarMocks) {
-      await delay(600);
-      // Equivalente a `Auth::login($user)` + redirect al dashboard: en mock
-      // no hay sesión real, solo se resuelve para que el form redirija.
-      return {
-        id: 1,
-        name: `${payload.nombre} ${payload.apellido}`,
-        email: payload.email,
-        avatar_url: null,
-        rol: "dueno",
-        negocio: { id: 1, nombre: payload.nombre_negocio },
-      };
-    }
-    await fetchCsrfCookie();
     const { data } = await api.post<ApiResource<Usuario>>(
-      "/registro-prueba",
+      "/auth/login",
       payload
     );
     return data.data;
   },
 
+  /**
+   * Alta de cuenta. Va directo a Laravel por el proxy y **no abre sesión**:
+   * como no pasa por `/api/auth/*`, no hay cookie que escribir. Tras el alta
+   * el usuario tiene que verificar su correo y después entrar por el login.
+   */
+  register: async (payload: RegisterPayload) => {
+    const { data } = await api.post<ApiResource<Usuario>>("/register", payload);
+    return data.data;
+  },
+
+  /** Alimenta el select "¿Qué tipo de negocio tienes?". Sin sesión. */
+  categoriasNegocio: async () => {
+    const { data } = await api.get<ApiResource<CategoriaNegocio[]>>(
+      "/publico/categorias-negocio"
+    );
+    return data.data;
+  },
+
+  /** Reenvía el correo de verificación. Responde 200 exista o no el email. */
+  reenviarVerificacion: async (email: string) => {
+    await api.post("/email/reenviar", { email });
+  },
+
   logout: async () => {
-    await api.post("/logout");
+    await api.post("/auth/logout");
   },
 
   /** Usuario autenticado actual. Devuelve 401 si no hay sesión. */
@@ -82,7 +86,6 @@ export const authApi = {
   },
 
   forgotPassword: async (email: string) => {
-    await fetchCsrfCookie();
     await api.post("/forgot-password", { email });
   },
 };

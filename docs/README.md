@@ -12,6 +12,7 @@ checklist para validar cada maqueta contra la app actual.
 |---|---|---|
 | [Dashboard](vistas/dashboard.md) | `/` | ✅ Fiel a la app actual |
 | [Suscripción](vistas/suscripcion.md) | (banner global) | ✅ Fiel a la app actual |
+| [Onboarding](vistas/onboarding.md) | (checklist lateral) | ⚠️ Diseño cerrado · sin maquetar |
 | [Clientes](vistas/clientes.md) | `/clientes` | ✅ Validado contra la app actual |
 | [Citas](vistas/citas.md) | `/citas` | ✅ Validado contra el backend · ⚠️ tabla supuesta |
 | [Servicios](vistas/servicios.md) | `/servicios` | ✅ Validado contra la app actual |
@@ -28,10 +29,14 @@ checklist para validar cada maqueta contra la app actual.
 | [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
 
 > **Documentos de conjunto**
+> - [api-contract.md](api-contract.md) — inventario de endpoints, formas de
+>   datos y flujos de pantalla, extraído del código del frontend
 > - [lectura-del-backend.md](lectura-del-backend.md) — qué pretendía el
 >   backend actual, qué conservar y qué rehacer
 > - [plan-backend.md](plan-backend.md) — cómo levantar el backend nuevo:
 >   decisiones, orden de construcción y tablas que faltan
+> - [plan-sprints.md](plan-sprints.md) — el plan de ejecución por sprints:
+>   grafo de dependencias, fichas por módulo y criterios de aceptación
 > - [flujos.md](flujos.md) — 12 diagramas del sistema, listos para Excalidraw
 
 ### Fuera del panel
@@ -39,6 +44,7 @@ checklist para validar cada maqueta contra la app actual.
 | Vista | Ruta | Estado |
 |---|---|---|
 | [Tienda pública](vistas/tienda-publica.md) | `{slug}.dominio.com` · `/reservar/{slug}` | ✅ Validado contra el código Laravel · ⚠️ falta mapa y SEO |
+| [Registro](vistas/registro.md) | `/register` | ✅ Maquetado y conectado al backend real |
 
 **Estados:** ✅ construido a partir de la app real · ⚠️ tiene una decisión
 abierta o una divergencia deliberada, explicada en su ficha.
