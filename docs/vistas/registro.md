@@ -1,14 +1,18 @@
 # Registro
 
 **Ruta:** `/register`
-**Estado:** ✅ Maquetado y **conectado al backend real** (2026-08-16) ·
-⚠️ faltan las pantallas hermanas del correo
+**Estado:** ✅ Maquetado y **conectado al backend real** (2026-08-16), con sus
+dos pantallas hermanas (`/verificar-correo` y `/reset-password`)
 **Archivos:**
 - `web/src/app/(auth)/register/page.tsx` — variante **side** de la plantilla
   (`auth/auth1`): ilustración a la izquierda, formulario a la derecha
 - `web/src/features/auth/components/AuthRegister.tsx`
 - `web/src/features/auth/schemas/registro.schema.ts`
 - `web/src/features/auth/types.ts` (rangos, `separarNombre`, `normalizarTelefono`)
+- `web/src/app/(auth)/verificar-correo/page.tsx` + `features/auth/components/VerificacionCorreo.tsx`
+- `web/src/app/(auth)/reset-password/page.tsx` + `features/auth/components/ResetPasswordForm.tsx`
+- `web/src/features/auth/components/ReenviarVerificacion.tsx` (botón con cuenta atrás)
+- `web/src/app/(auth)/forgot-password/page.tsx` + `features/auth/components/AuthForgotPassword.tsx`
 
 ---
 
@@ -16,13 +20,13 @@
 
 La entrada al producto: el formulario que crea el negocio (tenant) y su
 dueño. **No pide el nombre del negocio** — eso se decide con calma en el
-paso 1 del [onboarding](onboarding.md); el tenant nace con un **slug temporal
-aleatorio** y la tienda pública apagada hasta que el nombre exista.
+paso 1 del [onboarding](onboarding.md); el tenant nace **sin slug**
+(`slug NULL`) y con la tienda pública apagada hasta que el nombre exista.
 
 Flujo completo decidido:
 
 ```
-registro (slug temporal) → verificar correo → PROVISIONING de la BD del tenant
+registro (sin slug) → verificar correo → PROVISIONING de la BD del tenant
 → primer login → panel con checklist de onboarding
 ```
 
@@ -105,8 +109,8 @@ Sin sesión. Alimenta el select del tipo de negocio (tabla
 | `telefono` | requerido, formato `+51` + 9 dígitos |
 | `password` | requerida, mín. 8, confirmada |
 
-**Qué hace el backend** (una sola transacción): crea `tenants` con slug
-temporal aleatorio, plan de prueba del seeder y `estado='registrada'`; crea el
+**Qué hace el backend** (una sola transacción): crea `tenants` con `slug NULL`,
+plan de prueba del seeder y `estado='registrada'`; crea el
 `users` dueño (con fila en `profesionales` del tenant al provisionar,
 `atiende=1`); envía el correo de verificación.
 
@@ -126,7 +130,50 @@ del tenant. Enlace vencido o firma inválida → 422 con `message`.
 
 ### `POST /api/email/reenviar`
 
-`{ "email": "maria@correo.pe" }` → 200 siempre (no revela si el email existe).
+`{ "email": "maria@correo.pe" }` → 200 **siempre**, exista o no la cuenta.
+
+Trae `retry_after` en segundos, y también lo trae el **429** cuando el
+cooldown por correo (60 s) sigue corriendo. La cuenta atrás del botón usa ese
+valor y nunca uno escrito en el frontend: el límite es por correo, así que
+otra pestaña puede haber consumido parte del tiempo. Ver api-contract.md §
+Autenticación.
+
+---
+
+## Las pantallas del correo
+
+### `/verificar-correo?id&hash&expires&signature`
+
+Pública —el registro no abre sesión— y sin guard. Al montar reenvía los
+cuatro parámetros **tal como llegaron** a `POST /email/verificar`:
+`expires` es un timestamp Unix y `signature` un HMAC sobre `id|hash|expires`,
+de modo que tocar cualquiera invalida la firma.
+
+- **200** → "¡Listo!" con el mensaje del backend y botón al login. El endpoint
+  es **idempotente**: recargar vuelve a dar 200, así que la segunda visita no
+  se trata como error.
+- **422** → enlace vencido (duran 48 h) o firma que no cuadra: se muestra el
+  `message` del backend y un campo de email para pedir uno nuevo.
+- Si faltan parámetros en la URL no se llama al backend: mismo panel de
+  enlace inválido.
+
+`useSearchParams` suspende el árbol durante el prerender, así que la página
+envuelve el componente en `<Suspense>`; sin eso la build falla. Y el POST se
+guarda tras un `useRef` porque en desarrollo React monta dos veces.
+
+### `/forgot-password`
+
+Pide el email y llama a `POST /forgot-password`, que responde **200 exista o
+no la cuenta**. Por eso el panel de éxito repite el mensaje del backend ("Si el
+correo está registrado…") en vez de afirmar que se envió: el frontend no sabe
+—ni debe saber— si esa cuenta existe.
+
+### `/reset-password?token&email`
+
+Mismo patrón. `token` y `email` vienen de la URL y no se editan; el usuario
+solo elige contraseña y confirmación (mínimo 8, iguales). Un token vencido o
+ya usado vuelve como **422 con `errors.email`**, que se pinta en el Alert de
+arriba porque ese campo no está en pantalla.
 
 ---
 
@@ -134,7 +181,7 @@ del tenant. Enlace vencido o firma inválida → 422 con `message`.
 
 | Elemento | En el Laravel anterior | Aquí |
 |---|---|---|
-| Nombre del negocio | Se pedía en el registro y fijaba el slug al instante | Se pide en el onboarding; slug temporal mientras tanto |
+| Nombre del negocio | Se pedía en el registro y fijaba el slug al instante | Se pide en el onboarding; sin slug mientras tanto |
 | Plan asignado | Bug: `slug 'profesional'` no existía y caía en `Plan::first()` | Plan de prueba explícito del seeder |
 | Verificación de correo | No había | Obligatoria antes del login |
 | Provisioning | Todo en la BD única al registrar | Job en cola al verificar el correo |
@@ -149,6 +196,19 @@ Contra el Laravel real, con `POST /api/register` devolviendo **201**:
 - `987-654 321` → se guarda `+51987654321` (el campo solo admite dígitos y
   corta a 9).
 - *"María de los Ángeles Quispe Rojas"* → `nombre` y `apellido` correctos.
+- Verificación: enlace firmado real → 200 y panel "¡Listo!"; recargar → 200 otra
+  vez (idempotente, un solo POST por visita); firma manipulada → 422 con el
+  texto del backend y el formulario de reenvío.
+- Cooldown: primer reenvío → cuenta atrás desde el `retry_after` del 200
+  (60 s, y baja 5 en 5 s exactos); pedir otro dentro de la ventana → 429, se
+  muestra su `message` y la cuenta se reinicia con los segundos **que
+  faltaban** (46 s), no con 60.
+- Recuperación: enviar vacío → "Ingresa tu email"; con un email real → 200 y
+  panel "Revisa tu correo" con el mensaje del backend.
+- Reset: contraseñas distintas → "Las contraseñas no coinciden"; iguales →
+  200 y panel de éxito; reusar el mismo token → 422 "El enlace de
+  restablecimiento no es válido o ya venció"; sin `token`/`email` en la URL →
+  panel de enlace incompleto sin llamar al backend.
 - El tenant nace con `slug NULL`, `estado='registrada'`, `rango='3-5'` y un id
   aleatorio (`yl9njvhq`); el usuario con `rol='dueno'` y sin verificar.
 
@@ -161,8 +221,6 @@ la ilustración se oculta y queda solo el logo con el formulario.
 
 ## Pendiente
 
-- [ ] Pantallas hermanas: `/verificar-correo` (landing del enlace) y reset de
-      contraseña. "Revisa tu correo" ya vive dentro de esta pantalla
 - [ ] El seeder tiene la categoría **"Otro"**, que según su comentario debería
       pedir un detalle libre (`tenants.categoria_otro_detalle`), pero
       `POST /register` no acepta ese campo: o se añade al contrato o se quita

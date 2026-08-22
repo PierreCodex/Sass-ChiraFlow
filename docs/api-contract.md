@@ -109,7 +109,19 @@ como una colección plana.
 - **422**: `{ "message": "...", "errors": { "campo": ["mensaje"] } }`.
   `toApiError()` lo normaliza y los formularios lo pintan por campo.
 - **401**: el interceptor redirige a `/login` salvo que ya se esté en
-  `/login`, `/register` o `/forgot-password`. El backend no necesita cuerpo.
+  `/login`, `/register`, `/forgot-password`, `/reset-password` o
+  `/verificar-correo`. El backend no necesita cuerpo.
+
+**Login fallido: 422, no 401.** Las credenciales que no cuadran vuelven como
+un error de validación —`errors.email` con "Las credenciales no coinciden…"—
+y el formulario las pinta bajo el campo. El **401** queda reservado para
+peticiones sin token o con token revocado, que es lo que el interceptor
+traduce en un salto a `/login`; si el login fallido devolviera 401, el
+interceptor recargaría la propia pantalla y se comería el mensaje.
+
+El **403** del login es "correo sin verificar": no es un fallo del formulario
+sino un paso que falta, así que la pantalla ofrece ahí mismo el reenvío del
+enlace (`POST /email/reenviar`, con su cooldown).
 - Cualquier otro estado: se muestra `message`; si no hay respuesta,
   "No se pudo conectar con el servidor."
 
@@ -151,7 +163,7 @@ Dos niveles: lo que pide el navegador y lo que el BFF pide a Laravel.
 
 | Del BFF a Laravel | Payload | Respuesta que se espera |
 |---|---|---|
-| POST `/login` | `{ email, password }` | `{ data: { token, usuario } }` |
+| POST `/login` | `{ email, password }` | `{ data: { token, usuario } }` · 422 credenciales · 403 sin verificar · 429 (10/min) |
 | POST `/logout` | — (Bearer) | 204 · revoca **ese** token, no todos |
 
 El resto pasa por el proxy sin trato especial, con el `Bearer` puesto (las de
@@ -162,10 +174,27 @@ registro, verificación y recuperación viajan **sin** sesión):
 | GET | `/publico/categorias-negocio` | — | `{ data: {id,nombre}[] }` · el select "Tipo de negocio" del registro |
 | POST | `/register` | ver abajo | `{ data: Usuario }` · **no abre sesión** |
 | POST | `/email/verificar` | `{ id, hash, expires, signature }` (del enlace del correo) | 200 · **dispara el provisioning** |
-| POST | `/email/reenviar` | `{ email }` | 200 |
+| POST | `/email/reenviar` | `{ email }` | 200 `{ message, retry_after }` · 429 si hay cooldown |
 | GET | `/user` | — | `{ data: Usuario }` · 401 si no hay sesión |
 | POST | `/forgot-password` | `{ email }` | 200 |
 | POST | `/reset-password` | `{ token, email, password, password_confirmation }` | 200 |
+
+**Cooldown de `/email/reenviar`.** El reenvío está limitado **por correo** (uno
+cada 60 s, 5 por hora), no solo por IP: si no, el formulario sirve para
+reventar la bandeja de un tercero. Los segundos que faltan viajan en
+`retry_after`, y vienen **tanto en el 200 como en el 429**, para que la cuenta
+atrás del botón no tenga que adivinar nada:
+
+```jsonc
+// 200
+{ "message": "Si el correo está registrado, enviamos un nuevo enlace.", "retry_after": 60 }
+// 429
+{ "message": "Ya enviamos un enlace hace poco. Espera un momento antes de pedir otro.", "retry_after": 46 }
+```
+
+El límite se cuenta **antes** de mirar si el usuario existe, así que el 429
+tampoco revela qué correos están registrados. El 200 sigue sin significar que
+la cuenta exista.
 
 > `remember` no llega a Laravel: lo consume el BFF para decidir si la cookie
 > dura 30 días o muere con la pestaña.
@@ -177,7 +206,7 @@ registro, verificación y recuperación viajan **sin** sesión):
 ### Registro y onboarding — flujo decidido
 
 ```
-registro (slug temporal) → verificar correo → PROVISIONING de la BD del tenant
+registro (`slug NULL`) → verificar correo → PROVISIONING de la BD del tenant
 → primer login → panel con checklist de onboarding
 → la primera tarea fija el slug definitivo → resto de tareas
 ```
@@ -187,8 +216,9 @@ onboarding: cuando el usuario hace su primer login, su BD ya existe y el panel
 funciona entero.
 
 **`POST /register`** — el formulario **no pide el nombre del negocio**; el
-tenant nace con un **slug temporal aleatorio** que el paso 1 del onboarding
-reemplaza. Payload:
+tenant nace **sin slug** (`slug NULL`), y el paso 1 del onboarding lo fija. Su
+BD la nombra el `id` del tenant, aleatorio e inmutable, que sí existe desde el
+registro. Payload:
 
 ```jsonc
 {
@@ -203,7 +233,7 @@ reemplaza. Payload:
 }
 ```
 
-Crea en la misma transacción el `tenants` (slug temporal, plan de prueba,
+Crea en la misma transacción el `tenants` (`slug NULL`, plan de prueba,
 `estado='registrada'`) y el `users` dueño, y envía el correo de verificación.
 `Usuario.name` se emite como `nombre + apellido`.
 
@@ -220,8 +250,8 @@ corresponda (guardar horario, crear profesional, crear servicio, crear cita);
 el checklist solo lee.
 
 ⚠️ **Mientras `nombre_negocio` no esté completado, la tienda pública está
-apagada**: `/publico/{slug}` responde 404. Nadie debe repartir un enlace con
-el slug temporal.
+apagada**: sin slug no hay URL de tienda que repartir, y `/publico/{slug}`
+responde 404.
 
 ### CRUD estándar — generado por `crearRecurso()`
 
@@ -293,8 +323,8 @@ exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
 el tenant (igual que el `Route::domain` del Laravel anterior).
 
 Mientras el negocio no haya completado el paso `nombre_negocio` del onboarding
-(el que fija el slug definitivo), la tienda responde **404**: el slug temporal
-del registro no debe circular.
+(el que fija el slug definitivo), la tienda responde **404**: hasta entonces el
+tenant no tiene slug.
 
 ---
 

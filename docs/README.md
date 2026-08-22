@@ -38,13 +38,18 @@ checklist para validar cada maqueta contra la app actual.
 > - [plan-sprints.md](plan-sprints.md) — el plan de ejecución por sprints:
 >   grafo de dependencias, fichas por módulo y criterios de aceptación
 > - [flujos.md](flujos.md) — 12 diagramas del sistema, listos para Excalidraw
+> - [trabajo-en-equipo.md](trabajo-en-equipo.md) — cómo trabajamos dos devs sobre
+>   este repo: ramas, commits, PR y sincronización
+> - [revisar-rama-del-companero.md](revisar-rama-del-companero.md) — paso a paso
+>   para ver, comparar en vivo y aceptar la rama de otro
 
 ### Fuera del panel
 
 | Vista | Ruta | Estado |
 |---|---|---|
 | [Tienda pública](vistas/tienda-publica.md) | `{slug}.dominio.com` · `/reservar/{slug}` | ✅ Validado contra el código Laravel · ⚠️ falta mapa y SEO |
-| [Registro](vistas/registro.md) | `/register` | ✅ Maquetado y conectado al backend real |
+| [Login](vistas/login.md) | `/login` | ✅ Maquetado y conectado al backend real |
+| [Registro](vistas/registro.md) | `/register` · `/verificar-correo` · `/forgot-password` · `/reset-password` | ✅ Maquetado y conectado al backend real |
 
 **Estados:** ✅ construido a partir de la app real · ⚠️ tiene una decisión
 abierta o una divergencia deliberada, explicada en su ficha.

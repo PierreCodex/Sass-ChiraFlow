@@ -8,7 +8,10 @@ import AuthForgotPassword from '@/features/auth/components/AuthForgotPassword';
 
 export default function ForgotPassword2(){
   return (
-    <PageContainer title="Forgot Password Page" description="this is Sample page">
+    <PageContainer
+      title="Recuperar contraseña"
+      description="Te enviamos un enlace para elegir una contraseña nueva"
+    >
       <Box
         sx={{
           position: 'relative',
@@ -45,8 +48,8 @@ export default function ForgotPassword2(){
                 variant="subtitle2"
                 fontWeight="400"
               >
-                Please enter the email address associated with your account and We will email you a
-                link to reset your password.
+                Escribe el email de tu cuenta y te enviamos un enlace para
+                elegir una contraseña nueva.
               </Typography>
               <AuthForgotPassword />
             </Card>

@@ -14,7 +14,10 @@ import AuthLogin from '@/features/auth/components/AuthLogin';
 export default function Login2() {
 
   return (
-    <PageContainer title="Login Page" description="this is Sample page">
+    <PageContainer
+      title="Iniciar sesión"
+      description="Entra al panel de tu negocio"
+    >
       <Box
         sx={{
           position: 'relative',
@@ -49,7 +52,7 @@ export default function Login2() {
                 subtitle={
                   <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
                     <Typography color="textSecondary" variant="h6" fontWeight="500">
-                      New to Modernize?
+                      ¿Aún no tienes cuenta?
                     </Typography>
                     <Typography
                       component={Link}
@@ -60,7 +63,7 @@ export default function Login2() {
                         color: 'primary.main',
                       }}
                     >
-                      Create an account
+                      Crea la de tu negocio
                     </Typography>
                   </Stack>
                 }
