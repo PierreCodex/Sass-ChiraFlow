@@ -16,6 +16,7 @@ import Search from './Search';
 import Language from './Language';
 import Navigation from './Navigation';
 import MobileRightSidebar from './MobileRightSidebar';
+import OnboardingChecklist from '@/features/onboarding/components/OnboardingChecklist';
 
 const Header = () => {
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
@@ -73,7 +74,15 @@ const Header = () => {
 
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
-          <Language />
+          {/* Checklist de entrada: desaparece solo al completarse */}
+          <OnboardingChecklist />
+
+          {/* En movil la barra no da para un icono mas: el checklist entra y
+              el selector de idioma se esconde. La app es de un solo idioma
+              (Peru), asi que es lo que menos se echa en falta. */}
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            <Language />
+          </Box>
 
           {/* ------------------------------------------- */}
           {/* End Ecommerce Dropdown */}

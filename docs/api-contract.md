@@ -341,7 +341,13 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | `email` | string | |
 | `avatar_url` | string? | |
 | `rol` | string? | |
-| `negocio` | `{ id, nombre }`? | el tenant del usuario |
+| `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |
+
+`negocio.nombre` y `negocio.slug` son **`null` hasta que el onboarding fije el
+nombre**. El `slug` es lo que permite al panel construir el enlace de la
+tienda (`{slug}.dominio` o `/reservar/{slug}`): sin él, el paso 6 del
+checklist y el enlace del dashboard no tienen a dónde apuntar, así que va en
+todas las respuestas que traen `Usuario` (`POST /login` y `GET /user`).
 
 ### Onboarding
 

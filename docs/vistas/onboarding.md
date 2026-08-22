@@ -2,10 +2,12 @@
 
 **Ruta:** no tiene — se renderiza en el layout del dashboard, como el banner
 de [suscripción](suscripcion.md)
-**Estado:** ⚠️ Diseño cerrado (2026-08-14) · **sin maquetar**
-**Archivos (previstos):**
-- `web/src/app/(dashboard)/layout.tsx` (lo monta)
-- `web/src/features/onboarding/`
+**Estado:** ✅ Maquetado y **conectado al backend real** (2026-08-22)
+**Archivos:**
+- `web/src/layout/vertical/header/Header.tsx` (lo monta)
+- `web/src/features/onboarding/components/OnboardingChecklist.tsx` (icono + panel)
+- `web/src/features/onboarding/components/NombreNegocioDialog.tsx` (paso 1)
+- `web/src/features/onboarding/{types,slug}.ts`, `services/`, `hooks/`
 
 ---
 
@@ -58,6 +60,37 @@ distintas (decisión anotada en el Sprint 0 de
   pista "Primero ponle nombre a tu negocio".
 - El dueño ya viene con `atiende=1` desde el provisioning: el paso 3 va de
   añadir al **resto** del equipo.
+
+---
+
+## Cómo está construido
+
+Se monta en el **header**, no en el layout: un `IconButton` con `Badge` que
+abre un `Drawer anchor="right"`. Es el patrón de `Cart.tsx` de la plantilla.
+**No usa un `Fab`**: esa esquina ya es del `Customizer`, que también es un
+drawer derecho lanzado desde `right: 25px; bottom: 15px`.
+
+| Pieza | De dónde sale |
+|---|---|
+| Icono + panel | `layout/vertical/header/Cart.tsx` |
+| Filas de tarea | `widgets/cards/UpcomingActivity.tsx`: `Avatar variant="rounded"` 40×40 sobre color claro |
+| Progreso | `LinearProgress determinate`, como `dashboards/modern/SellingProducts.tsx` |
+| Contador | El `Chip` pequeño de `Notification.tsx` |
+| Modal del paso 1 | `dialogoResponsive`, como los 19 diálogos del proyecto |
+
+Descartado el **`Stepper`** de `forms/form-wizard`: es lineal y bloqueante, y
+este checklist no bloquea nada — las tareas 2 a 5 se hacen en cualquier orden
+y desde sus propias pantallas.
+
+El drawer **se abre solo la primera vez** (marca `mi-saas:onboarding-visto` en
+`localStorage`, dentro de `try/catch` para que el modo incógnito no rompa el
+panel); después se abre desde el icono, que lleva el número de tareas que
+faltan.
+
+⚠️ **En móvil la barra del header no daba para un icono más**: con el checklist
+desbordaba 32 px. Se compactó el botón y **se esconde el selector de idioma
+por debajo de `sm`** (la app es de un solo idioma). Medido: de +32 px a −15 px
+de holgura.
 
 ---
 
@@ -139,12 +172,36 @@ como efecto lateral" viene de ahí. Las claves y la lista de tareas son nuevas.
 
 ---
 
+## Verificado en el navegador (2026-08-22)
+
+Contra el Laravel real, con el tenant `yl9njvhq` recién verificado:
+
+- Primer login → el panel se abre **con el checklist desplegado**, "0 de 6", y
+  el paso 6 atenuado con la pista "Primero ponle nombre a tu negocio".
+- Paso 1 → el modal deriva el enlace en vivo: *"Barbería El Cairo"* →
+  `/reservar/barberia-el-cairo` (la tilde desaparece, como en `Str::slug`).
+- Al guardar → 200, la fila pasa a check verde con "Listo", el chip a "1 de 6"
+  y la barra avanza. `GET /onboarding` confirma `nombre_negocio: true`.
+- Repetir el paso 1 → **422** con `errors.nombre` ("El nombre ya está definido
+  y el enlace de tu tienda no puede cambiar"). Desde la interfaz ya no se
+  puede: la fila completada deja de ser pulsable.
+- Recargar → el checklist **no** se reabre solo y el badge del header marca 5.
+- Móvil (375×812) → el panel ocupa 360 px de 375 y se lee entero.
+
+Un hallazgo del camino: `POST /onboarding/nombre` por `curl` devolvía **302**
+en vez de 422, porque sin `Accept: application/json` Laravel redirige a un
+formulario que aquí no existe. El BFF ahora **fuerza esa cabecera** en todas
+las peticiones: lo que pasa por él es API, y no debe depender de quién llame.
+
+---
+
 ## Pendiente
 
-- [ ] Maquetar el drawer (Sprint 0): lista, progreso, modal del paso 1 con la
-      URL en vivo
-- [ ] ¿El cierre del drawer se recuerda por dispositivo (localStorage) o por
-      usuario (backend)? Propuesta: localStorage, no amerita columna
+- [ ] **`negocio.slug` en `UsuarioResource`** (login y `GET /user`): sin él el
+      paso 6 no tiene a dónde apuntar y queda deshabilitado. Anotado en el
+      contrato § Usuario y en los traspasos de [estado.md](../estado.md)
+- [ ] El enlace de la tienda del [dashboard](dashboard.md) sigue con datos
+      ficticios: hay que apagarlo mientras el slug sea `NULL`
 - [ ] Si `rango_profesionales = independiente`, ¿el paso 3 se marca solo o
       cambia su texto? (ver [registro.md](registro.md))
 - [ ] Validación de nombres reservados en el slug (`www`, `api`, `admin`,

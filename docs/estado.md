@@ -28,7 +28,7 @@ solo a **qué está hecho y quién lo tiene en la mano ahora mismo**.
 |---|---|---|
 | **0.A** Fundaciones (tenancy, migraciones, seeders) | ✅ 2026-08-15 | — |
 | **0.B** Registro, verificación, login, recuperación | ✅ 2026-08-22 | ✅ 2026-08-22 |
-| **0.B** Onboarding (checklist + paso 1) | ✅ 2026-08-22 | ⬜ **en curso** |
+| **0.B** Onboarding (checklist + paso 1) | ✅ 2026-08-22 | ✅ 2026-08-22 |
 | Infraestructura FE: override de mocks por recurso | — | ⬜ |
 | **1.A** Categorías | ⬜ | ⬜ |
 | **1.B** Servicios | ⬜ | ⬜ |
@@ -61,16 +61,15 @@ prueba.
 
 ## Sesión FRONTEND (repo `mi-saas`)
 
-**Ahora:** checklist de onboarding — `features/onboarding/`, drawer lateral
-cerrable en el layout del dashboard, progreso "1/6", y el modal del paso 1
-(nombre del negocio con la URL de la tienda en vivo). Contra
-`GET /onboarding`, `POST /onboarding/nombre` y
-`PUT /onboarding/pasos/{clave}`, que ya están servidos.
+**Ahora:** nada en curso. Con el checklist de onboarding terminado, el
+Sprint 0 queda cerrado por el lado del frontend.
 
 **Después, por orden:**
-1. Montar `useUsuarioActual` (`GET /user`) en el layout del panel: hoy el
-   header sigue con el usuario de la plantilla.
-2. Deshabilitar el enlace a la tienda mientras `slug` sea `NULL`.
+1. Poner el usuario real en el header del panel: `useUsuarioActual` ya se monta
+   (lo consume el checklist), pero el avatar y el nombre siguen siendo los de
+   la plantilla.
+2. Deshabilitar el enlace a la tienda mientras `slug` sea `NULL` — depende del
+   traspaso de `negocio.slug`.
 3. Override de mocks por recurso (`plan-sprints.md` § Infraestructura
    frontend): `env.usarMocks` es global y apagarlo tumbaría los 14 módulos
    que aún no tienen backend. Es prerequisito para cerrar el Sprint 1.
@@ -100,6 +99,7 @@ Lo que un lado espera del otro. Se borra la línea cuando se resuelve.
 |---|---|---|
 | 2026-08-22 | FE → BE | La categoría **"Otro"** del seeder debería pedir un detalle libre (`tenants.categoria_otro_detalle`), pero `POST /register` no acepta ese campo: o se añade al contrato o se quita la columna |
 | 2026-08-22 | FE → BE | Qué responde el login si el tenant está **suspendido** (§1.6): hoy entra igual que uno activo |
+| 2026-08-22 | FE → BE | **`negocio.slug` en `UsuarioResource`** (login y `GET /user`), null mientras el onboarding no fije el nombre: hoy el panel no puede construir el enlace de la tienda. Ya está en el contrato § Usuario |
 
 ---
 

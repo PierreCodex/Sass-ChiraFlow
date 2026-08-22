@@ -60,6 +60,11 @@ async function proxy(
     if (!NO_REENVIAR.has(clave)) cabeceras.set(clave, valor);
   });
 
+  // Laravel decide por el `Accept` si un 422 sale como JSON o como redirección
+  // a un formulario que aquí no existe. Todo lo que pasa por el BFF es API, así
+  // que no se deja a criterio de quien llame.
+  cabeceras.set("Accept", "application/json");
+
   // Sin token la request sale igual: es lo que hace falta para la tienda
   // pública (`/api/publico/*`), que no lleva sesión.
   if (token) cabeceras.set("Authorization", `Bearer ${token}`);

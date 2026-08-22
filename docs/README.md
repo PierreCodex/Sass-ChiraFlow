@@ -12,7 +12,7 @@ checklist para validar cada maqueta contra la app actual.
 |---|---|---|
 | [Dashboard](vistas/dashboard.md) | `/` | ✅ Fiel a la app actual |
 | [Suscripción](vistas/suscripcion.md) | (banner global) | ✅ Fiel a la app actual |
-| [Onboarding](vistas/onboarding.md) | (checklist lateral) | ⚠️ Diseño cerrado · sin maquetar |
+| [Onboarding](vistas/onboarding.md) | (checklist lateral) | ✅ Maquetado y conectado al backend real |
 | [Clientes](vistas/clientes.md) | `/clientes` | ✅ Validado contra la app actual |
 | [Citas](vistas/citas.md) | `/citas` | ✅ Validado contra el backend · ⚠️ tabla supuesta |
 | [Servicios](vistas/servicios.md) | `/servicios` | ✅ Validado contra la app actual |
