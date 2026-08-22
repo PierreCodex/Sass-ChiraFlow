@@ -213,7 +213,6 @@ Cosas que costaron tiempo. No repetirlas.
 | `docs/api-contract.md` | **El contrato con `backend-sass`**: endpoints, formas de datos y flujos. Original único: se edita aquí y solo aquí |
 | `docs/vistas/*.md` | Una por pantalla, con su contrato JSON |
 | `docs/plan-backend.md` | Cómo levantar el backend nuevo: decisiones, orden y tablas que faltan |
-| `docs/flujos.md` | 12 diagramas del sistema, listos para pegar en Excalidraw |
 
 **Al terminar un módulo, actualizar su ficha.** Es lo que hace que la
 especificación siga siendo cierta.

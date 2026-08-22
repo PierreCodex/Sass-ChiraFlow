@@ -37,7 +37,6 @@ checklist para validar cada maqueta contra la app actual.
 >   grafo de dependencias, fichas por módulo y criterios de aceptación
 > - [estado.md](estado.md) — **el tablero**: qué módulo está hecho, quién lo
 >   tiene en la mano y qué espera un repo del otro
-> - [flujos.md](flujos.md) — 12 diagramas del sistema, listos para Excalidraw
 
 ### Fuera del panel
 
