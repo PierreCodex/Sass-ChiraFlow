@@ -164,7 +164,7 @@ Desde el repo `mi-saas` (el único autorizado a editar el contrato):
 **La única dependencia dura de todo el plan.** Flujo cerrado (2026-08-14):
 
 ```
-registro (slug temporal) → verificar correo → PROVISIONING de la BD del tenant
+registro (sin slug) → verificar correo → PROVISIONING de la BD del tenant
 → primer login → panel con checklist de onboarding
 → la primera tarea fija el slug definitivo → resto de tareas
 ```
@@ -221,8 +221,8 @@ ese token) · `GET /user` · `POST /forgot-password` · `POST /reset-password` �
 2. `POST /register` — **solo dueños** (§2.9), con el payload cerrado
    (`tipo_negocio_id`, `rango_profesionales`, `nombre`, `apellido`, `email`,
    `telefono` normalizado `+51…`, `password`): en **una transacción** crea
-   `tenants` (`estado='registrada'`, `db_provisionada=0`, **slug temporal
-   aleatorio**, plan de prueba del seeder) + `users` dueño. **No abre sesión
+   `tenants` (`estado='registrada'`, `db_provisionada=0`, **sin slug**: lo
+   fija el onboarding, plan de prueba del seeder) + `users` dueño. **No abre sesión
    ni devuelve token.** Dispara el mail de verificación.
 3. `POST /email/verificar` (enlace firmado reenviado por el frontend):
    marca `email_verified_at` y **encola el job de provisioning** — la BD del
@@ -280,7 +280,7 @@ eliminado), §2.10 (email único global), §1.6 (estados del tenant), §1.5
 
 **Criterios de aceptación**
 - `POST /register` con email repetido → 422 `errors.email`; con datos
-  válidos → tenant en `registrada` con slug temporal + dueño creados
+  válidos → tenant en `registrada` sin slug + dueño creados
   atómicamente, y **cero** BDs de tenant creadas.
 - `POST /email/verificar` → job en cola → existe la BD del tenant con todas
   las tablas migradas y el dueño en `profesionales` con `atiende=1`;
@@ -711,7 +711,7 @@ tabla), §2.2 (reserva exige teléfono; `firstOrCreate`), §2.4 (`modo: unica`
    ver desacople id/slug del Sprint 0) + inicialización de tenancy **sin**
    auth; excluir subdominios reservados; 404 amable si el negocio no existe,
    está suspendido, `sitio_publico_activo=false` **o aún no fijó su nombre**
-   (paso 1 del onboarding: el slug temporal no debe circular).
+   (paso 1 del onboarding: sin slug no hay tienda que enseñar).
 2. Los dos GET de catálogo con los recortes del contrato (nada de costes ni
    estados internos; profesionales `atiende=1` + `habilitado=1`, con
    `nombre_publico`).

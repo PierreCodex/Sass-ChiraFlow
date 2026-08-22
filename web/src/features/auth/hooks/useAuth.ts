@@ -19,12 +19,32 @@ export function useCategoriasNegocio() {
   });
 }
 
+/**
+ * Login. Va contra el BFF (`/api/auth/login`), que es quien guarda el token
+ * en la cookie httpOnly; aquí solo vuelve el usuario.
+ */
+export function useLogin() {
+  return useMutation({ mutationFn: authApi.login });
+}
+
 export function useRegistro() {
   return useMutation({ mutationFn: authApi.register });
 }
 
 export function useReenviarVerificacion() {
   return useMutation({ mutationFn: authApi.reenviarVerificacion });
+}
+
+export function useVerificarEmail() {
+  return useMutation({ mutationFn: authApi.verificarEmail });
+}
+
+export function useForgotPassword() {
+  return useMutation({ mutationFn: authApi.forgotPassword });
+}
+
+export function useResetPassword() {
+  return useMutation({ mutationFn: authApi.resetPassword });
 }
 
 /**

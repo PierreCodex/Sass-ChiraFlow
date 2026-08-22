@@ -36,6 +36,34 @@ export interface RegisterPayload {
   password_confirmation: string;
 }
 
+/** Parámetros firmados que el correo de verificación pone en la URL. */
+export interface VerificarEmailParams {
+  id: string;
+  hash: string;
+  expires: string;
+  signature: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+/** Respuesta de los endpoints que solo traen un mensaje. */
+export interface RespuestaMensaje {
+  message: string;
+}
+
+/**
+ * El reenvío trae siempre el `retry_after` en segundos: en el 200 para armar
+ * la cuenta atrás del botón y en el 429 para corregirla. Nunca hardcodear 60.
+ */
+export interface RespuestaReenvio extends RespuestaMensaje {
+  retry_after: number;
+}
+
 /**
  * Endpoints de autenticación.
  *
@@ -70,9 +98,39 @@ export const authApi = {
     return data.data;
   },
 
-  /** Reenvía el correo de verificación. Responde 200 exista o no el email. */
+  /**
+   * Verifica el correo con los cuatro parámetros firmados del enlace, tal
+   * como llegaron: `expires` es un timestamp Unix y `signature` un HMAC, así
+   * que tocar cualquiera de los dos invalida la firma.
+   *
+   * Es idempotente: recargar la página vuelve a devolver 200.
+   */
+  verificarEmail: async (params: VerificarEmailParams) => {
+    const { data } = await api.post<RespuestaMensaje>(
+      "/email/verificar",
+      params
+    );
+    return data;
+  },
+
+  /**
+   * Reenvía el correo de verificación. Responde **200 exista o no el email**:
+   * no sirve para saber si una cuenta está registrada.
+   */
   reenviarVerificacion: async (email: string) => {
-    await api.post("/email/reenviar", { email });
+    const { data } = await api.post<RespuestaReenvio>("/email/reenviar", {
+      email,
+    });
+    return data;
+  },
+
+  /** Fija la contraseña nueva con el token del correo de recuperación. */
+  resetPassword: async (payload: ResetPasswordPayload) => {
+    const { data } = await api.post<RespuestaMensaje>(
+      "/reset-password",
+      payload
+    );
+    return data;
   },
 
   logout: async () => {
@@ -85,7 +143,11 @@ export const authApi = {
     return data.data;
   },
 
+  /** Pide el enlace de recuperación. 200 exista o no la cuenta. */
   forgotPassword: async (email: string) => {
-    await api.post("/forgot-password", { email });
+    const { data } = await api.post<RespuestaMensaje>("/forgot-password", {
+      email,
+    });
+    return data;
   },
 };

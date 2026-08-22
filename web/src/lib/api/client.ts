@@ -65,9 +65,13 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const onAuthPage =
       typeof window !== "undefined" &&
-      ["/login", "/register", "/forgot-password"].includes(
-        window.location.pathname
-      );
+      [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+        "/verificar-correo",
+      ].includes(window.location.pathname);
 
     if (status === 401 && !onAuthPage && typeof window !== "undefined") {
       window.location.href = "/login";

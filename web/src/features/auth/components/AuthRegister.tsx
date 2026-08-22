@@ -26,11 +26,8 @@ import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { registerType } from "@/types/auth/auth";
 
-import {
-  useCategoriasNegocio,
-  useRegistro,
-  useReenviarVerificacion,
-} from "../hooks/useAuth";
+import { useCategoriasNegocio, useRegistro } from "../hooks/useAuth";
+import ReenviarVerificacion from "./ReenviarVerificacion";
 import {
   registroSchema,
   valoresIniciales,
@@ -53,7 +50,6 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
   const { data: categorias = [], isError: fallanCategorias } =
     useCategoriasNegocio();
   const registro = useRegistro();
-  const reenvio = useReenviarVerificacion();
 
   const {
     control,
@@ -117,20 +113,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
           cuenta. Ábrelo y podrás entrar a tu panel.
         </Typography>
 
-        {reenvio.isSuccess ? (
-          <Alert severity="success" sx={{ width: "100%" }}>
-            Te reenviamos el enlace.
-          </Alert>
-        ) : null}
-
-        <Button
-          variant="outlined"
-          fullWidth
-          disabled={reenvio.isPending}
-          onClick={() => reenvio.mutate(email)}
-        >
-          {reenvio.isPending ? "Enviando…" : "Reenviar el enlace"}
-        </Button>
+        <ReenviarVerificacion email={email} />
         <Typography
           component={Link}
           href="/login"
