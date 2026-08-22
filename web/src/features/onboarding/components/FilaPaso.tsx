@@ -6,9 +6,32 @@ import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import { IconCheck, IconChevronRight } from "@tabler/icons-react";
+import {
+  IconBuildingStore,
+  IconCalendarCheck,
+  IconCheck,
+  IconClipboardList,
+  IconClock,
+  IconEye,
+  IconUserPlus,
+  type Icon,
+} from "@tabler/icons-react";
 
 import { describirPaso, type PasoOnboarding } from "../types";
+
+/**
+ * Un icono por tarea, a la derecha. Es lo que hace que cada fila se reconozca
+ * de un vistazo sin leerla entera; el número de la izquierda solo dice el
+ * orden.
+ */
+const ICONOS: Record<string, Icon> = {
+  nombre_negocio: IconBuildingStore,
+  horario_local: IconClock,
+  primer_profesional: IconUserPlus,
+  primer_servicio: IconClipboardList,
+  reserva_prueba: IconCalendarCheck,
+  sitio_publico: IconEye,
+};
 
 interface Props {
   paso: PasoOnboarding;
@@ -21,14 +44,14 @@ interface Props {
 }
 
 /**
- * Fila de tarea. Parte del patrón de `widgets/cards/UpcomingActivity` de la
- * plantilla —avatar redondeado sobre color claro, título y subtítulo— y le
- * añade lo que la plantilla no trae: entrada escalonada, realce de la tarea
- * siguiente y el check que aparece con un rebote.
+ * Tarjeta de tarea. Parte del patrón de `widgets/cards/UpcomingActivity` de la
+ * plantilla —avatar redondeado, título y subtítulo— y le añade lo que la
+ * plantilla no trae: tarjeta propia con tres estados (hecha, actual,
+ * pendiente), entrada escalonada y el check que aparece con un rebote.
  *
- * Los fondos van con `alpha()` sobre `primary.main` y no con `primary.light`:
- * ese tono **no se invierte en modo oscuro** y el texto encima queda ilegible
- * (trampa documentada en CLAUDE.md).
+ * Los tintes van con `alpha()` sobre los colores del tema y no con
+ * `primary.light` / `success.light`: esos tonos **no se invierten en modo
+ * oscuro** y el texto encima queda ilegible (trampa documentada en CLAUDE.md).
  */
 const FilaPaso = ({
   paso,
@@ -40,13 +63,14 @@ const FilaPaso = ({
 }: Props) => {
   const { etiqueta, descripcion } = describirPaso(paso.clave);
   const inerte = paso.completado || deshabilitado;
+  const IconoTarea = ICONOS[paso.clave];
 
   const fila = (
     <Box
       onClick={inerte ? undefined : onIr}
       sx={(theme) => ({
         mx: 2,
-        my: 0.5,
+        my: 1,
         px: 2,
         py: 1.75,
         borderRadius: 2,
@@ -56,17 +80,22 @@ const FilaPaso = ({
         // pisaría la atenuación del paso deshabilitado.
         "--opacidad-fila": deshabilitado ? 0.45 : 1,
         opacity: "var(--opacidad-fila)",
-        // Realce solo de la siguiente: seis filas iguales no dicen por dónde
-        // empezar.
-        bgcolor: siguiente
-          ? alpha(theme.palette.primary.main, 0.08)
-          : "transparent",
+        bgcolor: paso.completado
+          ? alpha(theme.palette.success.main, 0.08)
+          : siguiente
+            ? alpha(theme.palette.primary.main, 0.06)
+            : "background.paper",
         border: "1px solid",
-        borderColor: siguiente
-          ? alpha(theme.palette.primary.main, 0.24)
-          : "transparent",
-        transition: "background-color 200ms, border-color 200ms, transform 200ms",
-        // Entrada escalonada: cada fila entra 60 ms después de la anterior.
+        borderColor: paso.completado
+          ? alpha(theme.palette.success.main, 0.28)
+          : siguiente
+            ? alpha(theme.palette.primary.main, 0.35)
+            : "divider",
+        boxShadow: siguiente
+          ? `0 6px 16px ${alpha(theme.palette.primary.main, 0.18)}`
+          : "none",
+        transition:
+          "background-color 250ms, border-color 250ms, box-shadow 250ms",
         animation: "entradaFila 420ms both cubic-bezier(0.16, 1, 0.3, 1)",
         animationDelay: `${indice * 60}ms`,
         "@keyframes entradaFila": {
@@ -76,27 +105,29 @@ const FilaPaso = ({
         "&:hover": inerte
           ? undefined
           : {
-              bgcolor: alpha(theme.palette.primary.main, 0.12),
-              "& .flecha": { transform: "translateX(4px)" },
+              borderColor: theme.palette.primary.main,
+              boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.22)}`,
+              "& .iconoTarea": { transform: "scale(1.12)" },
             },
-        "@media (prefers-reduced-motion: reduce)": {
-          animation: "none",
-        },
+        "@media (prefers-reduced-motion: reduce)": { animation: "none" },
       })}
     >
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={1.75} alignItems="center">
         <Avatar
           variant="rounded"
           sx={(theme) => ({
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             flexShrink: 0,
-            fontWeight: 600,
+            fontSize: 15,
+            fontWeight: 700,
             transition: "background-color 300ms, color 300ms",
+            // Hecha: verde macizo con el check en blanco, como una casilla ya
+            // marcada. Pendiente: solo el número, en tinte suave.
             bgcolor: paso.completado
-              ? alpha(theme.palette.success.main, 0.16)
+              ? "success.main"
               : alpha(theme.palette.primary.main, 0.12),
-            color: paso.completado ? "success.main" : "primary.main",
+            color: paso.completado ? "#fff" : "primary.main",
           })}
         >
           {paso.completado ? (
@@ -104,7 +135,8 @@ const FilaPaso = ({
               component="span"
               sx={{
                 display: "inline-flex",
-                animation: "aparecerCheck 420ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                animation:
+                  "aparecerCheck 420ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                 "@keyframes aparecerCheck": {
                   "0%": { transform: "scale(0)" },
                   "60%": { transform: "scale(1.25)" },
@@ -112,7 +144,7 @@ const FilaPaso = ({
                 },
               }}
             >
-              <IconCheck size={20} stroke={2.5} />
+              <IconCheck size={18} stroke={3} />
             </Box>
           ) : (
             indice + 1
@@ -124,37 +156,45 @@ const FilaPaso = ({
               chip en la misma línea parte el título en tres. */}
           {siguiente ? (
             <Chip
-              label="Empieza aquí"
+              label="PASO ACTUAL"
               size="small"
               color="primary"
-              sx={{ height: 19, fontSize: 10.5, fontWeight: 700, mb: 0.5 }}
+              sx={{
+                height: 18,
+                fontSize: 9.5,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                mb: 0.5,
+              }}
             />
           ) : null}
           <Typography
             variant="h6"
+            fontSize={14.5}
             color={paso.completado ? "textSecondary" : "textPrimary"}
-            mb="2px"
+            mb="1px"
             sx={{ transition: "color 300ms" }}
           >
             {etiqueta}
           </Typography>
-          <Typography variant="subtitle2" color="textSecondary">
-            {paso.completado ? "Listo" : descripcion}
+          <Typography variant="subtitle2" fontSize={12.5} color="textSecondary">
+            {descripcion}
           </Typography>
         </Box>
 
-        {inerte ? null : (
+        {IconoTarea ? (
           <Box
-            className="flecha"
+            className="iconoTarea"
             sx={{
               display: "inline-flex",
-              color: "text.secondary",
-              transition: "transform 200ms",
+              flexShrink: 0,
+              color: paso.completado ? "success.main" : "text.secondary",
+              transition: "transform 200ms, color 250ms",
             }}
           >
-            <IconChevronRight size={18} />
+            <IconoTarea size={20} stroke={1.6} />
           </Box>
-        )}
+        ) : null}
       </Stack>
     </Box>
   );

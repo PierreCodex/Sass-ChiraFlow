@@ -201,6 +201,8 @@ Cosas que costaron tiempo. No repetirlas.
 | **`onClick` en el SVG** | En el header de la plantilla el toggle de tema tiene el `onClick` en el `<svg>`, no en el botón. Pulsar el botón no hace nada. |
 | **`localhost` en `NEXT_PUBLIC_API_URL`** | El `fetch` de Node resuelve `localhost` a **::1** y `php artisan serve` solo escucha en IPv4: el BFF devuelve **502** aunque `curl` al backend funcione. Usar `http://127.0.0.1:8000/api`. |
 | **BOM en un `.php` del backend** | Un archivo guardado con BOM (fue `config/app.php`) hace que Laravel emita `EF BB BF` antes del JSON. `JSON.parse` falla, axios se traga el error y el hook recibe una cadena en vez del objeto. Se ve con `curl … \| xxd \| head -1`. |
+| **`Scrollbar` bajo `lg`** | `components/custom-scroll/Scrollbar.tsx` **descarta su `sx`** por debajo de `lg`: devuelve un `Box` plano con `overflowX: auto`. Alturas, `flexGrow` y demás hay que ponerlos en un `Box` que lo envuelva. |
+| **`fill-mode: both` pisa el `sx`** | Un `@keyframes` que termine en `opacity: 1` deja ese valor **fijado** y anula el `opacity` del `sx`. Terminar el keyframe en una variable CSS (`var(--…)`) que lleve el valor real. |
 | **Recargar pierde los mocks** | El estado vive en memoria del módulo. Para conservarlo hay que navegar con el sidebar, no recargar. |
 
 ---

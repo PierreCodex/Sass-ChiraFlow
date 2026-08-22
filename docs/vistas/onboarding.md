@@ -88,9 +88,18 @@ con `@keyframes` de MUI, nada de framer-motion—:
   que se rellena solo: MUI transiciona el `strokeDashoffset` al cambiar el
   valor. El subtítulo acompaña el avance ("Empecemos por lo primero" → "Buen
   comienzo" → "Vas más de la mitad" → "Te falta uno, ya está").
-- **La siguiente tarea se destaca**: fondo teñido, borde y la etiqueta
-  "Empieza aquí". Las demás quedan calladas. Seis filas idénticas no dicen por
-  dónde empezar.
+- **Cada paso es una tarjeta** con tres estados: hecha (tinte verde, borde
+  verde y la casilla maciza con el check en blanco), **actual** (tinte azul,
+  borde y sombra, con la etiqueta `PASO ACTUAL`) y pendiente (tarjeta plana).
+  Seis filas idénticas no dicen por dónde empezar.
+- **Un icono propio por tarea** a la derecha (tienda, reloj, persona, ficha,
+  calendario, ojo): se reconoce la fila sin leerla entera.
+- **Botonera fija abajo**: el botón lleva el nombre del paso actual y lo lanza
+  sin buscarlo en la lista; "Ahora no" cierra. La referencia traía "Ver
+  tutorial completo", que se descartó por no existir tal tutorial: un botón
+  que no lleva a ningún sitio miente.
+- **Panel flotante** con margen y esquinas redondeadas en escritorio; a
+  pantalla completa en móvil.
 - **Entrada escalonada**: cada fila entra 60 ms después de la anterior.
 - **El check aparece con rebote** al completar un paso, y el avatar pasa de
   azul a verde con transición.
@@ -104,10 +113,16 @@ Los fondos teñidos van con `alpha(primary.main, …)` y **no** con
 `primary.light`: ese tono no se invierte en modo oscuro y el texto encima
 queda ilegible (trampa documentada en `CLAUDE.md`).
 
-⚠️ **Trampa nueva:** la animación de entrada lleva `fill-mode: both`, así que
-su último fotograma **se queda fijado** y pisaba el `opacity: 0.45` del paso
-deshabilitado. Se resolvió terminando el keyframe en
-`opacity: var(--opacidad-fila)` en vez de en `1`.
+⚠️ **Dos trampas encontradas montándolo:**
+
+1. La animación de entrada lleva `fill-mode: both`, así que su último
+   fotograma **se queda fijado** y pisaba el `opacity: 0.45` del paso
+   deshabilitado. Se resolvió terminando el keyframe en
+   `opacity: var(--opacidad-fila)` en vez de en `1`.
+2. **`Scrollbar` ignora su `sx` por debajo de `lg`**: devuelve un `Box` plano
+   con `overflowX: auto` y descarta todo lo demás. El `flexGrow` que pega la
+   botonera abajo tuvo que salir a un `Box` exterior; dentro del componente no
+   llegaba, y en móvil el pie quedaba flotando a 97 px del fondo.
 
 Descartado el **`Stepper`** de `forms/form-wizard`: es lineal y bloqueante, y
 este checklist no bloquea nada — las tareas 2 a 5 se hacen en cualquier orden
@@ -217,7 +232,10 @@ Contra el Laravel real, con el tenant `yl9njvhq` recién verificado:
   y el enlace de tu tienda no puede cambiar"). Desde la interfaz ya no se
   puede: la fila completada deja de ser pulsable.
 - Recargar → el checklist **no** se reabre solo y el badge del header marca 5.
-- Móvil (375×812) → el panel ocupa 380 px como mucho y se lee entero.
+- Móvil (375×812) → el panel ocupa el ancho completo y se lee entero.
+- Botonera pegada al fondo en las dos medidas: el borde inferior del pie
+  coincide al píxel con el del panel (884/884 en escritorio, 812/812 en
+  móvil).
 - Con los 6 pasos marcados a mano en la BD de desarrollo → el icono
   **desaparece** del header y el panel deja de abrirse solo. (Se restauró el
   estado después.)

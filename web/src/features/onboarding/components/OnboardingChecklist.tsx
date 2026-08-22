@@ -5,6 +5,7 @@ import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
+import LinearProgress from "@mui/material/LinearProgress";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
@@ -17,7 +18,11 @@ import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
 import { env } from "@/config/env";
 
 import { useMarcarPaso, useOnboarding } from "../hooks/useOnboarding";
-import { contarCompletados, describirPaso, type PasoOnboarding } from "../types";
+import {
+  contarCompletados,
+  describirPaso,
+  type PasoOnboarding,
+} from "../types";
 import AnilloProgreso from "./AnilloProgreso";
 import FilaPaso from "./FilaPaso";
 import NombreNegocioDialog from "./NombreNegocioDialog";
@@ -65,7 +70,15 @@ const OnboardingChecklist = () => {
   if (!visible || !onboarding) return null;
 
   const slug = usuario?.negocio?.slug ?? null;
-  const indiceSiguiente = onboarding.pasos.findIndex((p) => !p.completado);
+  const porcentaje = total ? Math.round((completados / total) * 100) : 0;
+
+  // La siguiente pendiente que además se puede hacer: si es "conoce tu sitio"
+  // y todavía no hay slug, no se ofrece como acción.
+  const indiceSiguiente = onboarding.pasos.findIndex(
+    (p) => !p.completado && !(p.clave === "sitio_publico" && !slug),
+  );
+  const pasoSiguiente =
+    indiceSiguiente >= 0 ? onboarding.pasos[indiceSiguiente] : null;
 
   const irA = (paso: PasoOnboarding) => {
     if (paso.clave === "nombre_negocio") {
@@ -124,12 +137,30 @@ const OnboardingChecklist = () => {
         anchor="right"
         open={abierto}
         onClose={() => setAbierto(false)}
-        slotProps={{ paper: { sx: { width: 380, maxWidth: "100%" } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 380,
+              maxWidth: "100%",
+              // Panel flotante y no pegado al borde: se lee como algo que está
+              // encima del panel, no como una tercera columna fija.
+              m: { xs: 0, sm: 2 },
+              height: { xs: "100%", sm: "calc(100% - 32px)" },
+              borderRadius: { xs: 0, sm: 3 },
+              overflow: "hidden",
+              // Columna flex para que la botonera quede pegada abajo y la
+              // lista se coma el alto que sobre, sea cual sea la pantalla.
+              display: "flex",
+              flexDirection: "column",
+            },
+          },
+        }}
       >
         {/* Cabecera con degradado: es lo que separa el panel de una lista seca */}
         <Box
           sx={(theme) => ({
             position: "relative",
+            flexShrink: 0,
             px: 3,
             py: 3,
             color: "#fff",
@@ -152,7 +183,7 @@ const OnboardingChecklist = () => {
 
           <Stack direction="row" spacing={2.5} alignItems="center">
             <AnilloProgreso completados={completados} total={total} />
-            <Box>
+            <Box flexGrow={1} minWidth={0}>
               <Typography variant="h5" fontWeight={700} color="#fff">
                 {terminado ? "¡Todo listo!" : "Configura tu negocio"}
               </Typography>
@@ -162,8 +193,26 @@ const OnboardingChecklist = () => {
               >
                 {terminado
                   ? "Tu negocio ya puede recibir reservas"
-                  : animar(completados, total)}
+                  : `${porcentaje}% completado · ${animar(completados, total)}`}
               </Typography>
+
+              {/* La barra repite el dato del anillo a propósito: el anillo se
+                  ve de reojo, la barra dice cuánto falta. */}
+              <LinearProgress
+                variant="determinate"
+                value={porcentaje}
+                sx={{
+                  mt: 1,
+                  height: 6,
+                  borderRadius: 3,
+                  bgcolor: "rgba(255,255,255,0.28)",
+                  "& .MuiLinearProgress-bar": {
+                    bgcolor: "#fff",
+                    borderRadius: 3,
+                    transition: "transform 800ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  },
+                }}
+              />
             </Box>
           </Stack>
         </Box>
@@ -172,9 +221,11 @@ const OnboardingChecklist = () => {
           <Stack
             spacing={2}
             alignItems="center"
+            justifyContent="center"
             textAlign="center"
             px={4}
             py={6}
+            flexGrow={1}
           >
             <Box
               sx={(theme) => ({
@@ -205,26 +256,65 @@ const OnboardingChecklist = () => {
             </Button>
           </Stack>
         ) : (
-          <Scrollbar sx={{ height: "calc(100vh - 136px)" }}>
-            <Box py={1.5}>
-              {onboarding.pasos.map((paso, indice) => {
-                const sinTienda = paso.clave === "sitio_publico" && !slug;
-                return (
-                  <FilaPaso
-                    key={paso.clave}
-                    paso={paso}
-                    indice={indice}
-                    siguiente={indice === indiceSiguiente && !sinTienda}
-                    onIr={() => irA(paso)}
-                    deshabilitado={sinTienda}
-                    pista={
-                      sinTienda ? "Primero ponle nombre a tu negocio" : undefined
-                    }
-                  />
-                );
-              })}
+          <>
+            {/* El flex va en este Box y no en el Scrollbar: por debajo de `lg`
+                ese componente ignora su `sx` y devuelve un Box plano. */}
+            <Box sx={{ flexGrow: 1, minHeight: 0, overflowY: "auto" }}>
+              <Scrollbar sx={{ height: "100%" }}>
+                <Box py={1}>
+                  {onboarding.pasos.map((paso, indice) => {
+                    const sinTienda = paso.clave === "sitio_publico" && !slug;
+                    return (
+                      <FilaPaso
+                        key={paso.clave}
+                        paso={paso}
+                        indice={indice}
+                        siguiente={indice === indiceSiguiente && !sinTienda}
+                        onIr={() => irA(paso)}
+                        deshabilitado={sinTienda}
+                        pista={
+                          sinTienda
+                            ? "Primero ponle nombre a tu negocio"
+                            : undefined
+                        }
+                      />
+                    );
+                  })}
+                </Box>
+              </Scrollbar>
             </Box>
-          </Scrollbar>
+
+            {/* Botonera fija: el paso actual se puede lanzar sin buscarlo en la
+                lista, y "Ahora no" deja claro que esto no bloquea nada. */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                p: 2,
+                borderTop: "1px solid",
+                borderColor: "divider",
+                bgcolor: "background.paper",
+              }}
+            >
+              {pasoSiguiente ? (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  disableElevation
+                  onClick={() => irA(pasoSiguiente)}
+                >
+                  {describirPaso(pasoSiguiente.clave).etiqueta}
+                </Button>
+              ) : null}
+              <Button
+                color="inherit"
+                onClick={() => setAbierto(false)}
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                Ahora no
+              </Button>
+            </Stack>
+          </>
         )}
 
         <NombreNegocioDialog
