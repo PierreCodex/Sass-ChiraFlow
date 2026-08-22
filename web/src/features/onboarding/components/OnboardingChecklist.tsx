@@ -77,8 +77,6 @@ const OnboardingChecklist = () => {
   const indiceSiguiente = onboarding.pasos.findIndex(
     (p) => !p.completado && !(p.clave === "sitio_publico" && !slug),
   );
-  const pasoSiguiente =
-    indiceSiguiente >= 0 ? onboarding.pasos[indiceSiguiente] : null;
 
   const irA = (paso: PasoOnboarding) => {
     if (paso.clave === "nombre_negocio") {
@@ -284,8 +282,8 @@ const OnboardingChecklist = () => {
               </Scrollbar>
             </Box>
 
-            {/* Botonera fija: el paso actual se puede lanzar sin buscarlo en la
-                lista, y "Ahora no" deja claro que esto no bloquea nada. */}
+            {/* Botonera fija. El tutorial todavía no tiene pantalla: queda
+                apuntando a "#" hasta que exista. */}
             <Stack
               direction="row"
               spacing={1}
@@ -296,22 +294,21 @@ const OnboardingChecklist = () => {
                 bgcolor: "background.paper",
               }}
             >
-              {pasoSiguiente ? (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  disableElevation
-                  onClick={() => irA(pasoSiguiente)}
-                >
-                  {describirPaso(pasoSiguiente.clave).etiqueta}
-                </Button>
-              ) : null}
+              <Button
+                component="a"
+                href="#"
+                variant="outlined"
+                fullWidth
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                Ver tutorial completo
+              </Button>
               <Button
                 color="inherit"
                 onClick={() => setAbierto(false)}
                 sx={{ whiteSpace: "nowrap" }}
               >
-                Ahora no
+                Omitir por ahora
               </Button>
             </Stack>
           </>

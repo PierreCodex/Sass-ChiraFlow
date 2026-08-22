@@ -94,10 +94,10 @@ con `@keyframes` de MUI, nada de framer-motion—:
   Seis filas idénticas no dicen por dónde empezar.
 - **Un icono propio por tarea** a la derecha (tienda, reloj, persona, ficha,
   calendario, ojo): se reconoce la fila sin leerla entera.
-- **Botonera fija abajo**: el botón lleva el nombre del paso actual y lo lanza
-  sin buscarlo en la lista; "Ahora no" cierra. La referencia traía "Ver
-  tutorial completo", que se descartó por no existir tal tutorial: un botón
-  que no lleva a ningún sitio miente.
+- **Botonera fija abajo**, con los textos de la referencia: "Ver tutorial
+  completo" (contorneado) y "Omitir por ahora" (que solo cierra el panel; no
+  omite nada, el checklist sigue en el header). ⚠️ **El tutorial todavía no
+  tiene pantalla**: ese botón apunta a `#` a la espera de que exista.
 - **Panel flotante** con margen y esquinas redondeadas en escritorio; a
   pantalla completa en móvil.
 - **Entrada escalonada**: cada fila entra 60 ms después de la anterior.
@@ -254,6 +254,8 @@ las peticiones: lo que pasa por él es API, y no debe depender de quién llame.
 
 ## Pendiente
 
+- [ ] **La pantalla del tutorial**: hoy "Ver tutorial completo" es un enlace a
+      `#`. Apuntarlo cuando exista
 - [ ] **`negocio.slug` en `UsuarioResource`** (login y `GET /user`): sin él el
       paso 6 no tiene a dónde apuntar y queda deshabilitado. Anotado en el
       contrato § Usuario y en los traspasos de [estado.md](../estado.md)
