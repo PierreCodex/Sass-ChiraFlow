@@ -108,9 +108,8 @@ como una colección plana.
 
 - **422**: `{ "message": "...", "errors": { "campo": ["mensaje"] } }`.
   `toApiError()` lo normaliza y los formularios lo pintan por campo.
-- **401**: el interceptor redirige a `/login` salvo que ya se esté en
-  `/login`, `/register`, `/forgot-password`, `/reset-password` o
-  `/verificar-correo`. El backend no necesita cuerpo.
+- **401**: el interceptor **cierra la sesión y vuelve al login**. El backend
+  no necesita cuerpo. Ver "Sesión caída" más abajo.
 
 **Login fallido: 422, no 401.** Las credenciales que no cuadran vuelven como
 un error de validación —`errors.email` con "Las credenciales no coinciden…"—

@@ -121,6 +121,7 @@ features/<modulo>/types.ts        los tipos + helpers de dominio
         ↓
 lib/api/client.ts                 axios, baseURL "/api"
         ↓
+middleware.ts                     subdominios de tienda + guardia del panel
 app/api/[...path]/route.ts        el BFF: pone el Bearer y reenvía a Laravel
 app/api/auth/{login,logout}       lo único que escribe y borra la cookie
 lib/auth/sesion.ts                cookies httpOnly + URL del upstream
@@ -176,6 +177,15 @@ navegador ──/api/*──> BFF (app/api/[...path]) ──Bearer──> Larave
   escriben o borran la cookie.
 - Se acabaron el `GET /sanctum/csrf-cookie`, el `withCredentials` y el CORS:
   Laravel solo recibe tráfico del BFF.
+
+### Sesión caída: dos capas
+
+El **guardia** de `middleware.ts` manda al login si falta la cookie, pero solo
+mira que **exista**. Un token revocado desde otro dispositivo lo pasa. Quien
+manda es el **401**: el interceptor de axios llama a `POST /api/auth/logout`
+para borrar la cookie muerta y salta a `/login?next=…&sesion=expirada`. Si solo
+saltara, el guardia seguiría viendo la cookie y dejaría entrar al panel una y
+otra vez. El **403** (correo sin verificar) no entra ahí.
 
 ### Las que más se incumplían en el backend anterior
 

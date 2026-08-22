@@ -123,10 +123,28 @@ Todos los índices aceptan los mismos:
 
 `toApiError()` en `src/lib/api/client.ts` los normaliza para react-hook-form.
 
-### Errores 401
+### Errores 401 — sesión caída
 
-El interceptor de axios redirige a `/login` automáticamente. El backend no
-necesita devolver nada especial.
+Se cierra en **dos capas**, y hacen falta las dos:
+
+1. **Guardia del middleware** (`src/middleware.ts`): si la ruta es del panel y
+   no viene la cookie `mi_saas_token`, redirige a `/login?next=<ruta>`. Es
+   solo cosmética —comprueba que la cookie **exista**, no que el token
+   valga— pero evita que se pinte el armazón del dashboard para romperse medio
+   segundo después.
+2. **Interceptor de axios** (`src/lib/api/client.ts`): ante un 401 llama a
+   `POST /api/auth/logout` para **borrar la cookie muerta** y salta a
+   `/login?next=…&sesion=expirada`, donde el formulario muestra "Tu sesión
+   expiró".
+
+La segunda es la autoritativa: un token revocado desde otro dispositivo,
+borrado en la BD o de una cuenta desactivada **pasa el guardia** y solo muere
+en el 401. Y sin el logout la cookie muerta seguiría dejando entrar al panel
+en cada intento.
+
+El **403** no entra aquí: es "correo sin verificar" y tiene su propio flujo.
+
+El backend no necesita devolver nada especial.
 
 ---
 
