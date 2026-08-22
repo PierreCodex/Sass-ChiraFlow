@@ -78,6 +78,37 @@ drawer derecho lanzado desde `right: 25px; bottom: 15px`.
 | Contador | El `Chip` pequeño de `Notification.tsx` |
 | Modal del paso 1 | `dialogoResponsive`, como los 19 diálogos del proyecto |
 
+### Lo que se le añadió a la plantilla
+
+La plantilla resuelve la estructura, pero una lista de seis filas iguales no
+dice nada. Sin salir del tema (`BLUE_THEME`) y **sin dependencias nuevas** —todo
+con `@keyframes` de MUI, nada de framer-motion—:
+
+- **Cabecera con degradado** `primary → secondary` y un **anillo de progreso**
+  que se rellena solo: MUI transiciona el `strokeDashoffset` al cambiar el
+  valor. El subtítulo acompaña el avance ("Empecemos por lo primero" → "Buen
+  comienzo" → "Vas más de la mitad" → "Te falta uno, ya está").
+- **La siguiente tarea se destaca**: fondo teñido, borde y la etiqueta
+  "Empieza aquí". Las demás quedan calladas. Seis filas idénticas no dicen por
+  dónde empezar.
+- **Entrada escalonada**: cada fila entra 60 ms después de la anterior.
+- **El check aparece con rebote** al completar un paso, y el avatar pasa de
+  azul a verde con transición.
+- **Latido lento del badge** del header (cada 2,4 s) para recordar sin dar la
+  lata.
+- **Pantalla de enhorabuena** al terminar los 6, en vez de que el panel
+  desaparezca de golpe.
+- Todo respeta `prefers-reduced-motion`.
+
+Los fondos teñidos van con `alpha(primary.main, …)` y **no** con
+`primary.light`: ese tono no se invierte en modo oscuro y el texto encima
+queda ilegible (trampa documentada en `CLAUDE.md`).
+
+⚠️ **Trampa nueva:** la animación de entrada lleva `fill-mode: both`, así que
+su último fotograma **se queda fijado** y pisaba el `opacity: 0.45` del paso
+deshabilitado. Se resolvió terminando el keyframe en
+`opacity: var(--opacidad-fila)` en vez de en `1`.
+
 Descartado el **`Stepper`** de `forms/form-wizard`: es lineal y bloqueante, y
 este checklist no bloquea nada — las tareas 2 a 5 se hacen en cualquier orden
 y desde sus propias pantallas.
@@ -186,7 +217,15 @@ Contra el Laravel real, con el tenant `yl9njvhq` recién verificado:
   y el enlace de tu tienda no puede cambiar"). Desde la interfaz ya no se
   puede: la fila completada deja de ser pulsable.
 - Recargar → el checklist **no** se reabre solo y el badge del header marca 5.
-- Móvil (375×812) → el panel ocupa 360 px de 375 y se lee entero.
+- Móvil (375×812) → el panel ocupa 380 px como mucho y se lee entero.
+- Con los 6 pasos marcados a mano en la BD de desarrollo → el icono
+  **desaparece** del header y el panel deja de abrirse solo. (Se restauró el
+  estado después.)
+
+La **pantalla de enhorabuena** no se pudo ejercitar de punta a punta: se llega
+a ella al marcar el último paso desde el propio panel, y el único que el
+cliente puede marcar es `sitio_publico`, que necesita el `slug` que el backend
+todavía no envía.
 
 Un hallazgo del camino: `POST /onboarding/nombre` por `curl` devolvía **302**
 en vez de 422, porque sin `Accept: application/json` Laravel redirige a un

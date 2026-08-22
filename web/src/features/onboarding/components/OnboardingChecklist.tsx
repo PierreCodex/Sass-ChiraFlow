@@ -1,19 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
-import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
+import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { IconCheck, IconChecklist, IconChevronRight, IconX } from "@tabler/icons-react";
+import { alpha } from "@mui/material/styles";
+import { IconChecklist, IconConfetti, IconX } from "@tabler/icons-react";
 
 import Scrollbar from "@/components/custom-scroll/Scrollbar";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
@@ -21,89 +18,21 @@ import { env } from "@/config/env";
 
 import { useMarcarPaso, useOnboarding } from "../hooks/useOnboarding";
 import { contarCompletados, describirPaso, type PasoOnboarding } from "../types";
+import AnilloProgreso from "./AnilloProgreso";
+import FilaPaso from "./FilaPaso";
 import NombreNegocioDialog from "./NombreNegocioDialog";
 
 /** Se abre solo la primera vez; después el usuario decide. */
 const CLAVE_VISTO = "mi-saas:onboarding-visto";
 
-interface FilaProps {
-  paso: PasoOnboarding;
-  indice: number;
-  onIr: () => void;
-  deshabilitado?: boolean;
-  pista?: string;
+/** El texto acompaña el avance en vez de repetir siempre lo mismo. */
+function animar(completados: number, total: number) {
+  if (completados === 0) return "Empecemos por lo primero";
+  if (completados >= total - 1) return "Te falta uno, ya está";
+  if (completados >= total / 2) return "Vas más de la mitad";
+  return "Buen comienzo";
 }
 
-/**
- * Fila de tarea. Copia el patrón de `widgets/cards/UpcomingActivity` de la
- * plantilla: avatar redondeado con el color de fondo claro, título y
- * subtítulo. Las hechas se atenúan en vez de tacharse (el tachado se lee mal
- * en una lista).
- */
-const FilaPaso = ({ paso, indice, onIr, deshabilitado, pista }: FilaProps) => {
-  const { etiqueta, descripcion } = describirPaso(paso.clave);
-  const inerte = paso.completado || deshabilitado;
-
-  const fila = (
-    <Stack
-      direction="row"
-      spacing={2}
-      alignItems="center"
-      onClick={inerte ? undefined : onIr}
-      sx={{
-        px: 3,
-        py: 2,
-        cursor: inerte ? "default" : "pointer",
-        opacity: deshabilitado ? 0.5 : 1,
-        "&:hover": inerte ? undefined : { bgcolor: "action.hover" },
-      }}
-    >
-      <Avatar
-        variant="rounded"
-        sx={{
-          width: 40,
-          height: 40,
-          bgcolor: paso.completado ? "success.light" : "primary.light",
-          color: paso.completado ? "success.main" : "primary.main",
-        }}
-      >
-        {paso.completado ? <IconCheck size={20} /> : indice + 1}
-      </Avatar>
-
-      <Box flexGrow={1} minWidth={0}>
-        <Typography
-          variant="h6"
-          mb="2px"
-          color={paso.completado ? "textSecondary" : "textPrimary"}
-        >
-          {etiqueta}
-        </Typography>
-        <Typography variant="subtitle2" color="textSecondary">
-          {paso.completado ? "Listo" : descripcion}
-        </Typography>
-      </Box>
-
-      {inerte ? null : <IconChevronRight size={18} />}
-    </Stack>
-  );
-
-  return pista ? (
-    <Tooltip title={pista} placement="left">
-      <span>{fila}</span>
-    </Tooltip>
-  ) : (
-    fila
-  );
-};
-
-/**
- * Checklist de entrada: icono con badge en el header que abre un panel
- * lateral, igual que el carrito de la plantilla
- * (`layout/vertical/header/Cart.tsx`). No usa un Fab porque esa esquina ya es
- * del Customizer.
- *
- * No bloquea nada: el usuario tiene su panel completo desde el primer login.
- */
 const OnboardingChecklist = () => {
   const { data: onboarding } = useOnboarding();
   const { data: usuario } = useUsuarioActual();
@@ -115,10 +44,14 @@ const OnboardingChecklist = () => {
   const completados = onboarding ? contarCompletados(onboarding) : 0;
   const total = onboarding?.pasos.length ?? 0;
   const pendientes = total - completados;
-  const visible = Boolean(onboarding) && !onboarding?.completado;
+  const terminado = Boolean(onboarding?.completado);
+
+  // Terminado deja de anunciarse en el header, pero si el panel está abierto se
+  // queda para dar la enhorabuena: desaparecer de golpe no cierra nada.
+  const visible = Boolean(onboarding) && (!terminado || abierto);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!onboarding || terminado) return;
     try {
       if (localStorage.getItem(CLAVE_VISTO)) return;
       localStorage.setItem(CLAVE_VISTO, "1");
@@ -127,11 +60,12 @@ const OnboardingChecklist = () => {
       // Modo incógnito o almacenamiento bloqueado: que no se abra solo es
       // preferible a romper el panel.
     }
-  }, [visible]);
+  }, [onboarding, terminado]);
 
   if (!visible || !onboarding) return null;
 
   const slug = usuario?.negocio?.slug ?? null;
+  const indiceSiguiente = onboarding.pasos.findIndex((p) => !p.completado);
 
   const irA = (paso: PasoOnboarding) => {
     if (paso.clave === "nombre_negocio") {
@@ -155,91 +89,143 @@ const OnboardingChecklist = () => {
 
   return (
     <Box>
-      <Tooltip title="Configura tu negocio">
-        <IconButton
-          size="large"
-          color="inherit"
-          onClick={() => setAbierto(true)}
-          aria-label={`Configura tu negocio, ${pendientes} tareas pendientes`}
-          sx={{
-            color: abierto ? "primary.main" : "text.secondary",
-            // En movil la barra va justa de sitio.
-            p: { xs: 0.75, sm: 1.5 },
-          }}
-        >
-          <Badge color="primary" badgeContent={pendientes}>
-            <IconChecklist size="21" stroke="1.5" />
-          </Badge>
-        </IconButton>
-      </Tooltip>
+      {terminado ? null : (
+        <Tooltip title="Configura tu negocio">
+          <IconButton
+            size="large"
+            color="inherit"
+            onClick={() => setAbierto(true)}
+            aria-label={`Configura tu negocio, ${pendientes} tareas pendientes`}
+            sx={{
+              color: abierto ? "primary.main" : "text.secondary",
+              // En movil la barra va justa de sitio.
+              p: { xs: 0.75, sm: 1.5 },
+              "& .MuiBadge-badge": {
+                // Latido lento: recuerda que hay algo pendiente sin dar la lata.
+                animation: "latido 2.4s ease-in-out infinite",
+              },
+              "@keyframes latido": {
+                "0%, 70%, 100%": { transform: "scale(1)" },
+                "80%": { transform: "scale(1.18)" },
+              },
+              "@media (prefers-reduced-motion: reduce)": {
+                "& .MuiBadge-badge": { animation: "none" },
+              },
+            }}
+          >
+            <Badge color="primary" badgeContent={pendientes}>
+              <IconChecklist size="21" stroke="1.5" />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      )}
 
       <Drawer
         anchor="right"
         open={abierto}
         onClose={() => setAbierto(false)}
-        slotProps={{ paper: { sx: { width: 360, maxWidth: "100%" } } }}
+        slotProps={{ paper: { sx: { width: 380, maxWidth: "100%" } } }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          p={3}
-          pb={2}
+        {/* Cabecera con degradado: es lo que separa el panel de una lista seca */}
+        <Box
+          sx={(theme) => ({
+            position: "relative",
+            px: 3,
+            py: 3,
+            color: "#fff",
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+          })}
         >
-          <Typography variant="h5" fontWeight={600}>
-            Configura tu negocio
-          </Typography>
           <IconButton
             onClick={() => setAbierto(false)}
-            sx={{ color: (theme) => theme.palette.grey.A200 }}
             aria-label="Cerrar"
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              color: "rgba(255,255,255,0.8)",
+              "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.12)" },
+            }}
           >
             <IconX size="1rem" />
           </IconButton>
-        </Stack>
 
-        <Box px={3} pb={2}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            mb={1}
-          >
-            <Typography variant="subtitle2" color="textSecondary">
-              Ya llevas buen camino
-            </Typography>
-            <Chip
-              label={`${completados} de ${total}`}
-              color="primary"
-              size="small"
-            />
+          <Stack direction="row" spacing={2.5} alignItems="center">
+            <AnilloProgreso completados={completados} total={total} />
+            <Box>
+              <Typography variant="h5" fontWeight={700} color="#fff">
+                {terminado ? "¡Todo listo!" : "Configura tu negocio"}
+              </Typography>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "rgba(255,255,255,0.85)" }}
+              >
+                {terminado
+                  ? "Tu negocio ya puede recibir reservas"
+                  : animar(completados, total)}
+              </Typography>
+            </Box>
           </Stack>
-          <LinearProgress
-            variant="determinate"
-            value={total ? (completados / total) * 100 : 0}
-            color="primary"
-          />
         </Box>
 
-        <Divider />
-
-        <Scrollbar sx={{ height: "calc(100vh - 210px)" }}>
-          {onboarding.pasos.map((paso, indice) => {
-            const sinTienda = paso.clave === "sitio_publico" && !slug;
-            return (
-              <FilaPaso
-                key={paso.clave}
-                paso={paso}
-                indice={indice}
-                onIr={() => irA(paso)}
-                deshabilitado={sinTienda}
-                pista={
-                  sinTienda ? "Primero ponle nombre a tu negocio" : undefined
-                }
-              />
-            );
-          })}
-        </Scrollbar>
+        {terminado ? (
+          <Stack
+            spacing={2}
+            alignItems="center"
+            textAlign="center"
+            px={4}
+            py={6}
+          >
+            <Box
+              sx={(theme) => ({
+                width: 88,
+                height: 88,
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                color: "success.main",
+                bgcolor: alpha(theme.palette.success.main, 0.14),
+                animation: "celebrar 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                "@keyframes celebrar": {
+                  "0%": { transform: "scale(0.4) rotate(-12deg)", opacity: 0 },
+                  "100%": { transform: "scale(1) rotate(0)", opacity: 1 },
+                },
+              })}
+            >
+              <IconConfetti size={44} />
+            </Box>
+            <Typography variant="h5" fontWeight={700}>
+              Completaste los {total} pasos
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Ya puedes compartir el enlace de tu tienda con tus clientes.
+            </Typography>
+            <Button variant="contained" onClick={() => setAbierto(false)}>
+              Entendido
+            </Button>
+          </Stack>
+        ) : (
+          <Scrollbar sx={{ height: "calc(100vh - 136px)" }}>
+            <Box py={1.5}>
+              {onboarding.pasos.map((paso, indice) => {
+                const sinTienda = paso.clave === "sitio_publico" && !slug;
+                return (
+                  <FilaPaso
+                    key={paso.clave}
+                    paso={paso}
+                    indice={indice}
+                    siguiente={indice === indiceSiguiente && !sinTienda}
+                    onIr={() => irA(paso)}
+                    deshabilitado={sinTienda}
+                    pista={
+                      sinTienda ? "Primero ponle nombre a tu negocio" : undefined
+                    }
+                  />
+                );
+              })}
+            </Box>
+          </Scrollbar>
+        )}
 
         <NombreNegocioDialog
           abierto={dialogoNombre}
