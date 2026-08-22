@@ -31,17 +31,13 @@ checklist para validar cada maqueta contra la app actual.
 > **Documentos de conjunto**
 > - [api-contract.md](api-contract.md) — inventario de endpoints, formas de
 >   datos y flujos de pantalla, extraído del código del frontend
-> - [lectura-del-backend.md](lectura-del-backend.md) — qué pretendía el
->   backend actual, qué conservar y qué rehacer
 > - [plan-backend.md](plan-backend.md) — cómo levantar el backend nuevo:
 >   decisiones, orden de construcción y tablas que faltan
 > - [plan-sprints.md](plan-sprints.md) — el plan de ejecución por sprints:
 >   grafo de dependencias, fichas por módulo y criterios de aceptación
+> - [estado.md](estado.md) — **el tablero**: qué módulo está hecho, quién lo
+>   tiene en la mano y qué espera un repo del otro
 > - [flujos.md](flujos.md) — 12 diagramas del sistema, listos para Excalidraw
-> - [trabajo-en-equipo.md](trabajo-en-equipo.md) — cómo trabajamos dos devs sobre
->   este repo: ramas, commits, PR y sincronización
-> - [revisar-rama-del-companero.md](revisar-rama-del-companero.md) — paso a paso
->   para ver, comparar en vivo y aceptar la rama de otro
 
 ### Fuera del panel
 

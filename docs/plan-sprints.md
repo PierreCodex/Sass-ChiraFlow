@@ -12,6 +12,10 @@ el orden en que se ejecutan. No hay estimación de horas: el orden lo dictan
 las dependencias, y se marca qué puede ir en paralelo (útil para elegir qué
 módulo abrir si el otro está bloqueado por una decisión).
 
+**Este documento no lleva el progreso.** Qué está hecho y quién lo tiene en la
+mano ahora mismo está en [`estado.md`](estado.md), el tablero que comparten las
+dos sesiones.
+
 **Alcance fijado**: auth solo con email + contraseña (nada de OAuth). Los
 clientes finales **no tienen cuenta** (§2.2): reservan sin login y gestionan
 su cita por el `codigo` enviado por WhatsApp.
@@ -256,7 +260,9 @@ ese token) · `GET /user` · `POST /forgot-password` · `POST /reset-password` �
 
 **FRONTEND (después)**
 1. Cablear y traducir las pantallas de auth de la plantilla: login,
-   **registro con los 7 campos cerrados** (select de tipo de negocio desde
+   **registro con los 6 campos en pantalla** (el séptimo del payload,
+   `password_confirmation`, lo rellena el cliente: la referencia no pide
+   confirmación) (select de tipo de negocio desde
    `/publico/categorias-negocio`, rango de profesionales, teléfono con
    prefijo fijo `+51` normalizado antes de enviar), forgot/reset.
 2. Pantallas del correo: "Revisa tu correo" (con reenvío) y
@@ -298,10 +304,10 @@ eliminado), §2.10 (email único global), §1.6 (estados del tenant), §1.5
   resto de módulos).
 
 **Riesgos / decisiones abiertas del sprint**
-- El **desacople id/slug** (tarea backend 3) contradice dos frases del
-  CLAUDE.md de backend ("el slug es el id del tenant", `tenant_{slug}`):
-  corregirlo allí el primer día para no arrastrar migraciones con la PK
-  equivocada.
+- El **desacople id/slug** (tarea backend 3) contradecía dos frases del
+  CLAUDE.md de backend ("el slug es el id del tenant", `tenant_{slug}`).
+  **Resuelto** (2026-08-22): allí ya está corregido — `tenants.id` inmutable
+  nombra la BD y el slug es columna aparte que fija el onboarding.
 - Los hooks de los pasos 2–5 del onboarding viven en módulos de sprints
   posteriores: están anotados como tarea en las fichas de esos sprints
   (1.B, 2.A, 2.B, 4.B, 5.A) — el riesgo es olvidarlos; el criterio de

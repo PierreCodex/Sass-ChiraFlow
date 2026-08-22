@@ -212,7 +212,6 @@ Cosas que costaron tiempo. No repetirlas.
 | `docs/README.md` | Índice de las 17 fichas + convenciones de la API |
 | `docs/api-contract.md` | **El contrato con `backend-sass`**: endpoints, formas de datos y flujos. Original único: se edita aquí y solo aquí |
 | `docs/vistas/*.md` | Una por pantalla, con su contrato JSON |
-| `docs/lectura-del-backend.md` | Qué pretendía el Laravel anterior, qué conservar y qué tirar |
 | `docs/plan-backend.md` | Cómo levantar el backend nuevo: decisiones, orden y tablas que faltan |
 | `docs/flujos.md` | 12 diagramas del sistema, listos para pegar en Excalidraw |
 
