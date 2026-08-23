@@ -1,13 +1,19 @@
 import { api } from "@/lib/api/client";
 import type { ApiResource, ListParams, Paginated } from "@/lib/api/types";
-import { env } from "@/config/env";
+import { usarMocksPara } from "@/lib/api/mocks";
 import { delay, paginar } from "@/lib/mock-utils";
 import { aFormData } from "@/lib/api/form-data";
 
 interface ConfigRecurso<T> {
   /** Ruta en Laravel, sin barra inicial. Ej: "clientes" -> /api/clientes */
   path: string;
-  /** Datos ficticios que se sirven mientras env.usarMocks sea true. */
+  /**
+   * Nombre del módulo para el interruptor de mocks. Por defecto el `path`,
+   * que basta casi siempre; se pone a mano cuando no coinciden (`grupos`
+   * pertenece a `locales`, `soporte/tickets` a `soporte`).
+   */
+  modulo?: string;
+  /** Datos ficticios que se sirven mientras usarMocksPara(modulo) sea true. */
   mocks: T[];
   /** Campos sobre los que filtra el buscador en modo mock. */
   camposBusqueda?: (keyof T)[];
@@ -38,15 +44,17 @@ interface ConfigRecurso<T> {
 /**
  * Genera el CRUD estándar de un recurso REST de Laravel.
  *
- * Mientras `NEXT_PUBLIC_USE_MOCKS` no sea "false", cada método responde con los
- * datos ficticios. Al apagar el flag, exactamente los mismos métodos pasan a
- * pegarle a la API: los hooks y los componentes no se tocan.
+ * Mientras el módulo esté en modo mock, cada método responde con los datos
+ * ficticios; al conectarlo, exactamente los mismos métodos pasan a pegarle a
+ * la API sin tocar hooks ni componentes. Quién está conectado lo decide
+ * `usarMocksPara()` — ver `lib/api/mocks.ts`.
  */
 export function crearRecurso<T extends { id: number }, P = Partial<T>>(
   config: ConfigRecurso<T>
 ) {
   const {
     path,
+    modulo = path,
     mocks,
     camposBusqueda = [],
     valoresPorDefecto = {},
@@ -67,7 +75,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     mockItems: () => memoria,
 
     list: async (params: ListParams = {}): Promise<Paginated<T>> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay();
         const filtrados = filtrosMock
           ? memoria.filter((item) => filtrosMock(item, params))
@@ -80,7 +88,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
 
     /** Colección completa sin paginar (para selects y filtros). */
     all: async (): Promise<T[]> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay(200);
         return memoria;
       }
@@ -91,7 +99,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     },
 
     get: async (id: number): Promise<T> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay(200);
         const encontrado = memoria.find((item) => item.id === id);
         if (!encontrado) throw new Error("No encontrado");
@@ -102,7 +110,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     },
 
     create: async (payload: P): Promise<T> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay();
         const nuevo = {
           ...valoresPorDefecto,
@@ -127,7 +135,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     },
 
     update: async (id: number, payload: Partial<P>): Promise<T> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay();
         memoria = memoria.map((item) =>
           item.id === id
@@ -155,7 +163,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     },
 
     remove: async (id: number): Promise<void> => {
-      if (env.usarMocks) {
+      if (usarMocksPara(modulo)) {
         await delay();
         memoria = memoria.filter((item) => item.id !== id);
         return;

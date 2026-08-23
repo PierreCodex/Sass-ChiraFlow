@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay, haceDias } from "@/lib/mock-utils";
 import { citasMock } from "@/features/citas/mocks";
 import { clientesMock } from "@/features/clientes/mocks";
@@ -48,7 +48,7 @@ export const dashboardApi = {
    * Evita 4 requests en paralelo al cargar la pantalla principal.
    */
   resumen: async (): Promise<ResumenDashboard> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("dashboard")) {
       await delay();
       return resumenMock();
     }

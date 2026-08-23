@@ -47,5 +47,19 @@ export const env = {
    */
   usarMocks: process.env.NEXT_PUBLIC_USE_MOCKS !== "false",
 
+  /**
+   * Módulos que YA hablan con Laravel mientras el resto sigue con datos
+   * ficticios: `NEXT_PUBLIC_MODULOS_CONECTADOS="categorias,servicios"`.
+   *
+   * `usarMocks` es global, y apagarlo de golpe tumbaría los módulos que aún no
+   * tienen backend. Con esta lista se van conectando de uno en uno, según los
+   * termina el otro repo. Cuando estén todos: `NEXT_PUBLIC_USE_MOCKS=false` y
+   * la lista sobra.
+   */
+  modulosConectados: (process.env.NEXT_PUBLIC_MODULOS_CONECTADOS ?? "")
+    .split(",")
+    .map((modulo) => modulo.trim())
+    .filter(Boolean),
+
   isProd: process.env.NODE_ENV === "production",
 } as const;

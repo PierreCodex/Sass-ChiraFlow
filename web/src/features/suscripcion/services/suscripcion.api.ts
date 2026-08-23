@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import type { Plan, SolicitudPlanPayload, Suscripcion } from "../types";
 import { planesMock, suscripcionMock } from "../mocks";
@@ -10,7 +10,7 @@ let suscripcion: Suscripcion = { ...suscripcionMock };
 export const suscripcionApi = {
   /** Estado de la suscripción del tenant actual. */
   actual: async (): Promise<Suscripcion> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("suscripcion")) {
       await delay(200);
       return suscripcion;
     }
@@ -20,7 +20,7 @@ export const suscripcionApi = {
 
   /** Planes disponibles, ordenados por precio como en Laravel. */
   planes: async (): Promise<Plan[]> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("suscripcion")) {
       await delay(250);
       return [...planesMock].sort(
         (a, b) => a.precio_mensual - b.precio_mensual
@@ -38,7 +38,7 @@ export const suscripcionApi = {
    * `docs/vistas/mi-plan.md`.
    */
   solicitar: async (payload: SolicitudPlanPayload): Promise<void> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("suscripcion")) {
       await delay(600);
       suscripcion = {
         ...suscripcion,

@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import type { MovimientoPayload, Producto, ProductoPayload } from "../types";
@@ -25,7 +25,7 @@ export const productosApi = {
     productoId: number,
     payload: MovimientoPayload
   ): Promise<Producto> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("inventario")) {
       await delay();
       const producto = recurso
         .mockItems()

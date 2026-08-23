@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { citasMock } from "@/features/citas/mocks";
 import { empleadosMock } from "@/features/empleados/mocks";
@@ -29,7 +29,7 @@ export const publicoApi = {
   negocio: async (
     slug: string
   ): Promise<{ negocio: NegocioPublico; locales: LocalPublico[] }> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("publico")) {
       await delay(300);
       if (slug !== negocioMock.slug) throw new Error("Negocio no encontrado");
       return { negocio: negocioMock, locales: localesPublicos() };
@@ -42,7 +42,7 @@ export const publicoApi = {
 
   /** Catálogo y profesionales de una sede. */
   tienda: async (slug: string, localId: number): Promise<TiendaLocal> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("publico")) {
       await delay(400);
       const tienda = tiendaLocalMock(localId);
       if (!tienda || slug !== negocioMock.slug) {
@@ -69,7 +69,7 @@ export const publicoApi = {
     localId: number,
     params: { profesional_id: number; fecha: string; duracion_min: number }
   ): Promise<string[]> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("publico")) {
       await delay(300);
 
       const empleado = empleadosMock.find(
@@ -110,7 +110,7 @@ export const publicoApi = {
     localId: number,
     payload: ReservaPayload
   ): Promise<ReservaConfirmada> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("publico")) {
       await delay(800);
 
       const tienda = tiendaLocalMock(localId)!;

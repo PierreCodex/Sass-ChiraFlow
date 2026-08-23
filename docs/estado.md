@@ -29,7 +29,7 @@ solo a **qué está hecho y quién lo tiene en la mano ahora mismo**.
 | **0.A** Fundaciones (tenancy, migraciones, seeders) | ✅ 2026-08-15 | — |
 | **0.B** Registro, verificación, login, recuperación | ✅ 2026-08-22 | ✅ 2026-08-22 |
 | **0.B** Onboarding (checklist + paso 1) | ✅ 2026-08-22 | ✅ 2026-08-22 |
-| Infraestructura FE: override de mocks por recurso | — | ⬜ |
+| Infraestructura FE: override de mocks por módulo | — | ✅ 2026-08-22 |
 | **1.A** Categorías | ⬜ | ⬜ |
 | **1.B** Servicios | ⬜ | ⬜ |
 | **1.C** Clientes | ⬜ | ⬜ |
@@ -61,18 +61,18 @@ prueba.
 
 ## Sesión FRONTEND (repo `mi-saas`)
 
-**Ahora:** nada en curso. Con el checklist de onboarding terminado, el
-Sprint 0 queda cerrado por el lado del frontend.
+**Ahora:** nada en curso. El Sprint 0 está cerrado por el lado del frontend y
+la infraestructura para conectar módulos de uno en uno ya está lista.
+
+**Listo para cuando el backend entregue el Sprint 1:** basta añadir el módulo
+a `NEXT_PUBLIC_MODULOS_CONECTADOS` en `web/.env.local` —por ejemplo
+`categorias,servicios,clientes`— y esos tres pasan a hablar con Laravel
+mientras el resto sigue con datos ficticios.
 
 **Después, por orden:**
-1. Poner el usuario real en el header del panel: `useUsuarioActual` ya se monta
-   (lo consume el checklist), pero el avatar y el nombre siguen siendo los de
-   la plantilla.
-2. Deshabilitar el enlace a la tienda mientras `slug` sea `NULL` — depende del
+1. Deshabilitar el enlace a la tienda mientras `slug` sea `NULL` — depende del
    traspaso de `negocio.slug`.
-3. Override de mocks por recurso (`plan-sprints.md` § Infraestructura
-   frontend): `env.usarMocks` es global y apagarlo tumbaría los 14 módulos
-   que aún no tienen backend. Es prerequisito para cerrar el Sprint 1.
+2. Conectar Categorías, Servicios y Clientes en cuanto estén servidos.
 
 **No toca:** nada dentro de `F:\PERSONAL_JEAN\backend-sass`.
 

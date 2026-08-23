@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay, haceDias } from "@/lib/mock-utils";
 import type {
   AbrirCajaPayload,
@@ -28,7 +28,7 @@ export const cajaApi = {
    * movimientos: la pantalla no sirve de nada por partes.
    */
   estado: async (): Promise<EstadoCaja> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("caja")) {
       await delay();
       return { fecha: haceDias(0), sesion, movimientos: [...movimientos] };
     }
@@ -37,7 +37,7 @@ export const cajaApi = {
   },
 
   abrir: async (payload: AbrirCajaPayload): Promise<CajaSesion> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("caja")) {
       await delay();
       const ahora = new Date().toISOString();
       sesion = {
@@ -59,7 +59,7 @@ export const cajaApi = {
   },
 
   cerrar: async (payload: CerrarCajaPayload): Promise<CajaSesion> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("caja")) {
       await delay();
       if (!sesion) throw new Error("No hay caja abierta.");
       sesion = {
@@ -80,7 +80,7 @@ export const cajaApi = {
   registrarMovimiento: async (
     payload: MovimientoCajaPayload
   ): Promise<MovimientoCaja> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("caja")) {
       await delay();
       if (!sesion) throw new Error("Abre caja primero.");
 

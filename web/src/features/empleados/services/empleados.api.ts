@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { ROL_QUE_CONSUME_PLAN } from "../constants";
@@ -30,7 +30,7 @@ export const empleadosApi = {
    * `GET /api/empleados` con `->additional(['resumen' => [...]])`.
    */
   resumenPlan: async (): Promise<ResumenPlanEmpleados> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("empleados")) {
       await delay(200);
       // mockItems() y no empleadosMock: así el contador refleja las altas
       // y bajas hechas durante la sesión.

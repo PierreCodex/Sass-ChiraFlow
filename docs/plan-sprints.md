@@ -325,14 +325,16 @@ La primera rebanada vertical. Módulos simples a propósito: aquí se validan
 `_method=PUT`, aislación, el ciclo backend→frontend→cierre) con el mínimo de
 lógica de negocio. Lo que se aprenda aquí se repite doce veces.
 
-### Infraestructura frontend (va primero, es prerequisito del cierre)
+### Infraestructura frontend — ✅ hecha (2026-08-22)
 
-`env.usarMocks` es **global**: apagarlo rompería los 14 módulos aún sin
-backend. Añadir a `crearRecurso()` / servicios manuales un override por
-recurso (p. ej. `NEXT_PUBLIC_MODULOS_CONECTADOS="categorias-servicios,
-servicios,clientes"` que fuerza la rama axios para esos paths). Cuando todos
-los módulos estén conectados, `NEXT_PUBLIC_USE_MOCKS=false` y la lista
-desaparece.
+`env.usarMocks` es **global**: apagarlo rompería los módulos aún sin backend.
+Ya existe el override por módulo: `NEXT_PUBLIC_MODULOS_CONECTADOS="categorias,
+servicios"` fuerza la rama axios solo para esos. Lo resuelve
+`usarMocksPara(modulo)` en `lib/api/mocks.ts`, que usan tanto `crearRecurso()`
+como los once servicios manuales. La clave es el **módulo**, no la ruta REST:
+`grupos` pertenece a `locales` y `soporte/tickets` a `soporte`, y cada módulo
+se conecta entero. Cuando estén todos, `NEXT_PUBLIC_USE_MOCKS=false` y la
+lista sobra.
 
 ### Módulo 1.A — Categorías
 
