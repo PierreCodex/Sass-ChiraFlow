@@ -177,6 +177,30 @@ registro, verificación y recuperación viajan **sin** sesión):
 | GET | `/user` | — | `{ data: Usuario }` · 401 si no hay sesión |
 | POST | `/forgot-password` | `{ email }` | 200 |
 | POST | `/reset-password` | `{ token, email, password, password_confirmation }` | 200 |
+| PUT | `/user` | `{ nombre, apellido, telefono?, documento?, foto? }` | `{ data: Usuario }` · Mi perfil |
+| PUT | `/user/password` | `{ password_actual, password, password_confirmation }` | 200 · 422 `errors.password_actual` si no cuadra |
+
+**Los dos "restablecer contraseña" no son el mismo.** `/forgot-password` +
+`/reset-password` son para quien **no puede entrar**: van por correo y no
+piden nada más. `PUT /user/password` es para quien **ya está dentro** y exige
+la **contraseña actual**: sin eso, cualquiera que se siente frente a una
+sesión abierta se queda con la cuenta.
+
+Al cambiarla, el backend debe **revocar los demás tokens** del usuario y
+conservar el actual: es lo que se espera cuando alguien la cambia porque
+sospecha que entraron a su cuenta. Cerrar también la sesión desde la que se
+hace el cambio sería castigar al que hace lo correcto.
+
+**El email no se edita en Mi perfil** (v1). Es el identificador del login y es
+único global: cambiarlo obliga a poner `email_verified_at` a null y repetir la
+verificación, con el usuario a medias mientras tanto. El campo se muestra
+deshabilitado y con la razón escrita al lado.
+
+⚠️ **`profesionales.nombre`, `foto` y `telefono` son copias denormalizadas**
+de `users` (así lo dice la migración: *"denormalizado p/ mostrar sin ir a
+central"*). `PUT /user` **tiene que propagarlas** en la misma transacción, o
+el dueño cambia su nombre y en Empleados y en la tienda pública sigue el
+viejo.
 
 **Cooldown de `/email/reenviar`.** El reenvío está limitado **por correo** (uno
 cada 60 s, 5 por hora), no solo por IP: si no, el formulario sirve para
@@ -336,8 +360,11 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | int | |
-| `name` | string | |
+| `name` | string | `nombre + apellido`, para pintar |
+| `nombre` `apellido` | string, string? | **por separado**, que es como se editan en Mi perfil |
 | `email` | string | |
+| `telefono` | string? | |
+| `documento` | string? | DNI del titular. Opcional |
 | `avatar_url` | string? | |
 | `rol` | string? | |
 | `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |

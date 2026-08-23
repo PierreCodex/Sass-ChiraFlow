@@ -100,6 +100,9 @@ Lo que un lado espera del otro. Se borra la línea cuando se resuelve.
 |---|---|---|
 | 2026-08-22 | FE → BE | La categoría **"Otro"** del seeder debería pedir un detalle libre (`tenants.categoria_otro_detalle`), pero `POST /register` no acepta ese campo: o se añade al contrato o se quita la columna |
 | 2026-08-22 | BE → FE | Suscripción vencida: `usuario.negocio.estado` (`prueba\|activa\|vencida`) ya viaja en `/login` y `GET /user`, y el panel responde `403 {codigo:"suscripcion_vencida"}` con el negocio suspendido — falta pintar el aviso con el botón de renovar. Detalle en `backend-sass/docs/pendientes-contrato.md` |
+| 2026-08-23 | FE → BE | **`tenants` no tiene RUC ni razón social.** 35 columnas y ninguna fiscal. Hace falta para facturarle al negocio (planes, pagos QR — `pagos_qr_activo` ya está en el esquema) y para que el negocio emita comprobantes a sus clientes. Bloquea el Sprint 7 |
+| 2026-08-23 | FE → BE | **`dias_totales` en `Suscripcion`** (opcional, no bloquea): con los días que dura la prueba se puede pintar la barra de progreso del banner. Hoy solo llega `dias_restantes`, así que el porcentaje habría que inventarlo |
+| 2026-08-23 | FE → BE | **`users` no tiene documento (DNI).** `clientes.documento` sí existe, pero el titular de la cuenta no. Columna `documento` (string 30, nullable) + `nombre`/`apellido` sueltos y `telefono` en `UsuarioResource`, más `PUT /user` y `PUT /user/password` — todo escrito en el contrato § Autenticación. Ojo: `PUT /user` debe propagar nombre/foto/teléfono a `profesionales`, que los lleva denormalizados |
 | 2026-08-22 | FE → BE | **`negocio.slug` en `UsuarioResource`** (login y `GET /user`), null mientras el onboarding no fije el nombre: hoy el panel no puede construir el enlace de la tienda. Ya está en el contrato § Usuario |
 
 ---
