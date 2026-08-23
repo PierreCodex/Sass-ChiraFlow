@@ -6,6 +6,12 @@ export type NivelArena = "alto" | "medio" | "bajo" | "vacio";
 interface Props {
   nivel: NivelArena;
   size?: number;
+  /**
+   * Segundos que dura una vuelta completa. 0 = quieto.
+   *
+   * Es el otro canal de urgencia: cuanto menos queda, más a menudo gira.
+   */
+  giro?: number;
 }
 
 /**
@@ -46,7 +52,7 @@ function escalarDesde(origenY: number, k: number) {
   return `translate(0 ${(origenY * (1 - k)).toFixed(3)}) scale(1 ${k})`;
 }
 
-const RelojArena = ({ nivel, size = 22 }: Props) => {
+const RelojArena = ({ nivel, size = 22, giro = 0 }: Props) => {
   const { arriba, abajo } = PROPORCION[nivel];
   const cayendo = nivel !== "vacio";
 
@@ -69,63 +75,82 @@ const RelojArena = ({ nivel, size = 22 }: Props) => {
           from: { strokeDashoffset: 0 },
           to: { strokeDashoffset: -3 },
         },
+
+        // La vuelta entera y no medio giro: volver de 180° a 0° daría un salto.
+        // El 85% del ciclo está quieto; solo el tramo final se mueve.
+        ...(giro > 0 && {
+          "& .reloj": {
+            // `fill-box` es lo que hace que `transform-origin: center` se
+            // resuelva contra el dibujo y no contra la esquina del lienzo.
+            transformBox: "fill-box",
+            transformOrigin: "center",
+            animation: `girarReloj ${giro}s cubic-bezier(0.6, 0, 0.3, 1) infinite`,
+          },
+          "@keyframes girarReloj": {
+            "0%, 85%": { transform: "rotate(0deg)" },
+            "100%": { transform: "rotate(360deg)" },
+          },
+        }),
+
         "@media (prefers-reduced-motion: reduce)": {
-          "& .chorro": { animation: "none" },
+          "& .chorro, & .reloj": { animation: "none" },
         },
       }}
     >
-      {/* Tapas */}
-      <path
-        d="M5.5 2.75h13M5.5 21.25h13"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-
-      {/* Cristal: dos curvas que se estrechan en el cuello */}
-      <path
-        d="M7 2.75c0 4.6 5 6.8 5 9.25 0 2.45-5 4.65-5 9.25"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M17 2.75c0 4.6-5 6.8-5 9.25 0 2.45 5 4.65 5 9.25"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-
-      {/* Arena de arriba: se encoge hacia el cuello, que es por donde cae */}
-      {arriba > 0 ? (
+      <g className="reloj">
+        {/* Tapas */}
         <path
-          d="M8.2 5.2h7.6C15.1 8.4 12 10.2 12 11.9 12 10.2 8.9 8.4 8.2 5.2Z"
+          d="M5.5 2.75h13M5.5 21.25h13"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+
+        {/* Cristal: dos curvas que se estrechan en el cuello */}
+        <path
+          d="M7 2.75c0 4.6 5 6.8 5 9.25 0 2.45-5 4.65-5 9.25"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+        <path
+          d="M17 2.75c0 4.6-5 6.8-5 9.25 0 2.45 5 4.65 5 9.25"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+
+        {/* Arena de arriba: se encoge hacia el cuello, que es por donde cae */}
+        {arriba > 0 ? (
+          <path
+            d="M8.2 5.2h7.6C15.1 8.4 12 10.2 12 11.9 12 10.2 8.9 8.4 8.2 5.2Z"
+            fill="currentColor"
+            opacity="0.85"
+            transform={escalarDesde(11.9, arriba)}
+          />
+        ) : null}
+
+        {/* El chorro */}
+        {cayendo ? (
+          <path
+            className="chorro"
+            d="M12 12.4v6.4"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeDasharray="1 2"
+            opacity="0.85"
+          />
+        ) : null}
+
+        {/* Montón de abajo: crece desde la base */}
+        <path
+          d="M8.2 19.6h7.6C15.1 16.4 12 14.6 12 12.9 12 14.6 8.9 16.4 8.2 19.6Z"
           fill="currentColor"
           opacity="0.85"
-          transform={escalarDesde(11.9, arriba)}
+          transform={escalarDesde(19.6, abajo)}
         />
-      ) : null}
-
-      {/* El chorro */}
-      {cayendo ? (
-        <path
-          className="chorro"
-          d="M12 12.4v6.4"
-          stroke="currentColor"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeDasharray="1 2"
-          opacity="0.85"
-        />
-      ) : null}
-
-      {/* Montón de abajo: crece desde la base */}
-      <path
-        d="M8.2 19.6h7.6C15.1 16.4 12 14.6 12 12.9 12 14.6 8.9 16.4 8.2 19.6Z"
-        fill="currentColor"
-        opacity="0.85"
-        transform={escalarDesde(19.6, abajo)}
-      />
+      </g>
     </Box>
   );
 };

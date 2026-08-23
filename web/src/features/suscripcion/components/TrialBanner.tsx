@@ -31,14 +31,32 @@ interface Aspecto {
   /** Clave de la paleta: tiñe borde, fondo, icono y botón. */
   color: "info" | "warning" | "error";
   arena: NivelArena;
+  /** Segundos por vuelta del reloj. 0 = quieto. */
+  giro: number;
   textoBoton: string;
 }
 
 const ASPECTO: Record<Nivel, Aspecto> = {
-  info: { color: "info", arena: "alto", textoBoton: "Ver planes" },
-  aviso: { color: "warning", arena: "medio", textoBoton: "Ver planes" },
-  critica: { color: "error", arena: "bajo", textoBoton: "Compra tu plan" },
-  fin: { color: "error", arena: "vacio", textoBoton: "Compra tu plan" },
+  info: { color: "info", arena: "alto", giro: 12, textoBoton: "Ver planes" },
+  aviso: {
+    color: "warning",
+    arena: "medio",
+    giro: 7,
+    textoBoton: "Ver planes",
+  },
+  critica: {
+    color: "error",
+    arena: "bajo",
+    giro: 4,
+    textoBoton: "Compra tu plan",
+  },
+  // Sin arena que caer, girarlo no significa nada.
+  fin: {
+    color: "error",
+    arena: "vacio",
+    giro: 0,
+    textoBoton: "Compra tu plan",
+  },
 };
 
 function nivelDe(estado: EstadoSuscripcion, dias: number): Nivel {
@@ -97,7 +115,7 @@ const TrialBanner = () => {
   if (data.estado === "activa") return null;
 
   const nivel = nivelDe(data.estado, data.dias_restantes);
-  const { color, arena, textoBoton } = ASPECTO[nivel];
+  const { color, arena, giro, textoBoton } = ASPECTO[nivel];
   const { titulo, detalle } = textosDe(data.estado, data.dias_restantes, nivel);
 
   return (
@@ -130,11 +148,15 @@ const TrialBanner = () => {
             bgcolor: alpha(theme.palette[color].main, 0.14),
           })}
         >
-          <RelojArena nivel={arena} size={26} />
+          <RelojArena nivel={arena} size={26} giro={giro} />
         </Box>
 
         <Box flexGrow={1} minWidth={0}>
-          <Typography variant="subtitle1" fontWeight={600} color={`${color}.main`}>
+          <Typography
+            variant="subtitle1"
+            fontWeight={600}
+            color={`${color}.main`}
+          >
             {titulo}
           </Typography>
           <Typography variant="body2" color="textSecondary">

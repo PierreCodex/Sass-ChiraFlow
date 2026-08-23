@@ -27,12 +27,19 @@ redonda— y no un `Alert` del montón: tiene que verse distinto del contenido
 para que el dueño lo registre. Y el subtítulo dice **el motivo**, que es lo que
 convierte; el número solo informa.
 
-| Días | Color | Arena | Botón |
-|---|---|---|---|
-| Más de 7 | `info` | Bulbo lleno | "Ver planes" |
-| De 3 a 7 | `warning` | A la mitad | "Ver planes" |
-| 2 o menos | `error` | Casi vacío | "Compra tu plan" |
-| Vencida o cancelada | `error` | Vacío, sin chorro | "Compra tu plan" |
+| Días | Color | Arena | Vuelta del reloj | Botón |
+|---|---|---|---|---|
+| Más de 7 | `info` | Bulbo lleno | cada 12 s | "Ver planes" |
+| De 3 a 7 | `warning` | A la mitad | cada 7 s | "Ver planes" |
+| 2 o menos | `error` | Casi vacío | cada 4 s | "Compra tu plan" |
+| Vencida o cancelada | `error` | Vacío, sin chorro | quieto | "Compra tu plan" |
+
+**El giro es el segundo canal de urgencia**: cuanto menos queda, más a menudo
+voltea. En el estado terminado se para — sin arena que caer, girarlo no
+significa nada. Es una vuelta **completa** (0→360°) y no medio giro: volver de
+180° a 0° daría un salto. El **85% del ciclo está quieto**; solo el tramo
+final se mueve, así que no hay movimiento constante en la periferia de la
+vista.
 
 ### El reloj es un SVG propio (`RelojArena.tsx`)
 
@@ -47,10 +54,18 @@ mano en vez de usar el GIF de Icons8 (96×96, 25 fotogramas, 37 KB) o un render
 - Respeta `prefers-reduced-motion`; un GIF seguiría animándose.
 - Sin atribución de terceros (el plan gratuito de Icons8 la exige).
 
-⚠️ **Trampa:** `transform-origin` en CSS **no funciona sobre un `<path>`** — el
-navegador escala respecto a (0,0) y la arena se va al borde del lienzo. Se
-compone a mano con el atributo `transform`: escalar respecto a `origenY` es
-`translate(0, origenY·(1-k)) scale(1, k)`.
+⚠️ **Dos trampas del mismo origen.** En SVG, `transform-origin` de CSS **no se
+resuelve contra el dibujo** por defecto:
+
+1. Sobre un `<path>` con `scaleY`, el navegador escala respecto a (0,0) y la
+   arena se va al borde del lienzo — se veía una X en vez de un reloj. Se
+   compone a mano con el atributo `transform`: escalar respecto a `origenY` es
+   `translate(0, origenY·(1-k)) scale(1, k)`.
+2. Para el giro del conjunto la solución es **`transform-box: fill-box`**, que
+   hace que `transform-origin: center` se resuelva contra la caja del dibujo.
+   Verificado en el navegador: el origen calculado es `6.5px 9.25px`, el
+   centro real del reloj, y en 8 s se recorren 25 ángulos distintos entre
+   −157° y 154°.
 
 **Lo que no se hizo, y por qué.** Se valoraron tres propuestas:
 
