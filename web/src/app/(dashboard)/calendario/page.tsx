@@ -9,7 +9,7 @@ import Typography from "@mui/material/Typography";
 import CardContent from "@mui/material/CardContent";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 // Mismo contenedor que usa el calendario de la plantilla Modernize.
 import BlankCard from "@/components/shared/BlankCard";
 import { toApiError } from "@/lib/api/client";
@@ -26,7 +26,6 @@ import { useCitasDelDia } from "@/features/citas/hooks/useCitas";
 import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
 import type { Cita } from "@/features/citas/types";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Calendario" }];
 
 export default function CalendarioPage() {
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
@@ -90,7 +89,7 @@ export default function CalendarioPage() {
 
   return (
     <PageContainer title="Calendario" description="Agenda del día">
-      <Breadcrumb title="Calendario" items={BCrumb} />
+      <EncabezadoPagina titulo="Calendario" />
 
       <CalendarioToolbar
         fecha={fecha}

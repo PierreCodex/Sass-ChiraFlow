@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import CupoPlanCard from "@/features/empleados/components/CupoPlanCard";
@@ -14,7 +14,6 @@ import { useEliminarEmpleado } from "@/features/empleados/hooks/useEmpleados";
 import type { Empleado } from "@/features/empleados/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Empleados" }];
 
 export default function EmpleadosPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -42,7 +41,7 @@ export default function EmpleadosPage() {
 
   return (
     <PageContainer title="Empleados" description="Personal del negocio">
-      <Breadcrumb title="Empleados" items={BCrumb} />
+      <EncabezadoPagina titulo="Empleados" />
 
       <CupoPlanCard
         accion={

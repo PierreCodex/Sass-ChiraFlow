@@ -1,14 +1,17 @@
 "use client";
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
+import BotonVerSitio from "@/features/configuracion/components/BotonVerSitio";
 import ConfiguracionForm from "@/features/configuracion/components/ConfiguracionForm";
-
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Configuración" }];
 
 export default function ConfiguracionPage() {
   return (
     <PageContainer title="Configuración" description="Ajustes del negocio">
-      <Breadcrumb title="Configuración" items={BCrumb} />
+      <EncabezadoPagina
+        titulo="Configuración"
+        descripcion="Los datos de tu negocio, tu agenda y tu página de reservas."
+        acciones={<BotonVerSitio />}
+      />
       <ConfiguracionForm />
     </PageContainer>
   );

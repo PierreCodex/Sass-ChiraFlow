@@ -5,7 +5,7 @@ import Stack from "@mui/material/Stack";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import TicketsFiltro, {
   type FiltroEstado,
@@ -15,7 +15,6 @@ import TicketFormDialog from "@/features/soporte/components/TicketFormDialog";
 import TicketDetalleDialog from "@/features/soporte/components/TicketDetalleDialog";
 import type { Ticket } from "@/features/soporte/types";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Soporte" }];
 
 export default function SoportePage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -24,7 +23,7 @@ export default function SoportePage() {
 
   return (
     <PageContainer title="Soporte" description="Tickets de ayuda">
-      <Breadcrumb title="Soporte" items={BCrumb} />
+      <EncabezadoPagina titulo="Soporte" />
 
       <Stack spacing={3}>
         <TicketsFiltro valor={filtroEstado} onChange={setFiltroEstado} />

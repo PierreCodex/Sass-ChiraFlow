@@ -18,7 +18,7 @@ import {
 } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import { toApiError } from "@/lib/api/client";
 import { formatFechaLarga, formatHora, formatMoneda } from "@/lib/format";
@@ -31,7 +31,6 @@ import MovimientoCajaDialog from "@/features/caja/components/MovimientoCajaDialo
 import { useEstadoCaja } from "@/features/caja/hooks/useCaja";
 import { diferenciaArqueo, saldoEsperado } from "@/features/caja/types";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Caja" }];
 
 export default function CajaPage() {
   const [abrirDialog, setAbrirDialog] = useState(false);
@@ -47,7 +46,7 @@ export default function CajaPage() {
 
   return (
     <PageContainer title="Caja" description="Apertura, movimientos y arqueo">
-      <Breadcrumb title="Caja" items={BCrumb} />
+      <EncabezadoPagina titulo="Caja" />
 
       {isPending ? (
         <Stack spacing={3}>

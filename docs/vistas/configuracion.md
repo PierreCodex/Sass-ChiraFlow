@@ -4,16 +4,43 @@
 **Estado:** ✅ Validado contra el código Laravel
 **Archivos:**
 - `web/src/app/(dashboard)/configuracion/page.tsx`
-- `web/src/features/configuracion/`
+- `web/src/features/configuracion/components/ConfiguracionForm.tsx`
+- `web/src/features/configuracion/components/SeccionCampos.tsx`
+- `web/src/features/configuracion/components/BarraGuardado.tsx`
+- `web/src/features/configuracion/components/{EnlaceTienda,BotonVerSitio}.tsx`
 
 ---
 
 ## Qué muestra
 
-Un solo formulario con **cuatro pestañas**. Son 19 campos: en una sola columna
+Un solo formulario con **cuatro secciones**. Son 19 campos: en una sola columna
 sería inmanejable.
 
-| Pestaña | Contiene |
+### Cómo está montado (rediseño del 2026-08-22)
+
+Antes el primer campo editable empezaba en el **píxel 566 de 900**: el 63% de
+la primera pantalla ocupado por el banner de migas, la tarjeta del enlace y las
+pestañas. Ahora empieza en **294**.
+
+| Pieza | Por qué |
+|---|---|
+| **Pestañas verticales** en escritorio, horizontales por debajo de `md` | Escalan cuando una sección crece; las horizontales se rompen a partir de seis |
+| **Subsecciones** con el rótulo y su explicación a la izquierda (`SeccionCampos`) | Diez campos seguidos no se escanean. Identidad · Contacto · Ubicación, etc. |
+| **Barra de guardado pegada abajo**, solo cuando hay cambios (`BarraGuardado`) | Con 19 campos el botón quedaba enterrado al final del scroll, y al cambiar de pestaña nada avisaba de que faltaba guardar |
+| **El enlace de la tienda vive en la pestaña "Sitio público"** | Ocupaba 144 px encima de todas las pestañas, incluso editando horarios. En la cabecera queda solo "Ver mi sitio", el gesto más frecuente |
+
+**No es guardado automático a propósito.** Estos campos alimentan la tienda
+pública y el cálculo de disponibilidad: un horario mal tecleado y guardado al
+instante deja al negocio sin huecos sin que nadie lo haya confirmado.
+
+⚠️ **Trampa:** la barra es `position: sticky` y `Card` de MUI lleva
+`overflow: hidden`, que la convierte en su contenedor de scroll — la barra
+quedaba colgada **241 px por debajo** de la pantalla. Por eso el `<form>`
+envuelve a la tarjeta y no al revés. Y lleva `padding-right` extra en `sm+`
+porque el `Fab` del Customizer (`right: 25px; bottom: 15px`) caía justo encima
+de "Guardar cambios".
+
+| Sección | Contiene |
 |---|---|
 | **Negocio** | Nombre, zona horaria, descripción, email, teléfono, WhatsApp, dirección, información adicional, latitud, longitud |
 | **Agenda** | Horario de atención + cómo se generan los huecos de reserva |

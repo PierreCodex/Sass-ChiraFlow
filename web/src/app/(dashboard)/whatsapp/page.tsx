@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import { IconBrandWhatsapp, IconPlus, IconSparkles } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import PlantillasTable from "@/features/whatsapp/components/PlantillasTable";
@@ -24,7 +24,6 @@ import type {
 } from "@/features/whatsapp/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "WhatsApp" }];
 
 export default function WhatsappPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -66,7 +65,7 @@ export default function WhatsappPage() {
 
   return (
     <PageContainer title="WhatsApp" description="Plantillas de mensajes">
-      <Breadcrumb title="Plantillas de WhatsApp" items={BCrumb} />
+      <EncabezadoPagina titulo="Plantillas de WhatsApp" />
 
       <Stack spacing={3}>
         {/* Presentación del módulo, como el hero de la app actual. */}

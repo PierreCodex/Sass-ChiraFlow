@@ -6,7 +6,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import { toApiError } from "@/lib/api/client";
 
 import FiltroRango, {
@@ -22,7 +22,6 @@ import {
   useReporte,
 } from "@/features/reportes/hooks/useReporte";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Reportes" }];
 
 export default function ReportesPage() {
   const [rango, setRango] = useState(rangoPorDefecto);
@@ -32,7 +31,7 @@ export default function ReportesPage() {
 
   return (
     <PageContainer title="Reportes" description="Reporte de reservas">
-      <Breadcrumb title="Reporte de reservas" items={BCrumb} />
+      <EncabezadoPagina titulo="Reporte de reservas" />
 
       <Stack spacing={3}>
         <FiltroRango

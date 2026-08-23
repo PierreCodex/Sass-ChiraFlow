@@ -82,7 +82,8 @@ Sprint 0 queda cerrado por el lado del frontend.
 
 **Hecho:** 0.A completo; 0.B completo — registro, verificación con firma,
 login, recuperación, onboarding y el envío real de correo por Resend
-encolado. 35 tests, 151 aserciones en verde (2026-08-22).
+encolado. Más la puerta de cobro: con el negocio suspendido se entra pero
+solo a Mi Plan y Soporte. 40 tests, 162 aserciones en verde (2026-08-22).
 
 **Ahora:** Sprint 1 — Categorías, Servicios y Clientes.
 
@@ -98,7 +99,7 @@ Lo que un lado espera del otro. Se borra la línea cuando se resuelve.
 | Fecha | De → a | Qué |
 |---|---|---|
 | 2026-08-22 | FE → BE | La categoría **"Otro"** del seeder debería pedir un detalle libre (`tenants.categoria_otro_detalle`), pero `POST /register` no acepta ese campo: o se añade al contrato o se quita la columna |
-| 2026-08-22 | FE → BE | Qué responde el login si el tenant está **suspendido** (§1.6): hoy entra igual que uno activo |
+| 2026-08-22 | BE → FE | Suscripción vencida: `usuario.negocio.estado` (`prueba\|activa\|vencida`) ya viaja en `/login` y `GET /user`, y el panel responde `403 {codigo:"suscripcion_vencida"}` con el negocio suspendido — falta pintar el aviso con el botón de renovar. Detalle en `backend-sass/docs/pendientes-contrato.md` |
 | 2026-08-22 | FE → BE | **`negocio.slug` en `UsuarioResource`** (login y `GET /user`), null mientras el onboarding no fije el nombre: hoy el panel no puede construir el enlace de la tienda. Ya está en el contrato § Usuario |
 
 ---
