@@ -4,8 +4,15 @@ import type { CategoriaNegocio, RangoProfesionales } from "../types";
 
 export interface Usuario {
   id: number;
+  /** `nombre + apellido`, ya compuesto, para pintar. */
   name: string;
+  /** Sueltos, que es como se editan en Mi perfil. */
+  nombre?: string;
+  apellido?: string | null;
   email: string;
+  telefono?: string | null;
+  /** DNI del titular. Opcional. */
+  documento?: string | null;
   avatar_url: string | null;
   rol: string | null;
   /**

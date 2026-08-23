@@ -26,6 +26,7 @@ checklist para validar cada maqueta contra la app actual.
 | [Mi Plan](vistas/mi-plan.md) | `/mi-plan` | ✅ Validado contra el código Laravel · ⚠️ no hay pasarela de pago |
 | [WhatsApp](vistas/whatsapp.md) | `/whatsapp` | ✅ Validado contra el código Laravel |
 | [Configuración](vistas/configuracion.md) | `/configuracion` | ✅ Validado contra el código Laravel |
+| [Mi perfil](vistas/perfil.md) | `/configuracion/perfil` | ✅ Maquetado y leyendo del backend · ⚠️ la escritura espera `PUT /user` |
 | [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
 
 > **Documentos de conjunto**
