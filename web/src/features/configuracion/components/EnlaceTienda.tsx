@@ -40,6 +40,7 @@ interface Props {
 }
 
 const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
+  const compacto = variante === "compacto";
   const [copiado, setCopiado] = useState(false);
   const url = urlTienda(slug);
 
@@ -60,9 +61,12 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
 
   const contenido = (
     <Stack
-      direction={{ xs: "column", md: "row" }}
+      // La variante compacta va siempre apilada: incrustada en una columna de
+      // ~600 px, los tres botones no dejan sitio al texto y la URL se parte
+      // letra a letra.
+      direction={compacto ? "column" : { xs: "column", md: "row" }}
       spacing={2}
-      alignItems={{ md: "center" }}
+      alignItems={compacto ? "flex-start" : { md: "center" }}
       justifyContent="space-between"
     >
       <Stack direction="row" spacing={2} alignItems="flex-start" minWidth={0}>
@@ -126,7 +130,7 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
 
   return (
     <>
-      {variante === "tarjeta" ? (
+      {!compacto ? (
         <Card elevation={9}>
           <CardContent sx={{ p: 3 }}>{contenido}</CardContent>
         </Card>
