@@ -22,18 +22,35 @@ Como **sale en las 17 pantallas, todo el día, todos los días de la prueba**,
 el diseño se rige por dos reglas: la urgencia sube según se acerca el final, y
 la animación solo aparece cuando significa algo.
 
-| Días | Color | Reloj de arena | Botón |
-|---|---|---|---|
-| Más de 7 | `info` | Lleno, **quieto** | "Ver planes" |
-| De 3 a 7 | `warning` | Medio, gira cada 8 s | "Ver planes" |
-| 2 o menos | `error` | Casi vacío, gira cada 4 s | "Compra tu plan" |
-| Vencida o cancelada | `error` | Vacío, quieto | "Compra tu plan" |
+Además es un **bloque propio** —fondo teñido, borde y el reloj en una insignia
+redonda— y no un `Alert` del montón: tiene que verse distinto del contenido
+para que el dueño lo registre. Y el subtítulo dice **el motivo**, que es lo que
+convierte; el número solo informa.
 
-**El nivel de arena del icono acompaña al de urgencia** (`IconHourglassHigh` →
-`IconHourglass` → `IconHourglassLow` → `IconHourglassEmpty`), así que el
-estado se lee sin leer el texto. El giro es una vuelta **completa** (0→360°)
-para que el bucle no dé un salto al volver, y el 88% del ciclo está quieto.
-Todo bajo `prefers-reduced-motion`.
+| Días | Color | Arena | Botón |
+|---|---|---|---|
+| Más de 7 | `info` | Bulbo lleno | "Ver planes" |
+| De 3 a 7 | `warning` | A la mitad | "Ver planes" |
+| 2 o menos | `error` | Casi vacío | "Compra tu plan" |
+| Vencida o cancelada | `error` | Vacío, sin chorro | "Compra tu plan" |
+
+### El reloj es un SVG propio (`RelojArena.tsx`)
+
+La arena cae de verdad: un trazo discontinuo desplazándose hace de granos, el
+bulbo de arriba se vacía según el nivel y el montón de abajo crece. Se hizo a
+mano en vez de usar el GIF de Icons8 (96×96, 25 fotogramas, 37 KB) o un render
+3D (1536×1024, **2,3 MB**):
+
+- **Hereda el color** con `currentColor`, así que sigue la escala azul → ámbar
+  → rojo. Los colores de un GIF están quemados.
+- Pesa **menos de 1 KB** en un componente que sale en las 17 pantallas.
+- Respeta `prefers-reduced-motion`; un GIF seguiría animándose.
+- Sin atribución de terceros (el plan gratuito de Icons8 la exige).
+
+⚠️ **Trampa:** `transform-origin` en CSS **no funciona sobre un `<path>`** — el
+navegador escala respecto a (0,0) y la arena se va al borde del lienzo. Se
+compone a mano con el atributo `transform`: escalar respecto a `origenY` es
+`translate(0, origenY·(1-k)) scale(1, k)`.
 
 **Lo que no se hizo, y por qué.** Se valoraron tres propuestas:
 

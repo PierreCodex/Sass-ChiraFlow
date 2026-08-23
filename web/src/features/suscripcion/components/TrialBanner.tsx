@@ -1,71 +1,44 @@
 "use client";
 import Link from "next/link";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import {
-  IconHourglass,
-  IconHourglassEmpty,
-  IconHourglassHigh,
-  IconHourglassLow,
-} from "@tabler/icons-react";
+import { alpha } from "@mui/material/styles";
 
 import { useSuscripcion } from "../hooks/useSuscripcion";
 import type { EstadoSuscripcion } from "../types";
+import RelojArena, { type NivelArena } from "./RelojArena";
 
 /**
- * Aviso de prueba gratuita / suscripción terminada.
+ * Aviso del estado del plan.
  *
  * Se renderiza en el layout del dashboard, así que **sale en las 17 pantallas,
- * todo el día, todos los días de la prueba**. De ahí las dos reglas que
- * gobiernan el diseño:
+ * todo el día, todos los días de la prueba**. De ahí las reglas del diseño:
  *
- * 1. La urgencia **se escala**: el color, el reloj y el texto del botón
- *    cambian según se acerca el final. Un banner que grita igual el día 14 que
- *    el día 1 no dice nada.
- * 2. La animación **significa algo**: el reloj gira más a menudo cuanto menos
- *    queda, y no se mueve mientras sobra tiempo. Nada de botones que laten sin
+ * 1. Es un **bloque propio**, no un `Alert` del montón: tiene que verse como
+ *    algo distinto del contenido para que el dueño lo registre.
+ * 2. La urgencia **se escala**: color, arena y textos cambian según se acerca
+ *    el final. Un banner que grita igual el día 14 que el día 1 no dice nada.
+ * 3. La animación **significa algo**: la arena cae siempre, pero el bulbo de
+ *    arriba se vacía conforme quedan menos días. Nada de botones que laten sin
  *    parar — eso no genera urgencia, genera fatiga.
  */
 
 type Nivel = "info" | "aviso" | "critica" | "fin";
 
 interface Aspecto {
-  severity: "info" | "warning" | "error";
-  Icono: typeof IconHourglass;
-  /** Segundos entre giros del reloj. 0 = quieto. */
-  giro: number;
+  /** Clave de la paleta: tiñe borde, fondo, icono y botón. */
+  color: "info" | "warning" | "error";
+  arena: NivelArena;
   textoBoton: string;
 }
 
-// El nivel de arena del icono acompaña al nivel de urgencia: lleno cuando
-// sobra tiempo, vacío cuando se acabó.
 const ASPECTO: Record<Nivel, Aspecto> = {
-  info: {
-    severity: "info",
-    Icono: IconHourglassHigh,
-    giro: 0,
-    textoBoton: "Ver planes",
-  },
-  aviso: {
-    severity: "warning",
-    Icono: IconHourglass,
-    giro: 8,
-    textoBoton: "Ver planes",
-  },
-  critica: {
-    severity: "error",
-    Icono: IconHourglassLow,
-    giro: 4,
-    textoBoton: "Compra tu plan",
-  },
-  fin: {
-    severity: "error",
-    Icono: IconHourglassEmpty,
-    giro: 0,
-    textoBoton: "Compra tu plan",
-  },
+  info: { color: "info", arena: "alto", textoBoton: "Ver planes" },
+  aviso: { color: "warning", arena: "medio", textoBoton: "Ver planes" },
+  critica: { color: "error", arena: "bajo", textoBoton: "Compra tu plan" },
+  fin: { color: "error", arena: "vacio", textoBoton: "Compra tu plan" },
 };
 
 function nivelDe(estado: EstadoSuscripcion, dias: number): Nivel {
@@ -75,17 +48,46 @@ function nivelDe(estado: EstadoSuscripcion, dias: number): Nivel {
   return "info";
 }
 
-function mensajeDe(estado: EstadoSuscripcion, dias: number, nivel: Nivel) {
+/** Titular y motivo. El motivo es lo que convierte, no el número. */
+function textosDe(estado: EstadoSuscripcion, dias: number, nivel: Nivel) {
   if (nivel === "fin") {
     return estado === "cancelada"
-      ? "Tu suscripción está cancelada. Compra un plan para seguir usando la plataforma."
-      : "Tu prueba gratuita terminó. Compra un plan para seguir usando la plataforma.";
+      ? {
+          titulo: "Tu suscripción está cancelada",
+          detalle: "Compra un plan para volver a activar tu cuenta.",
+        }
+      : {
+          titulo: "Tu prueba gratuita terminó",
+          detalle: "Compra un plan para seguir usando la plataforma.",
+        };
   }
 
   // Sin el "(s)" de programador que arrastraba el texto anterior.
-  return dias === 1
-    ? "Te queda 1 día de prueba gratuita."
-    : `Te quedan ${dias} días de prueba gratuita.`;
+  const titulo =
+    dias === 1
+      ? "Te queda 1 día de prueba"
+      : `Te quedan ${dias} días de prueba`;
+
+  if (nivel === "critica") {
+    return {
+      titulo,
+      detalle:
+        "Cuando termine, tu tienda pública deja de recibir reservas. Elige tu plan hoy.",
+    };
+  }
+
+  if (nivel === "aviso") {
+    return {
+      titulo,
+      detalle: "Elige tu plan antes de que termine para no perder el acceso.",
+    };
+  }
+
+  return {
+    titulo,
+    detalle:
+      "Tu negocio funciona al completo. Cuando quieras, elige el plan que mejor te calce.",
+  };
 }
 
 const TrialBanner = () => {
@@ -95,54 +97,63 @@ const TrialBanner = () => {
   if (data.estado === "activa") return null;
 
   const nivel = nivelDe(data.estado, data.dias_restantes);
-  const { severity, Icono, giro, textoBoton } = ASPECTO[nivel];
-  const color = severity === "info" ? "info" : severity;
+  const { color, arena, textoBoton } = ASPECTO[nivel];
+  const { titulo, detalle } = textosDe(data.estado, data.dias_restantes, nivel);
 
   return (
-    <Alert
-      severity={severity}
-      variant="outlined"
-      icon={
+    <Box
+      sx={(theme) => ({
+        mb: 3,
+        p: 2,
+        borderRadius: 2,
+        border: "1px solid",
+        borderColor: alpha(theme.palette[color].main, 0.35),
+        // `alpha` sobre el color principal y no el `.light` de la paleta: ese
+        // tono no se invierte en modo oscuro (trampa de CLAUDE.md).
+        bgcolor: alpha(theme.palette[color].main, 0.07),
+      })}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+      >
         <Box
-          sx={{
-            display: "flex",
-            // Un giro completo cada `giro` segundos: la vuelta entera evita el
-            // salto que daría volver de 180° a 0°. El 88% del ciclo está
-            // quieto; solo el tramo final se mueve.
-            ...(giro > 0 && {
-              animation: `girarReloj ${giro}s ease-in-out infinite`,
-              "@keyframes girarReloj": {
-                "0%, 88%": { transform: "rotate(0deg)" },
-                "100%": { transform: "rotate(360deg)" },
-              },
-              "@media (prefers-reduced-motion: reduce)": {
-                animation: "none",
-              },
-            }),
-          }}
+          sx={(theme) => ({
+            width: 46,
+            height: 46,
+            flexShrink: 0,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            color: `${color}.main`,
+            bgcolor: alpha(theme.palette[color].main, 0.14),
+          })}
         >
-          <Icono size={22} stroke={1.6} />
+          <RelojArena nivel={arena} size={26} />
         </Box>
-      }
-      sx={{ mb: 3, alignItems: "center", "& .MuiAlert-message": { flexGrow: 1 } }}
-      action={
+
+        <Box flexGrow={1} minWidth={0}>
+          <Typography variant="subtitle1" fontWeight={600} color={`${color}.main`}>
+            {titulo}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {detalle}
+          </Typography>
+        </Box>
+
         <Button
           component={Link}
           href="/mi-plan"
           color={color}
           variant="contained"
-          size="small"
           disableElevation
-          sx={{ whiteSpace: "nowrap" }}
+          sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
           {textoBoton}
         </Button>
-      }
-    >
-      <Typography variant="body2" fontWeight={nivel === "info" ? 400 : 500}>
-        {mensajeDe(data.estado, data.dias_restantes, nivel)}
-      </Typography>
-    </Alert>
+      </Stack>
+    </Box>
   );
 };
 
