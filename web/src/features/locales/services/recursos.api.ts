@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { empleadosMock } from "@/features/empleados/mocks";
@@ -24,7 +24,7 @@ const porLocal: Record<number, LocalProfesional[]> = Object.fromEntries(
 export const localProfesionalApi = {
   /** Profesionales del negocio con su configuración en `localId`. */
   lista: async (localId: number): Promise<LocalProfesional[]> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("locales")) {
       await delay(250);
       return porLocal[localId] ?? [];
     }
@@ -45,7 +45,7 @@ export const localProfesionalApi = {
     profesionalId: number,
     payload: LocalProfesionalPayload
   ): Promise<LocalProfesional> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("locales")) {
       await delay();
       const lista = porLocal[localId] ?? [];
       const indice = lista.findIndex((item) => item.id === profesionalId);
@@ -73,6 +73,7 @@ export const localProfesionalApi = {
 
 export const gruposApi = crearRecurso<Grupo, GrupoPayload>({
   path: "grupos",
+  modulo: "locales",
   mocks: gruposMock,
   camposBusqueda: ["nombre"],
   // El payload manda ids; la entidad expone objetos con nombre.

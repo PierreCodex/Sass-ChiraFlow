@@ -4,6 +4,7 @@ import { categoriasMock } from "../mocks";
 
 export const categoriasApi = crearRecurso<Categoria, CategoriaPayload>({
   path: "categorias-servicios",
+  modulo: "categorias",
   mocks: categoriasMock,
   camposBusqueda: ["nombre", "descripcion"],
   // Sube imagen: no puede ir como JSON.

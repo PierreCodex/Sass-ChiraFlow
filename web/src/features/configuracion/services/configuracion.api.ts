@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { configuracionMock } from "../mocks";
 import type { Configuracion } from "../types";
@@ -8,7 +8,7 @@ let memoria: Configuracion = configuracionMock;
 
 export const configuracionApi = {
   obtener: async (): Promise<Configuracion> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("configuracion")) {
       await delay(150);
       return memoria;
     }
@@ -17,7 +17,7 @@ export const configuracionApi = {
   },
 
   guardar: async (payload: Configuracion): Promise<Configuracion> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("configuracion")) {
       await delay();
       memoria = payload;
       return memoria;

@@ -1,4 +1,4 @@
-import { env } from "@/config/env";
+import { usarMocksPara } from "@/lib/api/mocks";
 import { crearRecurso } from "@/lib/api/recurso";
 import { DATOS_MUESTRA, enlaceWhatsapp, renderizarPlantilla } from "../constants";
 import type {
@@ -10,6 +10,7 @@ import { plantillasMock } from "../mocks";
 
 const recurso = crearRecurso<PlantillaWhatsapp, PlantillaWhatsappPayload>({
   path: "plantillas-whatsapp",
+  modulo: "whatsapp",
   mocks: plantillasMock,
   camposBusqueda: ["nombre", "contenido"],
   valoresPorDefecto: { activo: true },
@@ -27,7 +28,7 @@ export const plantillasWhatsappApi = {
    */
   create: async (payload: PlantillaWhatsappPayload) => {
     // Con el backend real esto lo resuelve Laravel: se envía POST y ya.
-    if (!env.usarMocks) return recurso.create(payload);
+    if (!usarMocksPara("whatsapp")) return recurso.create(payload);
 
     const previa = recurso
       .mockItems()

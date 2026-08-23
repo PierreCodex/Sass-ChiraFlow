@@ -198,13 +198,22 @@ fuera del panel, donde no se podía pulsar.
 ### El switch de datos ficticios
 
 Hoy la capa de servicios devuelve los datos de `features/<modulo>/mocks.ts`.
-Cuando el backend esté listo:
+Como el backend llega por sprints, se conecta **módulo a módulo**:
 
 ```env
 # web/.env.local
+NEXT_PUBLIC_MODULOS_CONECTADOS=categorias,servicios
+```
+
+Esos hablan con Laravel; el resto sigue con datos ficticios. Cuando estén
+todos:
+
+```env
 NEXT_PUBLIC_USE_MOCKS=false
 ```
 
-Ese es el único cambio. Los hooks y los componentes ya están escritos contra la
-API real — ver `src/lib/api/recurso.ts`, donde cada método tiene la rama mock y
-la llamada axios una al lado de la otra.
+y la lista sobra. La decisión vive en `usarMocksPara(modulo)`
+(`src/lib/api/mocks.ts`), que consultan tanto `crearRecurso()` como los
+servicios manuales. Los hooks y los componentes no se enteran: en
+`src/lib/api/recurso.ts` cada método tiene la rama mock y la llamada axios una
+al lado de la otra.

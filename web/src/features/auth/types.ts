@@ -46,3 +46,27 @@ export function soloDigitos(valor: string): string {
 export function normalizarTelefono(valor: string): string {
   return `${PREFIJO_TELEFONO}${soloDigitos(valor)}`;
 }
+
+/** Etiquetas de los roles. El backend manda la clave; el texto lo pone aquí. */
+const ETIQUETAS_ROL: Record<string, string> = {
+  dueno: "Dueño",
+  admin: "Administrador",
+  profesional: "Profesional",
+};
+
+export function etiquetaRol(rol: string | null | undefined): string {
+  if (!rol) return "";
+  return ETIQUETAS_ROL[rol] ?? rol;
+}
+
+/** Iniciales para el avatar de quien no ha subido foto. */
+export function inicialesDe(nombreCompleto: string | null | undefined): string {
+  if (!nombreCompleto) return "?";
+  const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  // Primera y ÚLTIMA palabra, no las dos primeras: "María de los Ángeles
+  // Quispe Rojas" da "MR" y no "MD", que no dice nada.
+  const primera = partes[0][0] ?? "";
+  const ultima = partes.length > 1 ? (partes[partes.length - 1][0] ?? "") : "";
+  return `${primera}${ultima}`.toUpperCase();
+}

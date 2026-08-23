@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import type { ParamsReporte, Reporte } from "../types";
 import { reporteMock } from "../mocks";
@@ -7,7 +7,7 @@ import { reporteMock } from "../mocks";
 export const reportesApi = {
   /** Todo el reporte en una sola llamada, como el `index` de Laravel. */
   obtener: async (params: ParamsReporte): Promise<Reporte> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("reportes")) {
       await delay(450);
       return reporteMock(params);
     }
@@ -23,7 +23,7 @@ export const reportesApi = {
   exportar: async (params: ParamsReporte): Promise<void> => {
     const nombre = `reporte_${params.desde}_${params.hasta}.csv`;
 
-    if (env.usarMocks) {
+    if (usarMocksPara("reportes")) {
       await delay(400);
       descargar(new Blob([csvMock(params)], { type: "text/csv" }), nombre);
       return;

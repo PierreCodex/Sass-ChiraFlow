@@ -49,12 +49,17 @@ El tema es `BLUE_THEME`; no tocarlo.
 
 ### 2. Datos ficticios primero
 
-Cada módulo se maqueta con mocks y se conecta después. El interruptor es una
-variable:
+Cada módulo se maqueta con mocks y se conecta después. Hay **dos**
+interruptores, y el global manda:
 
 ```env
-NEXT_PUBLIC_USE_MOCKS=false   # cuando el backend esté listo
+NEXT_PUBLIC_USE_MOCKS=false              # todo contra Laravel
+NEXT_PUBLIC_MODULOS_CONECTADOS=servicios # solo estos, el resto con mocks
 ```
+
+Lo resuelve `usarMocksPara(modulo)` en `lib/api/mocks.ts`. **Nadie debe leer
+`env.usarMocks` directamente**: el backend llega por sprints y hace falta poder
+conectar un módulo sin esperar a los dieciséis.
 
 Los servicios ya tienen las dos ramas —mock y axios— una al lado de la otra
 (`web/src/lib/api/recurso.ts`). Los hooks y los componentes no cambian.

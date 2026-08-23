@@ -1,5 +1,5 @@
+import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
-import { env } from "@/config/env";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { serviciosMock } from "@/features/servicios/mocks";
@@ -66,7 +66,7 @@ export const citasApi = {
    * Todas las citas de un día, sin paginar. Es lo que consume el calendario.
    */
   porFecha: async (fecha: string): Promise<Cita[]> => {
-    if (env.usarMocks) {
+    if (usarMocksPara("citas")) {
       await delay(250);
       return recurso.mockItems().filter((cita) => cita.fecha === fecha);
     }

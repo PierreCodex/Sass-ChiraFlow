@@ -12,6 +12,7 @@ import { ticketsMock } from "../mocks";
  */
 const recurso = crearRecurso<Ticket, TicketPayload>({
   path: "soporte/tickets",
+  modulo: "soporte",
   mocks: ticketsMock,
   camposBusqueda: ["asunto", "mensaje"],
   // Las cajas de conteo de arriba filtran por estado.

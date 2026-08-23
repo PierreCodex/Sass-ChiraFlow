@@ -142,7 +142,10 @@ del BFF cuando el `fetch` a Laravel falla.
 
 ## Pendiente
 
-- [ ] Montar `useUsuarioActual` en el layout del panel (hoy el header sigue
-      con el usuario de la plantilla)
+- [x] ~~Montar `useUsuarioActual` en el layout del panel~~ — hecho
+      (2026-08-22): el menú del header y la tarjeta del sidebar muestran a
+      quien ha entrado, y **cierran sesión de verdad**. El botón de la
+      plantilla era un `<Link href="/login">`: sacaba de la pantalla pero
+      dejaba el token vivo en Laravel y la cookie puesta
 - [ ] Decidir qué hacer si el negocio está suspendido: el backend ya tiene
       estados de tenant (§1.6) pero el login no los distingue todavía
