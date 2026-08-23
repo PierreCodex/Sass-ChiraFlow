@@ -8,8 +8,13 @@ export interface Usuario {
   email: string;
   avatar_url: string | null;
   rol: string | null;
-  /** Tenant al que pertenece el usuario (el negocio/clínica). */
-  negocio: { id: number; nombre: string } | null;
+  /**
+   * Tenant al que pertenece el usuario (el negocio/clínica).
+   *
+   * `nombre` y `slug` son null hasta que el paso 1 del onboarding los fija;
+   * el `slug` es lo que permite construir el enlace de la tienda.
+   */
+  negocio: { id: string; nombre: string | null; slug?: string | null } | null;
 }
 
 export interface LoginPayload {

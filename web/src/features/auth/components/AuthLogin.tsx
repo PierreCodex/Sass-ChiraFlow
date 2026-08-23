@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import * as yup from "yup";
@@ -44,6 +44,17 @@ const esquema = yup.object({
 
 type Valores = yup.InferType<typeof esquema>;
 
+/**
+ * A dónde volver tras entrar. Solo se acepta una ruta **relativa** del propio
+ * sitio: sin esto, un `?next=https://otro.com` convertiría el login en un
+ * trampolín para llevarse a la gente a otro dominio.
+ */
+function destinoSeguro(next: string | null) {
+  if (!next) return "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 /** Fallos que no son de validación y merecen su propio texto. */
 const MENSAJES_POR_ESTADO: Record<number, string> = {
   429: "Demasiados intentos. Espera un minuto antes de volver a probar.",
@@ -53,8 +64,13 @@ const MENSAJES_POR_ESTADO: Record<number, string> = {
 
 const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
   const router = useRouter();
+  const parametros = useSearchParams();
   const queryClient = useQueryClient();
   const [verPassword, setVerPassword] = useState(false);
+
+  // Los pone el guardia del middleware y el interceptor del 401.
+  const destino = destinoSeguro(parametros.get("next"));
+  const sesionExpirada = parametros.get("sesion") === "expirada";
 
   const login = useLogin();
 
@@ -75,7 +91,8 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
         // La cookie ya está puesta por el BFF; el panel puede leer al usuario
         // sin pedirlo otra vez.
         queryClient.setQueryData(authKeys.usuario, usuario);
-        router.push("/");
+        // De vuelta a donde iba antes de que le echaran, no siempre al inicio.
+        router.push(destino);
         router.refresh();
       },
       onError: (error) => {
@@ -110,6 +127,12 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       {subtext}
 
       <Box component="form" onSubmit={onSubmit} noValidate sx={formularioCompacto}>
+        {sesionExpirada && !apiError ? (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Tu sesión expiró. Vuelve a entrar para continuar.
+          </Alert>
+        ) : null}
+
         {mensajeGeneral ? (
           <Alert severity="error" sx={{ mb: 2 }}>
             {mensajeGeneral}

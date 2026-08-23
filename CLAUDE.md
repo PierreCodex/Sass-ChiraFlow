@@ -121,6 +121,7 @@ features/<modulo>/types.ts        los tipos + helpers de dominio
         ↓
 lib/api/client.ts                 axios, baseURL "/api"
         ↓
+middleware.ts                     subdominios de tienda + guardia del panel
 app/api/[...path]/route.ts        el BFF: pone el Bearer y reenvía a Laravel
 app/api/auth/{login,logout}       lo único que escribe y borra la cookie
 lib/auth/sesion.ts                cookies httpOnly + URL del upstream
@@ -177,6 +178,15 @@ navegador ──/api/*──> BFF (app/api/[...path]) ──Bearer──> Larave
 - Se acabaron el `GET /sanctum/csrf-cookie`, el `withCredentials` y el CORS:
   Laravel solo recibe tráfico del BFF.
 
+### Sesión caída: dos capas
+
+El **guardia** de `middleware.ts` manda al login si falta la cookie, pero solo
+mira que **exista**. Un token revocado desde otro dispositivo lo pasa. Quien
+manda es el **401**: el interceptor de axios llama a `POST /api/auth/logout`
+para borrar la cookie muerta y salta a `/login?next=…&sesion=expirada`. Si solo
+saltara, el guardia seguiría viendo la cookie y dejaría entrar al panel una y
+otra vez. El **403** (correo sin verificar) no entra ahí.
+
 ### Las que más se incumplían en el backend anterior
 
 - **Paginar siempre** lo que sea lista. Nada de `->get()` suelto.
@@ -201,6 +211,8 @@ Cosas que costaron tiempo. No repetirlas.
 | **`onClick` en el SVG** | En el header de la plantilla el toggle de tema tiene el `onClick` en el `<svg>`, no en el botón. Pulsar el botón no hace nada. |
 | **`localhost` en `NEXT_PUBLIC_API_URL`** | El `fetch` de Node resuelve `localhost` a **::1** y `php artisan serve` solo escucha en IPv4: el BFF devuelve **502** aunque `curl` al backend funcione. Usar `http://127.0.0.1:8000/api`. |
 | **BOM en un `.php` del backend** | Un archivo guardado con BOM (fue `config/app.php`) hace que Laravel emita `EF BB BF` antes del JSON. `JSON.parse` falla, axios se traga el error y el hook recibe una cadena en vez del objeto. Se ve con `curl … \| xxd \| head -1`. |
+| **`Scrollbar` bajo `lg`** | `components/custom-scroll/Scrollbar.tsx` **descarta su `sx`** por debajo de `lg`: devuelve un `Box` plano con `overflowX: auto`. Alturas, `flexGrow` y demás hay que ponerlos en un `Box` que lo envuelva. |
+| **`fill-mode: both` pisa el `sx`** | Un `@keyframes` que termine en `opacity: 1` deja ese valor **fijado** y anula el `opacity` del `sx`. Terminar el keyframe en una variable CSS (`var(--…)`) que lleve el valor real. |
 | **Recargar pierde los mocks** | El estado vive en memoria del módulo. Para conservarlo hay que navegar con el sidebar, no recargar. |
 
 ---
@@ -212,9 +224,7 @@ Cosas que costaron tiempo. No repetirlas.
 | `docs/README.md` | Índice de las 17 fichas + convenciones de la API |
 | `docs/api-contract.md` | **El contrato con `backend-sass`**: endpoints, formas de datos y flujos. Original único: se edita aquí y solo aquí |
 | `docs/vistas/*.md` | Una por pantalla, con su contrato JSON |
-| `docs/lectura-del-backend.md` | Qué pretendía el Laravel anterior, qué conservar y qué tirar |
 | `docs/plan-backend.md` | Cómo levantar el backend nuevo: decisiones, orden y tablas que faltan |
-| `docs/flujos.md` | 12 diagramas del sistema, listos para pegar en Excalidraw |
 
 **Al terminar un módulo, actualizar su ficha.** Es lo que hace que la
 especificación siga siendo cierta.

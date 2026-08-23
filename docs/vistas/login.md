@@ -5,6 +5,8 @@
 **Archivos:**
 - `web/src/app/(auth)/login/page.tsx` (tarjeta centrada de la plantilla)
 - `web/src/features/auth/components/AuthLogin.tsx`
+- `web/src/middleware.ts` (guardia del panel)
+- `web/src/lib/api/client.ts` (interceptor del 401)
 
 ---
 
@@ -57,6 +59,37 @@ sus errores se pintan tal como lleguen.
 El botón se deshabilita mientras la petición está en vuelo: un doble clic
 crearía dos tokens en Sanctum.
 
+---
+
+## Cómo se llega aquí sin querer: sesión caída
+
+Dos capas, y hacen falta **las dos**:
+
+| Capa | Dónde | Qué hace | Alcance |
+|---|---|---|---|
+| Guardia | `middleware.ts` | Sin cookie `mi_saas_token` en una ruta del panel → `/login?next=<ruta>` | Solo mira que la cookie **exista** |
+| 401 | interceptor de axios | `POST /api/auth/logout` (borra la cookie muerta) → `/login?next=…&sesion=expirada` | **Autoritativa** |
+
+El guardia es cosmética: evita que Next pinte el armazón del dashboard para
+romperse medio segundo después. Pero un token **revocado desde otro
+dispositivo** lo pasa sin problema, porque la cookie sigue ahí; ese caso solo
+muere en el 401 de Laravel.
+
+Y el 401 no puede limitarse a saltar al login: sin borrar la cookie, el
+guardia la seguiría viendo y dejaría entrar al panel en cada intento. De ahí
+la llamada al logout, con `keepalive` para que sobreviva a la navegación que
+viene detrás.
+
+`next` solo se acepta si es una ruta **relativa** del propio sitio: un
+`?next=https://otro.com` convertiría el login en un trampolín a otro dominio.
+
+El **403** no pasa por aquí: es "correo sin verificar" y tiene su propio
+flujo.
+
+`AuthLogin` lee `next` y `sesion` con `useSearchParams`, que suspende el árbol
+durante el prerender — por eso va envuelto en `<Suspense>`; sin él la build
+falla.
+
 El 403 comparte componente con el panel "Revisa tu correo" del
 [registro](registro.md): `ReenviarVerificacion`, que toma la espera del
 `retry_after` de la respuesta y nunca de un número escrito en el frontend.
@@ -88,6 +121,22 @@ El 403 comparte componente con el panel "Revisa tu correo" del
 
 El 502 es el único camino no ejercitado en vivo: sale de `errorJson(…, 502)`
 del BFF cuando el `fetch` a Laravel falla.
+
+### Sesión caída (2026-08-22)
+
+- Sin cookie: `GET /caja` → **307** a `/login?next=%2Fcaja`; `/login`,
+  `/verificar-correo` y `/reservar/{slug}` siguen dando **200** (nada de
+  bucles, y la tienda pública no necesita sesión).
+- En una ventana **sin cookies**, abrir la URL del panel cae en el login **sin
+  parpadeo de dashboard**: medido en la página, `hayDashboard: false`.
+- Al entrar desde ahí, vuelve a **`/caja`**, no al inicio.
+- **Token revocado en Laravel con la cookie todavía puesta** (el caso que el
+  guardia no cubre): navegar a `/clientes` → el 401 dispara el logout y
+  aterriza en `/login?next=%2Fclientes&sesion=expirada` con el aviso "Tu
+  sesión expiró. Vuelve a entrar para continuar". Después, `curl` a `/caja`
+  vuelve a dar 307: la cookie muerta quedó borrada de verdad.
+- El **403** de correo sin verificar sigue devolviendo 403 y no cierra nada.
+- `npm run build` pasa: el `<Suspense>` del login está donde toca.
 
 ---
 
