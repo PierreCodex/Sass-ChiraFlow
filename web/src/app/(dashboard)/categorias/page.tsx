@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import CategoriasTable from "@/features/categorias/components/CategoriasTable";
@@ -13,7 +13,6 @@ import { useEliminarCategoria } from "@/features/categorias/hooks/useCategorias"
 import type { Categoria } from "@/features/categorias/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Categorías" }];
 
 export default function CategoriasPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -41,20 +40,20 @@ export default function CategoriasPage() {
 
   return (
     <PageContainer title="Categorías" description="Categorías de servicios">
-      <Breadcrumb title="Categorías" items={BCrumb} />
-      <DashboardCard
-        title="Categorías"
-        subtitle="Cómo se agrupan tus servicios"
-        action={
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={18} />}
-            onClick={abrirNueva}
-          >
-            Nueva categoría
-          </Button>
+      <EncabezadoPagina
+        titulo="Categorías"
+        descripcion="Cómo se agrupan tus servicios"
+        acciones={
+        <Button
+          variant="contained"
+          startIcon={<IconPlus size={18} />}
+          onClick={abrirNueva}
+        >
+          Nueva categoría
+        </Button>
         }
-      >
+      />
+      <DashboardCard>
         <CategoriasTable
           onEditar={abrirEdicion}
           onEliminar={setCategoriaAEliminar}

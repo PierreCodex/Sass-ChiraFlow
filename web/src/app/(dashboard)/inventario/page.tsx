@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import ProductosTable from "@/features/inventario/components/ProductosTable";
@@ -14,7 +14,6 @@ import { useEliminarProducto } from "@/features/inventario/hooks/useProductos";
 import type { Producto } from "@/features/inventario/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Inventario" }];
 
 export default function InventarioPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -43,20 +42,20 @@ export default function InventarioPage() {
 
   return (
     <PageContainer title="Inventario" description="Productos y stock">
-      <Breadcrumb title="Inventario" items={BCrumb} />
-      <DashboardCard
-        title="Inventario"
-        subtitle="Productos, stock y movimientos"
-        action={
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={18} />}
-            onClick={abrirNuevo}
-          >
-            Nuevo producto
-          </Button>
+      <EncabezadoPagina
+        titulo="Inventario"
+        descripcion="Productos, stock y movimientos"
+        acciones={
+        <Button
+          variant="contained"
+          startIcon={<IconPlus size={18} />}
+          onClick={abrirNuevo}
+        >
+          Nuevo producto
+        </Button>
         }
-      >
+      />
+      <DashboardCard>
         <ProductosTable
           onEditar={abrirEdicion}
           onMovimiento={setProductoMovimiento}

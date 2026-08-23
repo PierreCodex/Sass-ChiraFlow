@@ -141,7 +141,12 @@ mismo código otra vez:
 ### Componentes compartidos que ya existen
 
 `DataTable`, `ConfirmDialog`, `BuscadorTabla`, `CampoImagenes`, `StatCard`,
-`DashboardCard`, `BlankCard`.
+`DashboardCard`, `BlankCard`, `EncabezadoPagina`.
+
+**`EncabezadoPagina`** es la cabecera de las 15 pantallas del panel: título,
+descripción opcional y acciones a la derecha. Sustituyó al `Breadcrumb` de la
+plantilla, que gastaba **145 px** en repetir "Inicio • Configuración" cuando el
+sidebar ya marca dónde estás. **No volver a usar `Breadcrumb`.**
 
 Y dos estilos en `components/shared/estilos-formulario.ts`:
 

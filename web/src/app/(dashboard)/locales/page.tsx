@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import BlankCard from "@/components/shared/BlankCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import LocalesGrid from "@/features/locales/components/LocalesGrid";
@@ -25,7 +25,6 @@ import { useEliminarGrupo } from "@/features/locales/hooks/useRecursos";
 import type { Grupo, Local } from "@/features/locales/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Locales" }];
 
 /** Las mismas cuatro pestañas de `admin/recursos/index.blade.php`. */
 const PESTANAS = [
@@ -84,7 +83,7 @@ export default function LocalesPage() {
 
   return (
     <PageContainer title="Locales" description="Sedes del negocio">
-      <Breadcrumb title="Locales" items={BCrumb} />
+      <EncabezadoPagina titulo="Locales" />
 
       <BlankCard>
         <Box px={3} pt={1}>

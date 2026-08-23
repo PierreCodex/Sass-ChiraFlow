@@ -9,7 +9,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import { toApiError } from "@/lib/api/client";
 
 import PlanSelector from "@/features/suscripcion/components/PlanSelector";
@@ -21,7 +21,6 @@ import {
   useSuscripcion,
 } from "@/features/suscripcion/hooks/useSuscripcion";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Mi Plan" }];
 
 export default function MiPlanPage() {
   const { data: planes, isPending, isError, error } = usePlanes();
@@ -54,7 +53,7 @@ export default function MiPlanPage() {
 
   return (
     <PageContainer title="Mi Plan" description="Planes y extras">
-      <Breadcrumb title="Elige tu plan" items={BCrumb} />
+      <EncabezadoPagina titulo="Elige tu plan" />
 
       {isError ? (
         <Alert severity="error">{toApiError(error).message}</Alert>

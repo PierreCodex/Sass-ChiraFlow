@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import ServiciosTable from "@/features/servicios/components/ServiciosTable";
@@ -13,7 +13,6 @@ import { useEliminarServicio } from "@/features/servicios/hooks/useServicios";
 import type { Servicio } from "@/features/servicios/types";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Servicios" }];
 
 export default function ServiciosPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -41,20 +40,20 @@ export default function ServiciosPage() {
 
   return (
     <PageContainer title="Servicios" description="Catálogo de servicios">
-      <Breadcrumb title="Servicios" items={BCrumb} />
-      <DashboardCard
-        title="Servicios"
-        subtitle="Tu catálogo de atención"
-        action={
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={18} />}
-            onClick={abrirNuevo}
-          >
-            Nuevo servicio
-          </Button>
+      <EncabezadoPagina
+        titulo="Servicios"
+        descripcion="Tu catálogo de atención"
+        acciones={
+        <Button
+          variant="contained"
+          startIcon={<IconPlus size={18} />}
+          onClick={abrirNuevo}
+        >
+          Nuevo servicio
+        </Button>
         }
-      >
+      />
+      <DashboardCard>
         <ServiciosTable
           onEditar={abrirEdicion}
           onEliminar={setServicioAEliminar}

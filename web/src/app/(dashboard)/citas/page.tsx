@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
 import PageContainer from "@/components/container/PageContainer";
-import Breadcrumb from "@/layout/shared/breadcrumb/Breadcrumb";
+import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import CitasTable from "@/features/citas/components/CitasTable";
@@ -14,7 +14,6 @@ import type { Cita } from "@/features/citas/types";
 import { formatFecha } from "@/lib/format";
 import { toApiError } from "@/lib/api/client";
 
-const BCrumb = [{ to: "/", title: "Inicio" }, { title: "Citas" }];
 
 export default function CitasPage() {
   const [formAbierto, setFormAbierto] = useState(false);
@@ -42,20 +41,20 @@ export default function CitasPage() {
 
   return (
     <PageContainer title="Citas" description="Agenda de citas">
-      <Breadcrumb title="Citas" items={BCrumb} />
-      <DashboardCard
-        title="Citas"
-        subtitle="Todas las citas agendadas"
-        action={
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={18} />}
-            onClick={abrirNueva}
-          >
-            Nueva cita
-          </Button>
+      <EncabezadoPagina
+        titulo="Citas"
+        descripcion="Todas las citas agendadas"
+        acciones={
+        <Button
+          variant="contained"
+          startIcon={<IconPlus size={18} />}
+          onClick={abrirNueva}
+        >
+          Nueva cita
+        </Button>
         }
-      >
+      />
+      <DashboardCard>
         <CitasTable onEditar={abrirEdicion} onEliminar={setCitaAEliminar} />
       </DashboardCard>
 
