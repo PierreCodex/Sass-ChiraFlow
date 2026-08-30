@@ -1,7 +1,7 @@
 # Categorías
 
 **Ruta:** `/categorias`
-**Estado:** ✅ Validado contra el código Laravel
+**Estado:** ✅ **Conectada al backend real** (2026-08-27, Sprint 1)
 **Archivos:**
 - `web/src/app/(dashboard)/categorias/page.tsx`
 - `web/src/features/categorias/`
@@ -14,42 +14,52 @@
 
 ## Qué muestra
 
-Tabla paginada con botón "Nueva categoría".
+Tabla paginada con buscador y botón "Nueva categoría", con el mismo montaje
+que Clientes: el `BuscadorTabla` alineado a la derecha encima de la tabla.
 
 ### Columnas
 
 | Columna | Contenido |
 |---|---|
-| Categoría | Marca visual + nombre + descripción debajo |
+| Categoría | Miniatura de la imagen + nombre |
+| Descripción | `descripcion`, o `—` |
+| Color | Círculo + hexadecimal, o `—` si no tiene |
 | Servicios | `servicios_count`, centrado |
-| Orden | `orden`, centrado |
 | Acciones | Editar y eliminar |
 
-### La marca visual
+**`orden` no tiene columna.** La tabla ya llega ordenada por él, así que el
+número no añade nada que la propia lista no esté enseñando; se sigue editando
+en el formulario, que es donde sirve para algo.
 
-Réplica del `@if` del Blade, en este orden:
+### Imagen y color ya no compiten
 
-1. Si tiene **imagen** → miniatura 40×40 redondeada.
-2. Si no, pero tiene **color** → círculo de 24 px.
-3. Si no tiene ninguno → **no se muestra nada**, solo el nombre.
+El Blade pintaba una cosa **o** la otra: si había imagen, mandaba la imagen; si
+no, el círculo de color. Con `color` en su propia columna eso dejó de tener
+sentido —el mismo dato en dos sitios hace dudar de si son dos cosas
+distintas—, así que:
 
-O sea que la imagen **reemplaza** al color, no conviven.
+- **Categoría**: miniatura 40×40 de la imagen, o nada si no la tiene.
+- **Color**: el círculo con su hexadecimal al lado. Dos azules parecidos se
+  distinguen por el código, no por el ojo. Sin color, `—`.
 
 ### Estados de la UI
 
 | Estado | Qué se muestra |
 |---|---|
 | Cargando | 5 skeletons de fila |
-| Vacío | "Todavía no has creado categorías." |
+| Vacío | "Todavía no has creado categorías.", o "No se encontraron categorías." si hay búsqueda |
 | Error | Alert rojo |
 
-Sin buscador: se asume que son pocas.
+El buscador manda `search` y el backend filtra por **nombre y descripción**
+(a diferencia de Servicios, que solo busca por nombre).
 
 ---
 
 ## Endpoints
 
 ### `GET /api/categorias-servicios`
+
+Parámetros: `page`, `per_page`, `search` (nombre y descripción)
 
 ```json
 {
@@ -89,10 +99,13 @@ raro — pero si llega, se pinta en el campo.
 
 ### `DELETE /api/categorias-servicios/{id}`
 
-El diálogo de confirmación **avisa cuántos servicios tiene asociados** antes de
-borrar. Pendiente definir qué hace el backend: en la tabla `servicios` la clave
-es `nullOnDelete`, así que los servicios quedarían **sin categoría** en vez de
-borrarse.
+Responde **204 sin cuerpo**. Es borrado real —nada del historial apunta a una
+categoría—, pero **los servicios sobreviven**: la FK es `nullOnDelete` y se
+quedan sin categoría.
+
+Por eso el aviso del diálogo lo pinta el frontend con el `servicios_count` que
+ya trae del listado, y el texto es **«N servicios quedarán sin categoría»**, no
+«se eliminarán N servicios».
 
 ---
 
@@ -123,21 +136,47 @@ Y me faltaban **`orden`** e **`imagen`**, que sí están en el formulario real.
 | Campo | Control | Obligatorio |
 |---|---|---|
 | Nombre | Texto | Sí |
-| Orden | Número | No (0 por defecto) |
+| Orden | Número | No (0 por defecto) — no se muestra en la tabla |
 | Descripción | Textarea (2 filas) | No |
-| Color | `input[type=color]` | No |
+| Color | `input[type=color]` + botón de quitar | No |
 | Imagen | Selector de 1 imagen | No |
 
 Botones: **Crear categoría** / **Guardar cambios**, y **Cancelar**.
 
+### El botón de quitar el color
+
+`input[type=color]` no sabe mandar «vacío»: siempre devuelve un color. Sin una
+X al lado, una categoría que alguna vez tuvo color no podría volver a quedarse
+sin él. El botón manda `color: null`, que el backend acepta, y mientras no hay
+color el swatch se ve apagado con la nota «Sin color: el listado no mostrará
+círculo».
+
+Por lo mismo, al editar el color se carga **tal cual viene** (`null` incluido):
+rellenarlo con un azul por defecto le pondría color a una categoría que no lo
+tiene en cuanto se guardara.
+
 ---
+
+## Resuelto en el Sprint 1 (2026-08-27)
+
+- [x] **Servicios de una categoría eliminada**: quedan sin categoría, y el
+      diálogo ya lo dice con ese texto
+- [x] **El `orden`** se edita solo con el número; arrastrar filas queda fuera
+      de la v1
+- [x] **Quitar el color** ya se puede, con la X del formulario
+
+La columna `activo` **sí existe** en la migración, al revés de lo que decía
+esta ficha. Se queda —quitarla obligaría a re-migrar cada tenant por nada—,
+pero ni el Resource la emite ni el Form Request la acepta: la categoría sigue
+sin poderse desactivar, que es lo que manda la ficha.
+
+`imagen` entra como archivo e `imagen_url` sale como URL. La columna guarda la
+**ruta** (`categorias/uuid.webp`), no la URL: el día que las imágenes se muevan
+a S3 cambia una línea de configuración en vez de cada fila de cada tenant.
 
 ## Pendiente
 
-- [ ] ¿Qué pasa con los servicios de una categoría eliminada? La FK es
-      `nullOnDelete`, así que quedarían sin categoría — conviene avisarlo en el
-      diálogo con el texto exacto
-- [ ] ¿El `orden` se edita arrastrando filas, o solo con el número?
-- [ ] El color es nullable, pero el formulario siempre manda uno (el
-      `input[type=color]` no admite vacío). Para dejarlo sin color haría falta
-      un botón de "quitar color"
+- [ ] **No se puede quitar la imagen** una vez puesta. En multipart, no mandar
+      `imagen` significa «déjala como está» —y así tiene que ser, o cada
+      edición borraría la foto—, así que hace falta un campo aparte
+      (`imagen_eliminar`) para decirlo. Traspaso abierto al backend

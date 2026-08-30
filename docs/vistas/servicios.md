@@ -1,7 +1,7 @@
 # Servicios
 
 **Ruta:** `/servicios`
-**Estado:** ✅ Campos validados contra la app actual (captura del 09/08/2026)
+**Estado:** ✅ **Conectada al backend real** (2026-08-27, Sprint 1)
 **Archivos:**
 - `web/src/app/(dashboard)/servicios/page.tsx`
 - `web/src/features/servicios/`
@@ -22,7 +22,7 @@ Tabla del catálogo de servicios con las 7 columnas de la app actual, botón
 | Tipo | Etiqueta del tipo (hoy siempre "Normal") |
 | Duración | `{duracion_min} min` |
 | Precio | `formatMoneda(precio)` → `S/ 20.00` |
-| Estado | Chip verde "Activo" / gris "Inactivo" |
+| Estado | Switch que enciende y apaga el servicio, con su etiqueta al lado |
 | Acciones | Botón editar (lápiz) y eliminar (papelera) |
 
 **El color pertenece al servicio, no a la categoría.** En la app actual hay
@@ -94,21 +94,39 @@ Campos del FormData:
 | `duracion_min` | int | |
 | `imagen_principal` | File | Solo si el usuario eligió una nueva |
 | `galeria[]` | File | Imágenes nuevas, 0 a 4 |
-| `galeria_conservar[]` | string | URLs de la galería que **no** se borraron |
+| `galeria_conservar[]` | int | **Ids** de la galería que **no** se borraron |
+| `activo` | 0 \| 1 | Opcional. Lo manda el switch de la tabla, no el formulario |
 | `empleado_ids[]` | int | Profesionales marcados |
 | `_method` | `"PUT"` | Solo al editar |
 
-**Sobre `galeria_conservar`:** al editar, el usuario puede quitar fotos ya
-guardadas. El frontend envía las que quedan; el backend debería borrar las que
-no aparezcan en esa lista. Si prefieres otro mecanismo (ids en vez de URLs, o
-un endpoint aparte para borrar imágenes), dímelo y lo cambio.
+**Sobre `galeria_conservar` (cambiado el 2026-08-27):** viaja con **ids**, no
+con URLs. Casar por URL obligaba al backend a revertir URL → ruta, y eso se
+rompe **en silencio** si cambia `APP_URL` o el disco — y lo que se pierde son
+las fotos del negocio. Por eso `galeria` pasó de `string[]` a `{ id, url }[]`.
 
-La respuesta devuelve **`categoria`** y **`empleados`** como objetos, e
-`imagen_principal` / `galeria` como URLs.
+**Omitir el campo no borra nada**: que el formulario no lo mande no puede
+significar «bórralo todo». Con eso, el switch de la tabla puede guardar sin
+tocar las fotos.
+
+> **Trampa del multipart:** un array vacío **no viaja** en `FormData`, así que
+> «quité todas las fotos» llegaría como campo ausente, o sea «no borres nada».
+> El formulario manda `galeria_conservar[0]=0` en ese caso: el 0 no es el id de
+> ninguna fila (el auto_increment empieza en 1), así que significa «no
+> conserves ninguna». Hay un traspaso abierto para un marcador explícito.
+
+La respuesta devuelve **`categoria`** y **`empleados`** como objetos,
+`imagen_principal` como URL y `galeria` como `{ id, url }[]`.
 
 ### `DELETE /api/servicios/{id}`
 
-Responde 204. El frontend refresca la tabla solo.
+Responde **204 siempre, también con citas asociadas**: es **soft delete**. El
+servicio desaparece del catálogo y de la tienda, y el historial queda intacto
+porque la fila sigue ahí y `cita_servicio` congela `precio` y `duracion_min` al
+reservar.
+
+Efecto colateral que conviene saber: `servicios.nombre` es UNIQUE y el índice
+no distingue los borrados, así que **crear un servicio con el nombre de uno
+eliminado restaura aquella fila** en vez de fallar.
 
 ---
 
@@ -124,19 +142,24 @@ Responde 204. El frontend refresca la tabla solo.
 | `tipo` | enum | ⚠️ | **Solo tengo evidencia de "Normal"** — ver abajo |
 | `duracion_min` | int | ✅ | En minutos |
 | `precio` | decimal | ✅ | En soles (PEN) |
-| `activo` | bool | ⚠️ | Está en la tabla pero **no en el formulario** — ver abajo |
+| `activo` | bool | ✅ | Se cambia con el switch de la tabla |
+| `max_sesiones` | int \| null | ✅ | Solo `sesiones` y `paquete` |
 | `imagen_principal` | string URL \| null | ✅ | |
-| `galeria` | string URL[] | ✅ | Máximo 4 |
+| `galeria` | `{id, url}[]` | ✅ | Máximo 4. Objetos desde el 2026-08-27 |
 | `empleados` | objeto[] | ✅ | Profesionales que ofrecen el servicio |
 
-### `activo` — dónde se cambia
+### `activo` — resuelto: el switch de la tabla
 
-La tabla muestra la columna Estado, pero el formulario de "Nuevo servicio"
-**no tiene ningún control para el estado**. Quité el switch que había puesto.
+El formulario sigue sin traerlo; se enciende y se apaga **desde la fila**, que
+es donde se ve el catálogo entero de un vistazo. Al crear entra `true` por el
+default de la columna.
 
-Asumo que al crear entra como `activo: true` y que se desactiva desde otro
-sitio. Pendiente: ¿el formulario de edición sí lo tiene? ¿O se desactiva desde
-la tabla?
+`PUT /servicios/{id}` valida el servicio completo, así que un payload con solo
+`activo` daría 422: el switch reenvía los campos escalares de la fila y **omite
+lo demás**. Sin `empleado_ids` no se desasigna a nadie, sin `galeria_conservar`
+no se borra ninguna foto y sin archivo la imagen principal se queda donde
+está. Si el guardado falla se pinta un Alert encima de la tabla — sin él la
+fila volvería sola a su estado anterior sin explicación.
 
 ### `tipo` — resuelto
 
@@ -151,8 +174,9 @@ Valores reales de `servicios.tipo` (columna `string(30)`, por defecto
 | `paquete` | Paquete |
 
 **`sesiones` y `paquete` usan además `max_sesiones`** (`unsignedSmallInteger`,
-nullable). Ese campo todavía **no está en el formulario**: falta añadirlo,
-visible solo cuando el tipo lo requiera.
+nullable). El formulario lo muestra **solo con esos dos tipos** y entonces es
+obligatorio. Al cambiar el tipo a uno que no lo usa, el valor se limpia en vez
+de quedarse de fantasma — eso lo hace también el backend.
 
 ### Descartado respecto a la maqueta anterior
 
@@ -212,15 +236,17 @@ Usa `ConfirmDialog` (`web/src/components/shared/ConfirmDialog.tsx`), un
 componente compartido para todas las acciones destructivas de la app.
 
 > **Eliminar servicio**
-> ¿Seguro que quieres eliminar **AAA**? Esta acción no se puede deshacer.
+> ¿Seguro que quieres eliminar **AAA**? Dejará de aparecer en tu catálogo y en
+> la tienda. Las citas que ya lo usaron conservan su historial.
 > `[Cancelar]` `[Eliminar]`
 
 Durante la petición ambos botones se deshabilitan y el modal no se puede
 cerrar. Si el backend falla, el error aparece dentro del propio diálogo.
 
-**Pregunta para el backend:** ¿qué pasa al eliminar un servicio que ya tiene
-citas asociadas? Lo esperable es un 409 o 422 con un mensaje explicando el
-motivo — el diálogo ya está preparado para mostrarlo.
+El texto ya no dice «no se puede deshacer»: es soft delete, y el diálogo
+esperaba un 409 que no llega. El dueño que deja de ofrecer un servicio tiene
+derecho a quitarlo de su catálogo; bloquearlo lo dejaría con una lista que no
+puede limpiar.
 
 ---
 
@@ -239,11 +265,22 @@ componente se reutiliza tal cual: solo cambia dónde se monta.
 
 ---
 
+## Resuelto en el Sprint 1 (2026-08-27)
+
+- [x] **Valores de `tipo`**: los cuatro de arriba, con `max_sesiones` ya en el
+      formulario
+- [x] **Dónde se cambia `activo`**: el switch de la tabla
+- [x] **La página pública existe**: es la tienda del Sprint 5
+      (`/reservar/{slug}`); `visible_publico` ya viaja en el Resource
+- [x] **Borrado de imágenes al editar**: `galeria_conservar` por ids
+- [x] **Eliminar un servicio con citas**: 204, soft delete
+
 ## Pendiente
 
-- [ ] **Lista completa de valores de `tipo`**
-- [ ] ¿Dónde se cambia `activo`? No está en el formulario de alta
-- [ ] ¿Existe la página pública que menciona la ayuda de la galería?
-- [ ] ¿Cómo quieres manejar el borrado de imágenes al editar?
-- [ ] ¿El servicio se asigna también a locales concretos?
-- [ ] ¿Qué responde el backend al eliminar un servicio con citas?
+- [ ] **¿El servicio se asigna también a locales concretos?** No en la v1: no
+      hay pivote servicio↔local, así que un servicio es del negocio entero. Se
+      revisa en el Sprint 3, con Locales
+- [ ] **Vaciar la galería en multipart** necesita hoy el truco del id 0.
+      Traspaso abierto al backend
+- [ ] `visible_publico` lo emite el backend pero el formulario todavía no lo
+      controla

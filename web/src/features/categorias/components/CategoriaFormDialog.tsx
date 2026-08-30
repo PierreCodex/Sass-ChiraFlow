@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
@@ -13,8 +13,12 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
+import { IconX } from "@tabler/icons-react";
+
+import IconButton from "@mui/material/IconButton";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
@@ -24,6 +28,7 @@ import { toApiError } from "@/lib/api/client";
 import { useActualizarCategoria, useCrearCategoria } from "../hooks/useCategorias";
 import {
   categoriaSchema,
+  COLOR_POR_DEFECTO,
   valoresIniciales,
   type CategoriaFormValues,
 } from "../schemas/categoria.schema";
@@ -65,7 +70,9 @@ const CategoriaFormDialog = ({ abierto, categoria, onCerrar }: Props) => {
         ? {
             nombre: categoria.nombre,
             descripcion: categoria.descripcion,
-            color: categoria.color ?? "#5D87FF",
+            // Sin `?? "#5D87FF"`: una categoría sin color tiene que abrirse
+            // sin color, o al guardar se le pondría uno que nadie eligió.
+            color: categoria.color,
             orden: categoria.orden,
             imagen: categoria.imagen_url ? [{ url: categoria.imagen_url }] : [],
           }
@@ -104,6 +111,7 @@ const CategoriaFormDialog = ({ abierto, categoria, onCerrar }: Props) => {
     }
   });
 
+  const colorElegido = useWatch({ control, name: "color" });
   const errorGeneral = mutacion.isError ? toApiError(mutacion.error) : null;
 
   return (
@@ -202,29 +210,57 @@ const CategoriaFormDialog = ({ abierto, categoria, onCerrar }: Props) => {
 
             <Grid size={{ xs: 12, sm: 6 }}>
               <CustomFormLabel htmlFor="color">Color</CustomFormLabel>
+              {/* `input[type=color]` no sabe mandar "vacío": siempre devuelve
+                  un color. Sin la X de al lado, una categoría con color no
+                  podría volver a quedarse sin él nunca. El backend acepta
+                  `color: null`. */}
               <Controller
                 name="color"
                 control={control}
                 render={({ field }) => (
-                  <Box
-                    component="input"
-                    {...field}
-                    value={field.value ?? "#5D87FF"}
-                    type="color"
-                    id="color"
-                    sx={{
-                      width: "100%",
-                      height: 41,
-                      p: 0.5,
-                      cursor: "pointer",
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      bgcolor: "background.paper",
-                    }}
-                  />
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box
+                      component="input"
+                      {...field}
+                      value={field.value ?? COLOR_POR_DEFECTO}
+                      type="color"
+                      id="color"
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        height: 41,
+                        p: 0.5,
+                        cursor: "pointer",
+                        borderRadius: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        bgcolor: "background.paper",
+                        // Apagado mientras no haya color: el navegador pinta
+                        // igual el swatch, y si no se vería un azul que la
+                        // categoría no tiene.
+                        opacity: field.value ? 1 : 0.35,
+                      }}
+                    />
+                    <Tooltip title="Quitar color">
+                      <span>
+                        <IconButton
+                          size="small"
+                          aria-label="Quitar color"
+                          disabled={!field.value}
+                          onClick={() => field.onChange(null)}
+                        >
+                          <IconX size={18} />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Stack>
                 )}
               />
+              <Typography variant="caption" color="textSecondary">
+                {colorElegido
+                  ? "Se muestra como círculo si no hay imagen."
+                  : "Sin color: el listado no mostrará círculo."}
+              </Typography>
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>

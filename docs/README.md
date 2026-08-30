@@ -11,12 +11,12 @@ checklist para validar cada maqueta contra la app actual.
 | Vista | Ruta | Estado |
 |---|---|---|
 | [Dashboard](vistas/dashboard.md) | `/` | ✅ Fiel a la app actual |
-| [Suscripción](vistas/suscripcion.md) | (banner global) | ✅ Fiel a la app actual |
+| [Suscripción](vistas/suscripcion.md) | (botón del header) | ✅ Fiel a la app actual |
 | [Onboarding](vistas/onboarding.md) | (checklist lateral) | ✅ Maquetado y conectado al backend real |
-| [Clientes](vistas/clientes.md) | `/clientes` | ✅ Validado contra la app actual |
+| [Clientes](vistas/clientes.md) | `/clientes` | ✅ **Conectada al backend** |
 | [Citas](vistas/citas.md) | `/citas` | ✅ Validado contra el backend · ⚠️ tabla supuesta |
-| [Servicios](vistas/servicios.md) | `/servicios` | ✅ Validado contra la app actual |
-| [Categorías](vistas/categorias.md) | `/categorias` | ✅ Validado contra el código Laravel |
+| [Servicios](vistas/servicios.md) | `/servicios` | ✅ **Conectada al backend** |
+| [Categorías](vistas/categorias.md) | `/categorias` | ✅ **Conectada al backend** |
 | [Empleados](vistas/empleados.md) | `/empleados` | ✅ Validado contra la app actual |
 | [Locales](vistas/locales.md) | `/locales` | ✅ Las 4 pestañas validadas contra el código Laravel |
 | [Calendario](vistas/calendario.md) | `/calendario` | ✅ Validado contra la app actual |
@@ -28,6 +28,7 @@ checklist para validar cada maqueta contra la app actual.
 | [Configuración](vistas/configuracion.md) | `/configuracion` | ✅ Validado contra el código Laravel |
 | [Mi perfil](vistas/perfil.md) | `/configuracion/perfil` | ✅ Maquetado y leyendo del backend · ⚠️ la escritura espera `PUT /user` |
 | [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
+| [Administración](vistas/administracion.md) | `/administracion` | 🚧 Solo el índice; los formularios por maquetar |
 
 > **Documentos de conjunto**
 > - [api-contract.md](api-contract.md) — inventario de endpoints, formas de
@@ -196,14 +197,26 @@ El estilo incluye también `minHeight: 0` en `DialogContent`: un hijo flex no
 encoge por debajo de su contenido, y en Empleados eso empujaba la botonera 8px
 fuera del panel, donde no se podía pulsar.
 
+### Avisos de "salió bien"
+
+Toda mutación hecha con `crearHooksRecurso()` enseña un aviso flotante al
+terminar («Cliente creado correctamente», «Categoría eliminada
+correctamente»), sin que la pantalla tenga que pedirlo. El Snackbar vive una
+sola vez en `app/providers.tsx` (`context/avisos.tsx`), y las acciones que no
+pasan por la fábrica —abrir y cerrar caja, movimientos de stock— llaman a
+`useAvisos()` a mano.
+
+Solo se avisa del éxito: los errores ya se pintan donde el usuario está
+mirando, y un toast que se va solo los dejaría a medio leer.
+
 ### El switch de datos ficticios
 
 Hoy la capa de servicios devuelve los datos de `features/<modulo>/mocks.ts`.
 Como el backend llega por sprints, se conecta **módulo a módulo**:
 
 ```env
-# web/.env.local
-NEXT_PUBLIC_MODULOS_CONECTADOS=categorias,servicios
+# web/.env.local — lo que hay puesto hoy (Sprint 1)
+NEXT_PUBLIC_MODULOS_CONECTADOS=categorias,servicios,clientes
 ```
 
 Esos hablan con Laravel; el resto sigue con datos ficticios. Cuando estén

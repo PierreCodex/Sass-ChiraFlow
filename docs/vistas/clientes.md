@@ -1,7 +1,7 @@
 # Clientes
 
 **Ruta:** `/clientes`
-**Estado:** ✅ Campos validados contra la app actual (captura del 09/08/2026)
+**Estado:** ✅ **Conectada al backend real** (2026-08-27, Sprint 1)
 **Archivos:**
 - `web/src/app/(dashboard)/clientes/page.tsx`
 - `web/src/features/clientes/`
@@ -127,6 +127,30 @@ plantilla.
 El refresco de la tabla lo hace `useCrearCliente`, que invalida la query key
 `["clientes"]` al terminar. No hace falta recargar nada a mano.
 
+### El teléfono es la clave natural
+
+`telefono` sigue siendo **texto libre**: se guarda tal cual se escribe y la
+tabla lo muestra igual. Pero el backend guarda además un
+`telefono_normalizado` (solo dígitos, sin el `51` del prefijo) que **no sale de
+la API** y es UNIQUE, así que **dos fichas no pueden compartir número**.
+
+El motivo es la tienda pública: la reserva busca al cliente por su teléfono, y
+sin normalizar, `904169872` y `904 169 872` fabricarían dos fichas de la misma
+persona con medio historial cada una. La normalización es deliberadamente
+conservadora —no inventa un `+51` que nadie escribió ni recorta números
+cortos— porque **casar de más uniría fichas de dos personas distintas**, que es
+peor que dejar dos fichas de una.
+
+Consecuencia para el formulario: `POST /clientes` puede responder
+
+```json
+{
+  "errors": { "telefono": ["Ya existe un cliente con ese teléfono."] }
+}
+```
+
+El diálogo ya lo pinta bajo el campo Teléfono, como cualquier otro 422.
+
 ### Errores de validación del backend
 
 Cuando conectes Laravel, un 422 con esta forma se mapea automáticamente al
@@ -157,10 +181,14 @@ Las claves de `errors` deben coincidir con los nombres de los campos:
 | `total_citas` | int | ✅ | `withCount('citas')` |
 | `ultima_cita` | date `Y-m-d` \| null | ✅ | Fecha de la cita más reciente. En el JSON va ISO; el formato `DD/MM/YYYY` lo aplica el frontend |
 
+El backend emite además `apellido`, `documento`, `fecha_nacimiento` y `notas`,
+que sí existen en la migración: la reserva pública pide apellido y documento.
+El formulario del panel sigue pidiendo solo los tres campos de la captura.
+
 ### Descartado respecto a la maqueta anterior
 
-Estos campos me los había inventado y **no existen**: `documento` (DNI),
-`estado` (activo/inactivo) y `created_at`.
+De lo que me había inventado, `estado` (activo/inactivo) **no existe**.
+`documento` sí, al revés de lo que decía esta ficha antes del Sprint 1.
 
 ---
 
@@ -170,14 +198,28 @@ Cosas que añadí y que **no están** en la vista original. Si sobran, se quitan
 
 | Añadido | Por qué | ¿Se queda? |
 |---|---|---|
-| Buscador | Filtra por nombre, teléfono y email | ⬜ por confirmar |
-| Paginación | La app actual lista todo de corrido | ⬜ por confirmar |
+| Buscador | Filtra por nombre, apellido, teléfono y email | ✅ se queda |
+| Paginación | La app actual lista todo de corrido | ✅ se queda |
 | Botón + modal "Nuevo cliente" | Pedido explícitamente | ✅ |
 
 ---
 
+El buscador casa el teléfono **también por el normalizado**, para que quien
+escriba `904169872` encuentre al que se guardó como `904 169 872`.
+
+---
+
+## Resuelto en el Sprint 1 (2026-08-27)
+
+- [x] **El alta también ocurre desde Citas**: la reserva pública hace
+      `firstOrCreate` por teléfono, y el panel podrá crear cliente al vuelo al
+      agendar. Los dos caminos comparten la misma normalización
+- [x] **Borrar es soft delete** (las citas lo referencian), y volver a dar de
+      alta el mismo teléfono **restaura la ficha con su historial** en vez de
+      crear una nueva
+
 ## Pendiente
 
-- [ ] Acciones por fila (editar / ver ficha / eliminar): no se ven en la captura
+- [ ] Acciones por fila (editar / ver ficha / eliminar): no se ven en la
+      captura, y los endpoints ya existen
 - [ ] Modo edición del modal (hoy solo crea)
-- [ ] ¿El alta también ocurre desde el flujo de Citas?

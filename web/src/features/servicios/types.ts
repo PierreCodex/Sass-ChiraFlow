@@ -1,3 +1,9 @@
+/** Una foto de la galería tal como la emite el backend. */
+export interface ImagenGaleria {
+  id: number;
+  url: string;
+}
+
 /** Valores reales de `servicios.tipo`. */
 export type TipoServicio = "normal" | "sesiones" | "clases" | "paquete";
 
@@ -17,8 +23,15 @@ export interface Servicio {
   activo: boolean;
   /** URL de la imagen principal. */
   imagen_principal: string | null;
-  /** URLs de la galería de trabajos. Máximo 4. */
-  galeria: string[];
+  /**
+   * Galería de trabajos. Máximo 4.
+   *
+   * Objetos `{ id, url }` y no URLs sueltas: al editar, el formulario devuelve
+   * los **ids** de las que conserva. Casar por URL obligaba al backend a
+   * revertir URL → ruta, y eso se rompe en silencio si cambia `APP_URL` o el
+   * disco — y lo que se pierde son las fotos del negocio.
+   */
+  galeria: ImagenGaleria[];
   /** Profesionales que ofrecen este servicio. */
   empleados: { id: number; nombre: string }[];
 }
@@ -36,9 +49,21 @@ export interface ServicioPayload {
   imagen_principal: File | null;
   /** Archivos nuevos de la galería. */
   galeria: File[];
-  /** URLs de la galería que se conservan (las que el usuario no quitó). */
-  galeria_conservar: string[];
+  /**
+   * Ids de la galería que se conservan (las que el usuario no quitó).
+   *
+   * **Omitirlo no borra nada**: el backend solo limpia lo que falta en esta
+   * lista si el campo viaja. Por eso el switch de la tabla puede guardar sin
+   * mandarlo.
+   */
+  galeria_conservar: number[];
   empleado_ids: number[];
+  /**
+   * Lo cambia el switch de la tabla, no el formulario. El backend lo acepta
+   * opcional en POST y PUT; al crear entra `true` por el default de la
+   * columna.
+   */
+  activo?: boolean;
 }
 
 /** Máximo de imágenes de la galería, según la etiqueta del formulario. */

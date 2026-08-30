@@ -89,7 +89,10 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
             imagen_principal: servicio.imagen_principal
               ? [{ url: servicio.imagen_principal }]
               : [],
-            galeria: servicio.galeria.map((url) => ({ url })),
+            galeria: servicio.galeria.map((img) => ({
+              id: img.id,
+              url: img.url,
+            })),
             empleado_ids: servicio.empleados.map((e) => e.id),
           }
         : valoresIniciales
@@ -98,8 +101,13 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
   }, [abierto, servicio, reset]);
 
   const onSubmit = handleSubmit((valores) => {
-    // Las imágenes con `file` son nuevas; las que solo tienen `url` ya
-    // estaban guardadas y hay que decirle al backend que las conserve.
+    const conservar = valores.galeria.flatMap((img) =>
+      img.id === undefined ? [] : [img.id]
+    );
+
+    // Las imágenes con `file` son nuevas; las que llevan `id` ya estaban
+    // guardadas y hay que decirle al backend que las conserve. Van por id y
+    // no por URL: ver el comentario de `galeria` en types.ts.
     const payload: ServicioPayload = {
       nombre: valores.nombre,
       descripcion: valores.descripcion,
@@ -112,9 +120,15 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
       duracion_min: valores.duracion_min,
       imagen_principal: valores.imagen_principal[0]?.file ?? null,
       galeria: valores.galeria.flatMap((img) => (img.file ? [img.file] : [])),
-      galeria_conservar: valores.galeria.flatMap((img) =>
-        img.file ? [] : [img.url]
-      ),
+      /*
+       * Quitar TODAS las fotos: un array vacío no viaja en multipart —
+       * FormData no sabe expresar "lista vacía"—, así que el backend no vería
+       * el campo y, por su propia regla, no borraría nada. El 0 no es el id de
+       * ninguna fila (auto_increment empieza en 1), así que dice "no conserves
+       * ninguna". Hay un traspaso abierto para un marcador explícito.
+       */
+      galeria_conservar:
+        esEdicion && conservar.length === 0 ? [0] : conservar,
       empleado_ids: valores.empleado_ids,
     };
 
