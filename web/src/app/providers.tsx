@@ -9,11 +9,14 @@ import RTL from "@/layout/shared/customizer/RTL";
 import { ThemeSettings } from "@/utils/theme/Theme";
 import { CustomizerContext } from "@/context/customizerContext";
 import { getQueryClient } from "@/lib/query-client";
+import { AvisosProvider } from "@/context/avisos";
 import "@/utils/i18n";
 
 /**
  * Todos los providers de cliente de la app.
- * El orden importa: emotion cache -> theme -> RTL -> data layer.
+ * El orden importa: emotion cache -> theme -> RTL -> data layer -> avisos.
+ * Los avisos van dentro del tema (usan Alert) y por fuera de las pantallas,
+ * para que cualquiera pueda pedir uno.
  */
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const theme = ThemeSettings();
@@ -26,7 +29,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
         <RTL direction={activeDir}>
           <CssBaseline />
           <QueryClientProvider client={queryClient}>
-            {children}
+            <AvisosProvider>{children}</AvisosProvider>
           </QueryClientProvider>
         </RTL>
       </ThemeProvider>

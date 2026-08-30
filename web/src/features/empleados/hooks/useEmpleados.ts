@@ -11,7 +11,9 @@ export const {
   useCrear: useCrearEmpleado,
   useActualizar: useActualizarEmpleado,
   useEliminar: useEliminarEmpleado,
-} = crearHooksRecurso<Empleado, EmpleadoPayload>("empleados", empleadosApi);
+} = crearHooksRecurso<Empleado, EmpleadoPayload>("empleados", empleadosApi, {
+  singular: "Empleado",
+});
 
 /** Cupo de profesionales del plan contratado. */
 export function useResumenPlanEmpleados() {

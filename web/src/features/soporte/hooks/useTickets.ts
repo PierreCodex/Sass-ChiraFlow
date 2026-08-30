@@ -8,4 +8,6 @@ export const {
   useTodos: useTodosLosTickets,
   useDetalle: useTicket,
   useCrear: useCrearTicket,
-} = crearHooksRecurso<Ticket, TicketPayload>("tickets", ticketsApi);
+} = crearHooksRecurso<Ticket, TicketPayload>("tickets", ticketsApi, {
+  singular: "Ticket",
+});
