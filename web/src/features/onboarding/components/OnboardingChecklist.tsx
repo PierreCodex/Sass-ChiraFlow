@@ -1,17 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 
-import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import LinearProgress from "@mui/material/LinearProgress";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import { IconChecklist, IconConfetti, IconX } from "@tabler/icons-react";
+import { IconConfetti, IconX } from "@tabler/icons-react";
 
 import Scrollbar from "@/components/custom-scroll/Scrollbar";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
@@ -24,6 +22,7 @@ import {
   type PasoOnboarding,
 } from "../types";
 import AnilloProgreso from "./AnilloProgreso";
+import BotonOnboarding from "./BotonOnboarding";
 import FilaPaso from "./FilaPaso";
 import NombreNegocioDialog from "./NombreNegocioDialog";
 
@@ -101,34 +100,13 @@ const OnboardingChecklist = () => {
   return (
     <Box>
       {terminado ? null : (
-        <Tooltip title="Configura tu negocio">
-          <IconButton
-            size="large"
-            color="inherit"
-            onClick={() => setAbierto(true)}
-            aria-label={`Configura tu negocio, ${pendientes} tareas pendientes`}
-            sx={{
-              color: abierto ? "primary.main" : "text.secondary",
-              // En movil la barra va justa de sitio.
-              p: { xs: 0.75, sm: 1.5 },
-              "& .MuiBadge-badge": {
-                // Latido lento: recuerda que hay algo pendiente sin dar la lata.
-                animation: "latido 2.4s ease-in-out infinite",
-              },
-              "@keyframes latido": {
-                "0%, 70%, 100%": { transform: "scale(1)" },
-                "80%": { transform: "scale(1.18)" },
-              },
-              "@media (prefers-reduced-motion: reduce)": {
-                "& .MuiBadge-badge": { animation: "none" },
-              },
-            }}
-          >
-            <Badge color="primary" badgeContent={pendientes}>
-              <IconChecklist size="21" stroke="1.5" />
-            </Badge>
-          </IconButton>
-        </Tooltip>
+        <BotonOnboarding
+          completados={completados}
+          total={total}
+          pendientes={pendientes}
+          activo={abierto}
+          onClick={() => setAbierto(true)}
+        />
       )}
 
       <Drawer

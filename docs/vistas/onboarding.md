@@ -5,7 +5,8 @@ de [suscripción](suscripcion.md)
 **Estado:** ✅ Maquetado y **conectado al backend real** (2026-08-22)
 **Archivos:**
 - `web/src/layout/vertical/header/Header.tsx` (lo monta)
-- `web/src/features/onboarding/components/OnboardingChecklist.tsx` (icono + panel)
+- `web/src/features/onboarding/components/OnboardingChecklist.tsx` (botón + panel)
+- `web/src/features/onboarding/components/BotonOnboarding.tsx` (la píldora del header)
 - `web/src/features/onboarding/components/NombreNegocioDialog.tsx` (paso 1)
 - `web/src/features/onboarding/{types,slug}.ts`, `services/`, `hooks/`
 
@@ -65,14 +66,15 @@ distintas (decisión anotada en el Sprint 0 de
 
 ## Cómo está construido
 
-Se monta en el **header**, no en el layout: un `IconButton` con `Badge` que
-abre un `Drawer anchor="right"`. Es el patrón de `Cart.tsx` de la plantilla.
+Se monta en el **header**, no en el layout: una **píldora con texto y anillo de
+avance** que abre un `Drawer anchor="right"`. Es el patrón de `Cart.tsx` de la plantilla.
 **No usa un `Fab`**: esa esquina ya es del `Customizer`, que también es un
 drawer derecho lanzado desde `right: 25px; bottom: 15px`.
 
 | Pieza | De dónde sale |
 |---|---|
-| Icono + panel | `layout/vertical/header/Cart.tsx` |
+| Panel lateral | `layout/vertical/header/Cart.tsx` |
+| Píldora del header | La administración de Monday: fondo de contraste, texto y anillo de progreso a la derecha |
 | Filas de tarea | `widgets/cards/UpcomingActivity.tsx`: `Avatar variant="rounded"` 40×40 sobre color claro |
 | Progreso | `LinearProgress determinate`, como `dashboards/modern/SellingProducts.tsx` |
 | Contador | El `Chip` pequeño de `Notification.tsx` |
@@ -103,8 +105,10 @@ con `@keyframes` de MUI, nada de framer-motion—:
 - **Entrada escalonada**: cada fila entra 60 ms después de la anterior.
 - **El check aparece con rebote** al completar un paso, y el avatar pasa de
   azul a verde con transición.
-- **Latido lento del badge** del header (cada 2,4 s) para recordar sin dar la
-  lata.
+- **La píldora del header** lleva su propio anillo de avance: se ve cuánto
+  queda sin abrir el panel. Sustituye al icono con chapita, que se perdía entre
+  las campanas de la barra. Por debajo de `sm` el texto se esconde y queda solo
+  el anillo.
 - **Pantalla de enhorabuena** al terminar los 6, en vez de que el panel
   desaparezca de golpe.
 - Todo respeta `prefers-reduced-motion`.
@@ -130,8 +134,8 @@ y desde sus propias pantallas.
 
 El drawer **se abre solo la primera vez** (marca `mi-saas:onboarding-visto` en
 `localStorage`, dentro de `try/catch` para que el modo incógnito no rompa el
-panel); después se abre desde el icono, que lleva el número de tareas que
-faltan.
+panel); después se abre desde la píldora del header, cuyo anillo marca el
+avance y cuyo tooltip dice cuántas tareas faltan.
 
 ⚠️ **En móvil la barra del header no daba para un icono más**: con el checklist
 desbordaba 32 px. Se compactó el botón y **se esconde el selector de idioma
@@ -231,12 +235,13 @@ Contra el Laravel real, con el tenant `yl9njvhq` recién verificado:
 - Repetir el paso 1 → **422** con `errors.nombre` ("El nombre ya está definido
   y el enlace de tu tienda no puede cambiar"). Desde la interfaz ya no se
   puede: la fila completada deja de ser pulsable.
-- Recargar → el checklist **no** se reabre solo y el badge del header marca 5.
+- Recargar → el checklist **no** se reabre solo y el anillo del header marca 1
+  de 6.
 - Móvil (375×812) → el panel ocupa el ancho completo y se lee entero.
 - Botonera pegada al fondo en las dos medidas: el borde inferior del pie
   coincide al píxel con el del panel (884/884 en escritorio, 812/812 en
   móvil).
-- Con los 6 pasos marcados a mano en la BD de desarrollo → el icono
+- Con los 6 pasos marcados a mano en la BD de desarrollo → la píldora
   **desaparece** del header y el panel deja de abrirse solo. (Se restauró el
   estado después.)
 

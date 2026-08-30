@@ -29,40 +29,34 @@ const Menuitems = [
     id: uniqueId(),
     title: "Agenda",
     icon: IconCalendarEvent,
-    href: "/citas",
+    href: "/calendario",
     children: [
-      {
-        id: uniqueId(),
-        title: "Citas",
-        icon: IconCalendarEvent,
-        href: "/citas",
-      },
       {
         id: uniqueId(),
         title: "Calendario",
         icon: IconCalendar,
         href: "/calendario",
       },
+      {
+        id: uniqueId(),
+        title: "Citas",
+        icon: IconCalendarEvent,
+        href: "/citas",
+      },
     ],
   },
   {
     id: uniqueId(),
-    title: "Gestión",
+    title: "Clientes",
     icon: IconUsers,
     href: "/clientes",
+  },
+  {
+    id: uniqueId(),
+    title: "Catálogo",
+    icon: IconCategory,
+    href: "/categorias",
     children: [
-      {
-        id: uniqueId(),
-        title: "Clientes",
-        icon: IconUsers,
-        href: "/clientes",
-      },
-      {
-        id: uniqueId(),
-        title: "Servicios",
-        icon: IconListDetails,
-        href: "/servicios",
-      },
       {
         id: uniqueId(),
         title: "Categorías",
@@ -71,15 +65,9 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
-        title: "Empleados",
-        icon: IconUserCheck,
-        href: "/empleados",
-      },
-      {
-        id: uniqueId(),
-        title: "Locales",
-        icon: IconBuildingStore,
-        href: "/locales",
+        title: "Servicios",
+        icon: IconListDetails,
+        href: "/servicios",
       },
     ],
   },
@@ -106,6 +94,30 @@ const Menuitems = [
         title: "Reportes",
         icon: IconChartBar,
         href: "/reportes",
+      },
+    ],
+  },
+];
+
+// Ocultos, no borrados: esperan a la segunda vista. Igual que en el sidebar.
+export const MenuitemsOcultos = [
+  {
+    id: uniqueId(),
+    title: "Gestión",
+    icon: IconUserCheck,
+    href: "/empleados",
+    children: [
+      {
+        id: uniqueId(),
+        title: "Empleados",
+        icon: IconUserCheck,
+        href: "/empleados",
+      },
+      {
+        id: uniqueId(),
+        title: "Locales",
+        icon: IconBuildingStore,
+        href: "/locales",
       },
     ],
   },

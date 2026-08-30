@@ -5,12 +5,10 @@ import { styled, useTheme } from "@mui/material/styles";
 import React, { useState, useContext, Activity } from "react";
 import Header from "@/layout/vertical/header/Header";
 import Sidebar from "@/layout/vertical/sidebar/Sidebar";
-import Customizer from "@/layout/shared/customizer/Customizer";
 import Navigation from "@/layout/horizontal/navbar/Navigation";
 import HorizontalHeader from "@/layout/horizontal/header/Header";
 import { CustomizerContext } from "@/context/customizerContext";
 import config from "@/context/config";
-import TrialBanner from "@/features/suscripcion/components/TrialBanner";
 
 const MainWrapper = styled("div")(() => ({
   display: "flex",
@@ -84,16 +82,12 @@ export default function RootLayout({
           {/* PageContent */}
           {/* ------------------------------------------- */}
 
-          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            <TrialBanner />
-            {children}
-          </Box>
+          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
 
           {/* ------------------------------------------- */}
           {/* End Page */}
           {/* ------------------------------------------- */}
         </Container>
-        <Customizer />
       </PageWrapper>
     </MainWrapper>
   );
