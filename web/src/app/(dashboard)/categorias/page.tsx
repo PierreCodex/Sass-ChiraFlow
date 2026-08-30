@@ -69,12 +69,19 @@ export default function CategoriasPage() {
       <ConfirmDialog
         abierto={!!categoriaAEliminar}
         titulo="Eliminar categoría"
+        /* El aviso lo pinta el `servicios_count` del listado: el DELETE
+           responde 204 sin cuerpo. Y los servicios NO se borran — la FK es
+           `nullOnDelete`, así que se quedan sin categoría. */
         mensaje={
           <>
             ¿Seguro que quieres eliminar{" "}
             <strong>{categoriaAEliminar?.nombre}</strong>?
             {categoriaAEliminar?.servicios_count
-              ? ` Tiene ${categoriaAEliminar.servicios_count} servicio(s) asociado(s).`
+              ? ` ${categoriaAEliminar.servicios_count} ${
+                  categoriaAEliminar.servicios_count === 1
+                    ? "servicio quedará"
+                    : "servicios quedarán"
+                } sin categoría.`
               : ""}{" "}
             Esta acción no se puede deshacer.
           </>

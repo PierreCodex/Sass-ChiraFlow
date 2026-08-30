@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAvisos } from "@/context/avisos";
 import { crearHooksRecurso } from "@/lib/query/recurso-hooks";
 import type {
   Grupo,
@@ -24,6 +25,7 @@ export function useProfesionalesDelLocal(localId: number | undefined) {
 /** Sirve tanto para el interruptor de la tabla como para el modal. */
 export function useActualizarLocalProfesional(localId: number | undefined) {
   const queryClient = useQueryClient();
+  const { avisar } = useAvisos();
 
   return useMutation({
     mutationFn: ({
@@ -33,8 +35,10 @@ export function useActualizarLocalProfesional(localId: number | undefined) {
       profesionalId: number;
       payload: LocalProfesionalPayload;
     }) => localProfesionalApi.actualizar(localId!, profesionalId, payload),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: localProfesionalKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: localProfesionalKeys.all });
+      avisar("Profesional actualizado");
+    },
   });
 }
 
@@ -44,4 +48,6 @@ export const {
   useCrear: useCrearGrupo,
   useActualizar: useActualizarGrupo,
   useEliminar: useEliminarGrupo,
-} = crearHooksRecurso<Grupo, GrupoPayload>("grupos", gruposApi);
+} = crearHooksRecurso<Grupo, GrupoPayload>("grupos", gruposApi, {
+  singular: "Grupo",
+});

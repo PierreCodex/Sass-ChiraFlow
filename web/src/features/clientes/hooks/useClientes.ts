@@ -10,4 +10,6 @@ export const {
   useCrear: useCrearCliente,
   useActualizar: useActualizarCliente,
   useEliminar: useEliminarCliente,
-} = crearHooksRecurso<Cliente, ClientePayload>("clientes", clientesApi);
+} = crearHooksRecurso<Cliente, ClientePayload>("clientes", clientesApi, {
+  singular: "Cliente",
+});

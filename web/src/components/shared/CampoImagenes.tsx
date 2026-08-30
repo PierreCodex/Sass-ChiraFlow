@@ -14,6 +14,11 @@ import { IconPhotoPlus, IconX } from "@tabler/icons-react";
 export interface ImagenSeleccionada {
   url: string;
   file?: File;
+  /**
+   * Id de la fila del backend, solo en las ya guardadas. Es lo que el
+   * formulario devuelve para decir cuáles conserva (servicios § galería).
+   */
+  id?: number;
 }
 
 interface Props {

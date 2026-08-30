@@ -10,4 +10,7 @@ export const {
   useCrear: useCrearCategoria,
   useActualizar: useActualizarCategoria,
   useEliminar: useEliminarCategoria,
-} = crearHooksRecurso<Categoria, CategoriaPayload>("categorias", categoriasApi);
+} = crearHooksRecurso<Categoria, CategoriaPayload>("categorias", categoriasApi, {
+  singular: "Categoría",
+  femenino: true,
+});

@@ -82,7 +82,13 @@ const ClientesTable = () => {
         perPage={perPage}
         onPageChange={setPage}
         onPerPageChange={setPerPage}
-        mensajeVacio="No se encontraron clientes."
+        // Sin búsqueda, "no se encontraron" suena a fallo cuando lo que
+        // pasa es que todavía no hay ninguno.
+        mensajeVacio={
+          search
+            ? "No se encontraron clientes."
+            : "Todavía no tienes clientes."
+        }
         minWidth={720}
       />
     </>

@@ -10,6 +10,9 @@ import type { ImagenSeleccionada } from "@/components/shared/CampoImagenes";
  *   orden       nullable, integer, min:0
  *   imagen      nullable, image, max:2048 (2 MB)
  */
+/** Color con el que arranca una categoría nueva. */
+export const COLOR_POR_DEFECTO = "#5D87FF";
+
 export const categoriaSchema = yup.object({
   nombre: yup
     .string()
@@ -39,7 +42,7 @@ export type CategoriaFormValues = yup.InferType<typeof categoriaSchema>;
 export const valoresIniciales: CategoriaFormValues = {
   nombre: "",
   descripcion: null,
-  color: "#5D87FF",
+  color: COLOR_POR_DEFECTO,
   orden: 0,
   imagen: [],
 };

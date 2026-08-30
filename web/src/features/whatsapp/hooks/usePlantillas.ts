@@ -11,5 +11,6 @@ export const {
   useEliminar: useEliminarPlantilla,
 } = crearHooksRecurso<PlantillaWhatsapp, PlantillaWhatsappPayload>(
   "plantillas-whatsapp",
-  plantillasWhatsappApi
+  plantillasWhatsappApi,
+  { singular: "Plantilla", femenino: true }
 );

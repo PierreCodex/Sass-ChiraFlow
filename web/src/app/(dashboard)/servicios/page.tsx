@@ -69,10 +69,13 @@ export default function ServiciosPage() {
       <ConfirmDialog
         abierto={!!servicioAEliminar}
         titulo="Eliminar servicio"
+        /* Es soft delete: desaparece del catálogo y de la tienda, pero las
+           citas que ya lo usaron conservan su precio y su duración. */
         mensaje={
           <>
             ¿Seguro que quieres eliminar <strong>{servicioAEliminar?.nombre}</strong>?
-            Esta acción no se puede deshacer.
+            Dejará de aparecer en tu catálogo y en la tienda. Las citas que ya
+            lo usaron conservan su historial.
           </>
         }
         textoConfirmar="Eliminar"

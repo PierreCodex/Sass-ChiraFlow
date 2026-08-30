@@ -11,7 +11,10 @@ export const {
   useCrear: useCrearCita,
   useActualizar: useActualizarCita,
   useEliminar: useEliminarCita,
-} = crearHooksRecurso<Cita, CitaPayload>("citas", citasApi);
+} = crearHooksRecurso<Cita, CitaPayload>("citas", citasApi, {
+  singular: "Cita",
+  femenino: true,
+});
 
 /** Citas de un día concreto, para el calendario. */
 export function useCitasDelDia(fecha: string) {

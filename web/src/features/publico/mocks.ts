@@ -39,7 +39,9 @@ function aServicioPublico(servicio: (typeof serviciosMock)[number]): ServicioPub
     precio: servicio.precio,
     color: servicio.color,
     imagen_principal: servicio.imagen_principal,
-    galeria: servicio.galeria,
+    // La tienda pública solo necesita las URLs; el `{id, url}` del panel es
+    // para saber qué fotos conserva el formulario al editar.
+    galeria: servicio.galeria.map((imagen) => imagen.url),
   };
 }
 

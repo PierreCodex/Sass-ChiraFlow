@@ -1,17 +1,34 @@
-# Suscripción (banner global)
+# Suscripción (aviso global)
 
-**Ruta:** no tiene — se renderiza en el layout del dashboard
+**Ruta:** no tiene — se renderiza en el header del dashboard
 **Estado:** ✅ Fiel a la app actual
 **Archivos:**
-- `web/src/app/(dashboard)/layout.tsx` (lo monta)
+- `web/src/layout/vertical/header/Header.tsx` (lo monta)
+- `web/src/features/suscripcion/components/BotonVerPlanes.tsx`
 - `web/src/features/suscripcion/`
 
 ---
 
 ## Qué muestra
 
-Aviso del estado del plan, encima del contenido de **todas** las pantallas del
-dashboard. El botón lleva a `/mi-plan`.
+Aviso del estado del plan, en el **header** de todas las pantallas del
+dashboard: un botón con el reloj de arena a la izquierda del texto. Lleva a
+`/mi-plan`.
+
+### De bloque a botón (2026-08-26)
+
+Empezó siendo un **bloque** sobre el contenido. Salía en las 17 pantallas todo
+el día y se comía una franja de la primera pantalla completa, así que se
+encogió a un botón en el header, junto al toggle del sidebar.
+
+Lo que se conserva al encoger: el reloj, la escala de urgencia (color, arena,
+giro) y el cambio de texto. Lo que antes eran titular y subtítulo —"Te quedan
+5 días de prueba" y el motivo— **ahora es el tooltip** y el `aria-label`. Por
+debajo de `sm` el texto se esconde y queda el reloj solo: la barra va justa.
+
+El componente está partido en dos: `VistaBotonPlanes` pinta a partir de
+`estado` y `dias` —así se puede ver en sus cuatro niveles sin tocar datos— y
+`BotonVerPlanes` es el que lee la API.
 
 ### La urgencia se escala (rediseño del 2026-08-23)
 
@@ -22,10 +39,8 @@ Como **sale en las 17 pantallas, todo el día, todos los días de la prueba**,
 el diseño se rige por dos reglas: la urgencia sube según se acerca el final, y
 la animación solo aparece cuando significa algo.
 
-Además es un **bloque propio** —fondo teñido, borde y el reloj en una insignia
-redonda— y no un `Alert` del montón: tiene que verse distinto del contenido
-para que el dueño lo registre. Y el subtítulo dice **el motivo**, que es lo que
-convierte; el número solo informa.
+El texto del botón dice **qué hacer** y el tooltip **el motivo**, que es lo que
+convierte; el número de días solo informa.
 
 | Días | Color | Arena | Vuelta del reloj | Botón |
 |---|---|---|---|---|
@@ -83,11 +98,11 @@ resuelve contra el dibujo** por defecto:
 
 | Estado de la suscripción | Qué se muestra |
 |---|---|
-| `activa` | Nada — el banner no se renderiza |
+| `activa` | Nada — el botón no se renderiza |
 | `prueba` con `dias_restantes > 0` | Según la tabla de arriba. Singular correcto: "Te queda 1 día" |
 | `vencida`, o `dias_restantes <= 0` | "Tu prueba gratuita terminó. Compra un plan para seguir usando la plataforma." |
 | `cancelada` | "Tu suscripción está cancelada…" — antes caía en el texto de la prueba, que no venía a cuento |
-| Cargando | Nada — evita que el banner parpadee al entrar |
+| Cargando | Nada — evita que el botón parpadee al entrar |
 
 **Verificado en el navegador (2026-08-23):** los cuatro niveles con 12, 5, 1 y
 0 días, y el estado `vencida`. En **modo oscuro** el ámbar sobre el fondo del
@@ -171,5 +186,5 @@ Planes disponibles, para la pantalla "Mi Plan". Todavía sin consumir.
 
 ## Pendiente
 
-- [ ] Confirmar si `cancelada` debe mostrar banner y con qué texto
+- [ ] Confirmar si `cancelada` debe mostrar el botón y con qué texto
 - [ ] Construir la pantalla `/mi-plan` que consume `GET /api/planes`

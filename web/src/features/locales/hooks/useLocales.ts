@@ -10,4 +10,6 @@ export const {
   useCrear: useCrearLocal,
   useActualizar: useActualizarLocal,
   useEliminar: useEliminarLocal,
-} = crearHooksRecurso<Local, LocalPayload>("locales", localesApi);
+} = crearHooksRecurso<Local, LocalPayload>("locales", localesApi, {
+  singular: "Local",
+});

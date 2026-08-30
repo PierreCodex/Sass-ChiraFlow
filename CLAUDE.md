@@ -141,7 +141,10 @@ mismo código otra vez:
   remove, con su rama mock y su rama axios. Opciones: `camposBusqueda`,
   `valoresPorDefecto`, `alGuardarMock`, `enviarComoFormData`, `filtrosMock`.
 - **`lib/query/recurso-hooks.ts` → `crearHooksRecurso()`**: los hooks de React
-  Query con sus keys e invalidaciones.
+  Query con sus keys, sus invalidaciones y el **aviso flotante** de cada
+  mutación. El tercer argumento es cómo se llama el recurso en ese aviso:
+  `{ singular: "Categoría", femenino: true }` → «Categoría creada
+  correctamente». Sin él saldría «Registro creado».
 
 ### Componentes compartidos que ya existen
 
@@ -152,6 +155,14 @@ mismo código otra vez:
 descripción opcional y acciones a la derecha. Sustituyó al `Breadcrumb` de la
 plantilla, que gastaba **145 px** en repetir "Inicio • Configuración" cuando el
 sidebar ya marca dónde estás. **No volver a usar `Breadcrumb`.**
+
+**Avisos flotantes**: `context/avisos.tsx` monta un Snackbar único en
+`app/providers.tsx`; cualquier pantalla pide uno con
+`const { avisar } = useAvisos()`. Los CRUD **no tienen que llamarlo**: ya lo
+hace `crearHooksRecurso()`. Solo se avisa del **éxito** — los errores se pintan
+donde el usuario está mirando (bajo el campo el 422, dentro del diálogo el de
+red), y repetirlos en un toast que se va solo taparía el mensaje que sí explica
+qué corregir.
 
 Y dos estilos en `components/shared/estilos-formulario.ts`:
 

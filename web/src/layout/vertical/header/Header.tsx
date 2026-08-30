@@ -17,6 +17,7 @@ import Language from './Language';
 import Navigation from './Navigation';
 import MobileRightSidebar from './MobileRightSidebar';
 import OnboardingChecklist from '@/features/onboarding/components/OnboardingChecklist';
+import BotonVerPlanes from '@/features/suscripcion/components/BotonVerPlanes';
 
 const Header = () => {
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
@@ -61,6 +62,9 @@ const Header = () => {
         >
           <IconMenu2 size="20" />
         </IconButton>
+
+        {/* Estado del plan: sustituye al bloque que salía sobre el contenido */}
+        <BotonVerPlanes />
 
         {/* ------------------------------------------- */}
         {/* Search Dropdown */}

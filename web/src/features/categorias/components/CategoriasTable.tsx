@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
 
 import DataTable, { type Columna } from "@/components/shared/DataTable";
+import BuscadorTabla from "@/components/shared/BuscadorTabla";
 import { usePaginacion } from "@/hooks/usePaginacion";
 import { useCategorias } from "../hooks/useCategorias";
 import type { Categoria } from "../types";
@@ -18,60 +19,81 @@ interface Props {
 }
 
 /**
- * Igual que el Blade: manda la imagen; si no hay, el círculo de color; y si
- * tampoco hay color, no se muestra nada a la izquierda del nombre.
+ * La miniatura de la primera columna.
+ *
+ * Antes, sin imagen se pintaba aquí el círculo de color. Ya no: el color tiene
+ * su propia columna, y repetirlo en dos sitios haría dudar de si son dos cosas
+ * distintas. Sin imagen no se muestra nada a la izquierda del nombre.
  */
-const Marca = ({ categoria }: { categoria: Categoria }) => {
-  if (categoria.imagen_url) {
-    return (
-      <Avatar
-        src={categoria.imagen_url}
-        variant="rounded"
-        sx={{ width: 40, height: 40 }}
-      />
-    );
-  }
-
-  if (categoria.color) {
-    return (
-      <Box
-        sx={{
-          width: 24,
-          height: 24,
-          borderRadius: "50%",
-          bgcolor: categoria.color,
-          flexShrink: 0,
-        }}
-      />
-    );
-  }
-
-  return null;
-};
+const Miniatura = ({ categoria }: { categoria: Categoria }) =>
+  categoria.imagen_url ? (
+    <Avatar
+      src={categoria.imagen_url}
+      variant="rounded"
+      sx={{ width: 40, height: 40 }}
+    />
+  ) : null;
 
 const CategoriasTable = ({ onEditar, onEliminar }: Props) => {
-  const { page, perPage, setPage, setPerPage, params } = usePaginacion();
+  const { page, perPage, search, setPage, setPerPage, buscar, params } =
+    usePaginacion();
   const { data, isPending, error } = useCategorias(params);
 
+  /*
+   * `orden` no tiene columna a propósito: la tabla YA viene ordenada por él,
+   * así que el número no dice nada que la propia lista no esté enseñando. Se
+   * sigue editando en el formulario, que es donde sirve de algo.
+   */
   const columnas: Columna<Categoria>[] = [
     {
       id: "nombre",
       label: "Categoría",
       render: (categoria) => (
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Marca categoria={categoria} />
-          <div>
-            <Typography variant="subtitle2" fontWeight={600}>
-              {categoria.nombre}
-            </Typography>
-            {categoria.descripcion ? (
-              <Typography variant="body2" color="textSecondary">
-                {categoria.descripcion}
-              </Typography>
-            ) : null}
-          </div>
+          <Miniatura categoria={categoria} />
+          <Typography variant="subtitle2" fontWeight={600}>
+            {categoria.nombre}
+          </Typography>
         </Stack>
       ),
+    },
+    {
+      id: "descripcion",
+      label: "Descripción",
+      render: (categoria) => (
+        <Typography variant="body2" color="textSecondary">
+          {categoria.descripcion || "—"}
+        </Typography>
+      ),
+    },
+    {
+      // El hexadecimal al lado del círculo: dos categorías con azules
+      // parecidos se distinguen por el código, no por el ojo.
+      id: "color",
+      label: "Color",
+      render: (categoria) =>
+        categoria.color ? (
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box
+              sx={{
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                bgcolor: categoria.color,
+                border: "1px solid",
+                borderColor: "divider",
+                flexShrink: 0,
+              }}
+            />
+            <Typography variant="body2" color="textSecondary" noWrap>
+              {categoria.color.toUpperCase()}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography variant="body2" color="textSecondary">
+            —
+          </Typography>
+        ),
     },
     {
       id: "servicios",
@@ -80,16 +102,6 @@ const CategoriasTable = ({ onEditar, onEliminar }: Props) => {
       render: (categoria) => (
         <Typography variant="subtitle2" fontWeight={600}>
           {categoria.servicios_count}
-        </Typography>
-      ),
-    },
-    {
-      id: "orden",
-      label: "Orden",
-      align: "center",
-      render: (categoria) => (
-        <Typography variant="body2" color="textSecondary">
-          {categoria.orden}
         </Typography>
       ),
     },
@@ -123,18 +135,34 @@ const CategoriasTable = ({ onEditar, onEliminar }: Props) => {
   ];
 
   return (
-    <DataTable
-      columnas={columnas}
-      datos={data}
-      cargando={isPending}
-      error={error}
-      page={page}
-      perPage={perPage}
-      onPageChange={setPage}
-      onPerPageChange={setPerPage}
-      mensajeVacio="Todavía no has creado categorías."
-      minWidth={620}
-    />
+    <>
+      <Stack direction="row" justifyContent="flex-end" mb={2}>
+        <BuscadorTabla
+          valor={search}
+          onChange={buscar}
+          placeholder="Buscar por nombre o descripción…"
+        />
+      </Stack>
+
+      <DataTable
+        columnas={columnas}
+        datos={data}
+        cargando={isPending}
+        error={error}
+        page={page}
+        perPage={perPage}
+        onPageChange={setPage}
+        onPerPageChange={setPerPage}
+        // Con el buscador puesto, "todavía no has creado" mentiría cuando lo
+        // vacío es el resultado de la búsqueda.
+        mensajeVacio={
+          search
+            ? "No se encontraron categorías."
+            : "Todavía no has creado categorías."
+        }
+        minWidth={780}
+      />
+    </>
   );
 };
 

@@ -31,7 +31,7 @@ const ENLACES = [
     Icono: IconUser,
   },
   {
-    href: "/configuracion",
+    href: "/administracion",
     titulo: "Configuración",
     subtitulo: "Los ajustes de tu negocio",
     Icono: IconSettings,

@@ -37,6 +37,11 @@ interface MenuitemsType {
   - navlabel: true  -> separador con título de sección
   - children        -> submenú (soporta hasta 3 niveles)
   - chip / chipColor-> badge a la derecha
+
+  Aquí vive la "Vista general": lo que se abre cada mañana, catálogo incluido
+  —lo que se vende se toca a diario—. Lo que queda (equipo, locales, cuenta)
+  sigue existiendo y sus rutas responden, pero se saca del sidebar y espera en
+  MenuitemsOcultos, más abajo: su sitio es la vista de Administración.
 */
 const Menuitems: MenuitemsType[] = [
   {
@@ -51,20 +56,15 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Citas",
-    icon: IconCalendarEvent,
-    href: "/citas",
-  },
-  {
-    id: uniqueId(),
     title: "Calendario",
     icon: IconCalendar,
     href: "/calendario",
   },
-
   {
-    navlabel: true,
-    subheader: "Gestión",
+    id: uniqueId(),
+    title: "Citas",
+    icon: IconCalendarEvent,
+    href: "/citas",
   },
   {
     id: uniqueId(),
@@ -72,11 +72,10 @@ const Menuitems: MenuitemsType[] = [
     icon: IconUsers,
     href: "/clientes",
   },
+
   {
-    id: uniqueId(),
-    title: "Servicios",
-    icon: IconListDetails,
-    href: "/servicios",
+    navlabel: true,
+    subheader: "Catálogo",
   },
   {
     id: uniqueId(),
@@ -86,15 +85,9 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Empleados",
-    icon: IconUserCheck,
-    href: "/empleados",
-  },
-  {
-    id: uniqueId(),
-    title: "Locales",
-    icon: IconBuildingStore,
-    href: "/locales",
+    title: "Servicios",
+    icon: IconListDetails,
+    href: "/servicios",
   },
 
   {
@@ -118,6 +111,30 @@ const Menuitems: MenuitemsType[] = [
     title: "Reportes",
     icon: IconChartBar,
     href: "/reportes",
+  },
+];
+
+/*
+  Ocultos del sidebar, no borrados. Las páginas siguen montadas y accesibles
+  por URL. Cuando exista la segunda vista (configuración del negocio), se
+  reparten desde aquí.
+*/
+export const MenuitemsOcultos: MenuitemsType[] = [
+  {
+    navlabel: true,
+    subheader: "Gestión",
+  },
+  {
+    id: uniqueId(),
+    title: "Empleados",
+    icon: IconUserCheck,
+    href: "/empleados",
+  },
+  {
+    id: uniqueId(),
+    title: "Locales",
+    icon: IconBuildingStore,
+    href: "/locales",
   },
 
   {

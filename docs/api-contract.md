@@ -291,9 +291,9 @@ DELETE /{path}/{id}                                              → 204
 
 | Recurso | `path` | FormData | Busca por | Filtros | Notas |
 |---|---|---|---|---|---|
-| Clientes | `clientes` | no | nombre, teléfono, email | — | |
+| Clientes | `clientes` | no | nombre, apellido, teléfono, email | — | soft delete; el teléfono es único |
 | Citas | `citas` | no | cliente_nombre, cliente_telefono | `fecha` | |
-| Servicios | `servicios` | **sí** | nombre | — | |
+| Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Empleados | `empleados` | **sí** | nombre, usuario, cargo | — | |
 | Locales | `locales` | **sí** | nombre, dirección | — | |
@@ -414,10 +414,24 @@ declarado: el backend manda claves). Quién marca cada paso:
 |---|---|---|
 | `id` `nombre` | int, string | |
 | `telefono` `email` | string? | hay clientes solo con teléfono |
+| `apellido` `documento` | string? | los pide la reserva pública |
+| `fecha_nacimiento` `notas` | string? | |
 | `total_citas` | int | `withCount` |
 | `ultima_cita` | string? | fecha de la más reciente |
 
 **Payload**: `{ nombre, telefono?, email? }`.
+
+> **El teléfono es la clave natural.** Se guarda tal cual se escribe, pero el
+> backend mantiene aparte un `telefono_normalizado` UNIQUE (dígitos sin
+> prefijo país) que **no sale de la API**: la reserva pública hace
+> `firstOrCreate` por teléfono, y sin normalizar, `904169872` y `904 169 872`
+> serían dos fichas de la misma persona con medio historial cada una.
+>
+> Por eso `POST /clientes` puede responder
+> `422 { errors: { telefono: ["Ya existe un cliente con ese teléfono."] } }`.
+>
+> Borrar es **soft delete** —las citas lo referencian—, y volver a dar de alta
+> el mismo teléfono **restaura la ficha con su historial**.
 
 ### Categoría de servicio
 
@@ -430,6 +444,17 @@ declarado: el backend manda claves). Quién marca cada paso:
 | `servicios_count` | int | `withCount` |
 
 **Payload (multipart)**: `{ nombre, descripcion, color, orden, imagen: File|null }`.
+
+> `color` es nullable de verdad: el formulario lleva un botón de quitarlo,
+> porque `input[type=color]` no sabe mandar vacío.
+>
+> `imagen` entra como archivo e `imagen_url` sale como URL; la columna guarda
+> la **ruta**. No mandar `imagen` significa «déjala como está», nunca
+> «bórrala».
+>
+> El `DELETE` responde 204 y **no borra los servicios**: la FK es
+> `nullOnDelete` y se quedan sin categoría. El aviso «N servicios quedarán sin
+> categoría» lo pinta el frontend con el `servicios_count` del listado.
 
 ### Servicio
 
@@ -445,15 +470,30 @@ declarado: el backend manda claves). Quién marca cada paso:
 | `precio` | number | |
 | `activo` | bool | |
 | `imagen_principal` | string? | URL |
-| `galeria` | string[] | URLs, máximo 4 |
+| `galeria` | `{ id, url }[]` | máximo 4 |
 | `empleados` | `{ id, nombre }[]` | quién lo ofrece |
 
 **Payload (multipart)**: `{ nombre, descripcion, color, categoria_id, tipo,
-max_sesiones, duracion_min, precio, imagen_principal: File|null, galeria:
-File[], galeria_conservar: string[], empleado_ids: number[] }`.
+max_sesiones, duracion_min, precio, activo?, imagen_principal: File|null,
+galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 
-> `galeria_conservar` son las URLs que el usuario **no** quitó. El backend debe
-> borrar las que no lleguen y añadir los archivos nuevos.
+> **`galeria_conservar` son ids, no URLs** (cambiado el 2026-08-27). Casar por
+> URL obliga al backend a revertir URL → ruta, y eso se rompe en silencio si
+> cambia `APP_URL` o el disco — y lo que se pierde son las fotos del negocio.
+> El backend borra las que no lleguen y añade los archivos nuevos.
+>
+> **Omitir el campo no borra nada**: que el formulario no lo mande no puede
+> significar «bórralo todo». Lo mismo vale para `empleado_ids` (ausente = no se
+> toca) y para `imagen_principal` (sin archivo = se queda la de antes). Es lo
+> que permite que el switch de `activo` guarde reenviando solo los escalares.
+>
+> `activo` es opcional en POST y PUT, y se emite siempre. Lo cambia el switch
+> de la tabla; el formulario no lo trae.
+>
+> El `DELETE` responde **204 también con citas**: es soft delete y
+> `cita_servicio` congela precio y duración, así que el historial no cambia. Y
+> como el UNIQUE de `nombre` no distingue los borrados, crear un servicio con
+> el nombre de uno eliminado **restaura aquella fila**.
 
 ### Cita
 
