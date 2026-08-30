@@ -83,7 +83,7 @@ drawer derecho lanzado desde `right: 25px; bottom: 15px`.
 ### Lo que se le añadió a la plantilla
 
 La plantilla resuelve la estructura, pero una lista de seis filas iguales no
-dice nada. Sin salir del tema (`BLUE_THEME`) y **sin dependencias nuevas** —todo
+dice nada. Sin salir del tema (`AQUA_THEME`) y **sin dependencias nuevas** —todo
 con `@keyframes` de MUI, nada de framer-motion—:
 
 - **Cabecera con degradado** `primary → secondary` y un **anillo de progreso**

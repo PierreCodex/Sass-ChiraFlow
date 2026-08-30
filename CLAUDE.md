@@ -45,7 +45,9 @@ Estas no son preferencias de estilo, son decisiones tomadas. Respetarlas.
 tema y su paleta. De un diseño anterior se replica el **contenido** (campos,
 reglas, textos), **nunca** el diseño.
 
-El tema es `BLUE_THEME`; no tocarlo.
+El tema es `AQUA_THEME` (`context/config.ts`); no tocarlo. Los colores se
+piden siempre al tema —`primary.main`, `secondary.light`— y nunca a mano en
+hexadecimal: así cambiar de paleta sigue siendo cambiar una línea.
 
 ### 2. Datos ficticios primero
 
