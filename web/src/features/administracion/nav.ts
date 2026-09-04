@@ -24,6 +24,14 @@ export interface SeccionAdmin {
   descripcion: string;
   /** Pantalla del panel que hoy hace este trabajo, si la hay. */
   rutaActual?: string;
+  /**
+   * La sección entera es del dueño y el backend responde **403** al resto.
+   *
+   * Esconderla es cortesía, no autorización: evita ofrecer una puerta que da
+   * error, pero quien la cierra es Laravel. Nunca al revés — si esconder el
+   * menú fuera lo que protege, bastaría con adivinar la URL.
+   */
+  soloDueno?: boolean;
 }
 
 export interface GrupoAdmin {
@@ -60,6 +68,18 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
     titulo: "Equipo",
     icono: IconUsers,
     secciones: [
+      {
+        /*
+         * Quién ENTRA al panel. Es lo primero del grupo porque es lo que se
+         * reparte: dar de alta a alguien empieza casi siempre por decidir si
+         * va a usar el sistema.
+         */
+        slug: "usuarios",
+        titulo: "Usuarios",
+        descripcion:
+          "Quién puede entrar al panel y con qué rol. No hace falta que atienda clientes: una recepcionista entra y no ocupa plaza del plan.",
+        soloDueno: true,
+      },
       {
         slug: "empleados",
         titulo: "Empleados",
@@ -153,6 +173,22 @@ export const RUTA_ADMIN_INICIAL = `/administracion/${GRUPOS_ADMIN[0].slug}/${GRU
 
 export const rutaDeSeccion = (grupo: string, seccion: string) =>
   `/administracion/${grupo}/${seccion}`;
+
+/**
+ * ¿Se le enseña esta sección a quien está mirando?
+ *
+ * Vive aquí y no en cada componente para que el índice y la página de la
+ * sección apliquen **la misma** regla: si divergieran, el menú escondería algo
+ * que la página sigue pintando, o al revés.
+ */
+export function puedeVerSeccion(seccion: SeccionAdmin, esDueno: boolean) {
+  return !seccion.soloDueno || esDueno;
+}
+
+/** Las secciones de un grupo que le tocan a quien está mirando. */
+export function seccionesVisibles(grupo: GrupoAdmin, esDueno: boolean) {
+  return grupo.secciones.filter((s) => puedeVerSeccion(s, esDueno));
+}
 
 /** Busca por slugs; devuelve `null` si la URL no corresponde a nada. */
 export function buscarSeccion(grupoSlug: string, seccionSlug: string) {

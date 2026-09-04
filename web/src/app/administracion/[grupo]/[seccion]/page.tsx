@@ -8,7 +8,8 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import { buscarSeccion } from "@/features/administracion/nav";
+import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
+import { buscarSeccion, puedeVerSeccion } from "@/features/administracion/nav";
 import { panelDeSeccion } from "@/features/administracion/paneles";
 
 /*
@@ -23,6 +24,8 @@ export default function SeccionAdminPage({
 }) {
   const { grupo: grupoSlug, seccion: seccionSlug } = use(params);
   const encontrado = buscarSeccion(grupoSlug, seccionSlug);
+  const { data: sesion } = useUsuarioActual();
+  const esDueno = sesion?.rol === "dueno";
 
   // Una URL inventada no saca al usuario de la vista: se queda con el índice
   // a la izquierda y un aviso a la derecha. `notFound()` pintaría la página de
@@ -41,6 +44,30 @@ export default function SeccionAdminPage({
   }
 
   const { grupo, seccion } = encontrado;
+
+  /*
+    Una sección del dueño abierta por su URL. Se explica en vez de mandar a un
+    404: la sección existe, y quien llega aquí normalmente lo hace desde un
+    enlace que alguien le pasó. Decirle «no existe» le haría buscar un error
+    que no está de su lado.
+
+    Esto NO es lo que protege los datos: `/usuarios` responde 403 a cualquiera
+    que no sea el dueño, pase lo que pase con esta pantalla.
+  */
+  if (!puedeVerSeccion(seccion, esDueno)) {
+    return (
+      <Box sx={{ maxWidth: 760 }}>
+        <Typography variant="h4" fontWeight={600}>
+          {seccion.titulo}
+        </Typography>
+        <Alert severity="info" sx={{ mt: 2 }}>
+          Esta sección la gestiona quien es dueño del negocio. Pídele que haga
+          el cambio, o que te dé ese rol.
+        </Alert>
+      </Box>
+    );
+  }
+
   const Panel = panelDeSeccion(grupo.slug, seccion.slug);
 
   return (

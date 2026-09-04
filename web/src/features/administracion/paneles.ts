@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import PantallaEmpleados from "@/features/empleados/components/PantallaEmpleados";
+import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 
 /**
  * El panel de cada sección, para las que ya lo tienen.
@@ -14,6 +15,7 @@ import PantallaEmpleados from "@/features/empleados/components/PantallaEmpleados
  * La clave es `grupo/seccion`, los mismos slugs que forman la URL.
  */
 const PANELES: Record<string, ComponentType> = {
+  "equipo/usuarios": PantallaUsuarios,
   "equipo/empleados": PantallaEmpleados,
 };
 

@@ -11,16 +11,26 @@ import ListItemText from "@mui/material/ListItemText";
 import { alpha } from "@mui/material/styles";
 import { IconChevronDown } from "@tabler/icons-react";
 
-import { GRUPOS_ADMIN, rutaDeSeccion } from "../nav";
+import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
+
+import { GRUPOS_ADMIN, rutaDeSeccion, seccionesVisibles } from "../nav";
 
 /**
  * El índice de Administración: un grupo por bloque de ajustes, desplegable.
  *
  * Los grupos de una sola sección no se despliegan —serían un clic de más—:
  * van como fila normal, igual que en la referencia.
+ *
+ * Algunas secciones son solo del dueño y no se le enseñan a los demás. Es
+ * cortesía y no autorización: el backend responde 403 igual. Mientras la
+ * sesión carga se ocultan, así que aparecen un instante después en vez de
+ * parpadear al revés — que es el orden correcto: enseñar de menos y corregir,
+ * nunca enseñar de más.
  */
 export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
   const pathname = usePathname();
+  const { data: sesion } = useUsuarioActual();
+  const esDueno = sesion?.rol === "dueno";
   const grupoActivo = GRUPOS_ADMIN.find((g) =>
     pathname.startsWith(`/administracion/${g.slug}`),
   );
@@ -40,10 +50,16 @@ export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
     <List sx={{ p: 2 }} component="nav" aria-label="Secciones de administración">
       {GRUPOS_ADMIN.map((grupo) => {
         const Icono = grupo.icono;
-        const unaSola = grupo.secciones.length === 1;
+        const secciones = seccionesVisibles(grupo, esDueno);
+
+        // Un grupo sin secciones visibles no pinta una fila que no lleva a
+        // ninguna parte.
+        if (secciones.length === 0) return null;
+
+        const unaSola = secciones.length === 1;
         const abierto = abiertos.includes(grupo.slug);
         const hrefDirecto = unaSola
-          ? rutaDeSeccion(grupo.slug, grupo.secciones[0].slug)
+          ? rutaDeSeccion(grupo.slug, secciones[0].slug)
           : undefined;
         const activoDirecto = hrefDirecto === pathname;
 
@@ -81,7 +97,7 @@ export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
             {unaSola ? null : (
               <Collapse in={abierto} timeout="auto" unmountOnExit>
                 <List disablePadding>
-                  {grupo.secciones.map((seccion) => {
+                  {secciones.map((seccion) => {
                     const href = rutaDeSeccion(grupo.slug, seccion.slug);
                     return (
                       <ListItemButton
