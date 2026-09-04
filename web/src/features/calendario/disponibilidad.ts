@@ -1,4 +1,4 @@
-import type { BreakHorario, Empleado } from "@/features/empleados/types";
+import type { BreakHorario, Profesional } from "@/features/profesionales/types";
 import type {
   ConfiguracionAgenda,
   HorarioNegocio,
@@ -46,7 +46,7 @@ function noTrabaja(origen: OrigenJornada, nota: string | null = null): JornadaDi
  *    recién creado atiende en el horario general, no queda sin agenda.
  */
 export function jornadaDelDia(
-  empleado: Empleado,
+  empleado: Profesional,
   fechaISO: string,
   horarioNegocio?: HorarioNegocio
 ): JornadaDia {
@@ -109,7 +109,7 @@ export function atiendeA(jornada: JornadaDia, hora: string) {
  * todos los profesionales del día.
  */
 export function rangoDelDia(
-  empleados: Empleado[],
+  empleados: Profesional[],
   fechaISO: string,
   horarioNegocio?: HorarioNegocio,
   porDefecto = { desde: "08:00", hasta: "20:00" }

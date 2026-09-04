@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
@@ -13,100 +14,103 @@ import DataTable, { type Columna } from "@/components/shared/DataTable";
 import BuscadorTabla from "@/components/shared/BuscadorTabla";
 import { usePaginacion } from "@/hooks/usePaginacion";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { useEmpleados } from "../hooks/useEmpleados";
-import type { Empleado } from "../types";
+import { useProfesionales } from "../hooks/useProfesionales";
+import type { Profesional } from "../types";
 
 interface Props {
-  onEditar: (empleado: Empleado) => void;
-  onEliminar: (empleado: Empleado) => void;
+  onEditar: (profesional: Profesional) => void;
+  onEliminar: (profesional: Profesional) => void;
 }
 
-const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
+const ProfesionalesTable = ({ onEditar, onEliminar }: Props) => {
   const { page, perPage, search, setPage, setPerPage, buscar, params } =
     usePaginacion();
-  const { data, isPending, error } = useEmpleados(params);
-  const { data: usuario } = useUsuarioActual();
+  const { data, isPending, error } = useProfesionales(params);
+  const { data: sesion } = useUsuarioActual();
 
   /*
     Tu propia ficha no se edita ni se borra desde aquí.
 
-    Se compara por email y no por id porque no son el mismo: el `id` del
-    empleado es el de `profesionales` (la base del negocio) y el de la sesión
-    es el del `users` central. El email es la credencial y es único GLOBAL, así
-    que identifica la fila sin ambigüedad.
-
-    No es una barandilla inventada: el backend ya responde 422 a «No puedes
-    darte de baja a ti mismo». Esto solo evita ofrecer un botón que siempre
-    falla, y manda a Mi perfil, que es donde esos datos SÍ se cambian.
+    Se compara por el correo de su CUENTA, no por id: el `id` de la ficha es el
+    de `profesionales` (la base del negocio) y el de la sesión es el del
+    `users` central. Y una ficha puede no tener cuenta —el barbero que no entra
+    al sistema—, en cuyo caso nunca eres tú: si no tiene correo, no puede ser
+    quien ha iniciado sesión.
   */
-  const esTuFicha = (empleado: Empleado) =>
-    !!usuario && empleado.email === usuario.email;
+  const esTuFicha = (profesional: Profesional) =>
+    !!sesion && !!profesional.usuario && profesional.usuario.email === sesion.email;
 
-  const columnas: Columna<Empleado>[] = [
+  const columnas: Columna<Profesional>[] = [
     {
       id: "profesional",
       label: "Profesional",
-      render: (empleado) => (
+      render: (profesional) => (
         <Stack direction="row" spacing={2} alignItems="center">
           <Avatar
-            src={empleado.foto_url ?? undefined}
-            alt={empleado.nombre}
+            src={profesional.foto_url ?? undefined}
+            alt={profesional.nombre}
             sx={{ width: 40, height: 40 }}
           >
-            {empleado.nombre.charAt(0)}
+            {profesional.nombre.charAt(0)}
           </Avatar>
           <Typography variant="subtitle2" fontWeight={600}>
-            {empleado.nombre}
+            {profesional.nombre}
           </Typography>
-          {esTuFicha(empleado) ? (
+          {esTuFicha(profesional) ? (
             <Chip size="small" label="Tú" color="primary" variant="outlined" />
           ) : null}
         </Stack>
       ),
     },
     {
-      id: "email",
-      label: "Correo",
-      render: (empleado) => (
-        <Typography variant="body2" color="textSecondary">
-          {empleado.email}
-        </Typography>
-      ),
-    },
-    {
-      // El nombre lo pone el negocio: puede haber renombrado «Administrador»
-      // a «Encargada», así que se pinta tal cual llega.
-      id: "rol",
-      label: "Rol",
-      render: (empleado) => (
-        <Typography variant="body2" color="textSecondary">
-          {empleado.rol?.nombre ?? "-"}
-        </Typography>
-      ),
+      /*
+        El correo sale de su cuenta del panel, y muchos no la tienen. «Sin
+        cuenta» no es un dato que falte: es lo normal en quien presta servicios
+        y nunca abre el sistema, y antes era imposible de registrar porque el
+        correo era obligatorio.
+      */
+      id: "cuenta",
+      label: "Acceso al panel",
+      render: (profesional) =>
+        profesional.usuario ? (
+          <Box>
+            <Typography variant="body2" color="textSecondary">
+              {profesional.usuario.email}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              {profesional.usuario.rol?.nombre ?? "—"}
+            </Typography>
+          </Box>
+        ) : (
+          <Typography variant="body2" color="textSecondary">
+            Sin cuenta
+          </Typography>
+        ),
     },
     {
       id: "cargo",
       label: "Cargo",
-      render: (empleado) => (
+      render: (profesional) => (
         <Typography variant="body2" color="textSecondary">
-          {empleado.cargo || "-"}
+          {profesional.cargo || "-"}
         </Typography>
       ),
     },
     {
       id: "estado",
       label: "Estado",
-      render: (empleado) => (
+      render: (profesional) => (
         <Stack direction="row" spacing={0.5} alignItems="center">
           <Chip
             size="small"
-            label={empleado.activo ? "Activo" : "Inactivo"}
-            color={empleado.activo ? "success" : "default"}
+            label={profesional.activo ? "De alta" : "De baja"}
+            color={profesional.activo ? "success" : "default"}
           />
-          {/* Quien no atiende entra al panel pero no ocupa plaza del plan:
-              explica por qué el contador dice menos que las filas. */}
-          {empleado.activo && !empleado.atiende ? (
-            <Chip size="small" variant="outlined" label="Sin agenda" />
+          {/* Sigue teniendo agenda: solo que no se le puede reservar por
+              internet. Ocupa plaza igual, así que esto NO explica el contador
+              del cupo — explica por qué no sale en la tienda. */}
+          {profesional.activo && !profesional.atiende ? (
+            <Chip size="small" variant="outlined" label="No reservable" />
           ) : null}
         </Stack>
       ),
@@ -115,10 +119,10 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
       id: "acciones",
       label: "Acciones",
       align: "right",
-      render: (empleado) =>
-        esTuFicha(empleado) ? (
+      render: (profesional) =>
+        esTuFicha(profesional) ? (
           // Un enlace y no dos botones apagados: deshabilitados dirían «aquí
-          // no» sin decir dónde sí, y el nombre y la contraseña sí se cambian.
+          // no» sin decir dónde sí, y el nombre y la foto sí se cambian.
           //
           // Sin `Tooltip`: el suyo viaja como `aria-label` y le pisa el nombre
           // accesible al enlace, que pasaría a anunciarse como la frase entera
@@ -140,16 +144,16 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
               <IconButton
                 size="small"
                 color="primary"
-                onClick={() => onEditar(empleado)}
+                onClick={() => onEditar(profesional)}
               >
                 <IconPencil size={18} />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Eliminar">
+            <Tooltip title="Dar de baja">
               <IconButton
                 size="small"
                 color="error"
-                onClick={() => onEliminar(empleado)}
+                onClick={() => onEliminar(profesional)}
               >
                 <IconTrash size={18} />
               </IconButton>
@@ -165,7 +169,7 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
         <BuscadorTabla
           valor={search}
           onChange={buscar}
-          placeholder="Buscar por nombre, correo o cargo…"
+          placeholder="Buscar por nombre, cargo o correo…"
         />
       </Stack>
 
@@ -178,11 +182,11 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
         perPage={perPage}
         onPageChange={setPage}
         onPerPageChange={setPerPage}
-        mensajeVacio="No se encontraron empleados."
+        mensajeVacio="Todavía no has dado de alta a nadie."
         minWidth={900}
       />
     </>
   );
 };
 
-export default EmpleadosTable;
+export default ProfesionalesTable;

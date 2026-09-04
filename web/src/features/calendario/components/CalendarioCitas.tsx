@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 
 import type { Cita } from "@/features/citas/types";
-import type { Empleado } from "@/features/empleados/types";
+import type { Profesional } from "@/features/profesionales/types";
 import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import {
@@ -42,7 +42,7 @@ interface EventoCita extends Event {
 interface Props {
   fecha: Date;
   citas: Cita[];
-  profesionales: Empleado[];
+  profesionales: Profesional[];
   onSeleccionarCita: (cita: Cita) => void;
   /** Click en un hueco libre: crea una cita ahí. */
   onSeleccionarHueco: (inicio: Date, empleadoId: number) => void;

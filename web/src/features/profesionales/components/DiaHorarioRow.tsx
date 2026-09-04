@@ -11,10 +11,10 @@ import Typography from "@mui/material/Typography";
 import { IconPlus, IconX } from "@tabler/icons-react";
 
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import type { EmpleadoFormValues } from "../schemas/empleado.schema";
+import type { ProfesionalFormValues } from "../schemas/profesional.schema";
 
 interface Props {
-  control: Control<EmpleadoFormValues>;
+  control: Control<ProfesionalFormValues>;
   indice: number;
   nombreDia: string;
   activo: boolean;

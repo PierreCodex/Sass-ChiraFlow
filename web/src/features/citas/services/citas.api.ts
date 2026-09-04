@@ -3,7 +3,7 @@ import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { serviciosMock } from "@/features/servicios/mocks";
-import { empleadosMock } from "@/features/empleados/mocks";
+import { profesionalesMock } from "@/features/profesionales/mocks";
 import { productosMock } from "@/features/inventario/mocks";
 import type { Cita, CitaPayload } from "../types";
 import { citasMock } from "../mocks";
@@ -24,7 +24,7 @@ const recurso = crearRecurso<Cita, CitaPayload>({
   // El payload manda ids; la entidad expone objetos y campos calculados.
   alGuardarMock: (payload: CitaPayload) => {
     const servicio = serviciosMock.find((s) => s.id === payload.servicio_id);
-    const empleado = empleadosMock.find((e) => e.id === payload.empleado_id);
+    const empleado = profesionalesMock.find((e) => e.id === payload.empleado_id);
 
     return {
       servicio: servicio

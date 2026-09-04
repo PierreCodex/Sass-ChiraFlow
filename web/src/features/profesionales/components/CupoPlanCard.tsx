@@ -10,7 +10,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import { useResumenPlanEmpleados } from "../hooks/useEmpleados";
+import { useResumenPlanProfesionales } from "../hooks/useProfesionales";
 
 interface Props {
   /** Botón de la derecha, para no duplicar el estado del diálogo aquí. */
@@ -19,10 +19,14 @@ interface Props {
 
 /**
  * "Profesionales activos en tu plan · 3 de 5".
- * Solo los empleados con rol profesional consumen cupo.
+ *
+ * El cupo cuenta **fichas de alta**, y nada más: ni roles ni `atiende`. Quien
+ * está en esta tabla presta servicios, y punto. Las cuentas del panel son
+ * ilimitadas —una recepcionista no aparece aquí y no ocupa plaza—, que es el
+ * modelo de siempre: lo que escala el coste son las agendas, no los logins.
  */
 const CupoPlanCard = ({ accion }: Props) => {
-  const { data, isPending } = useResumenPlanEmpleados();
+  const { data, isPending } = useResumenPlanProfesionales();
 
   const usados = data?.profesionales_activos ?? 0;
   const limite = data?.limite_profesionales ?? 0;

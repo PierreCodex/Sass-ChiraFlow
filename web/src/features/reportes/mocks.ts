@@ -1,7 +1,7 @@
 import { pseudoAleatorio } from "@/lib/mock-utils";
 import { serviciosMock } from "@/features/servicios/mocks";
-import { empleadosMock } from "@/features/empleados/mocks";
-import { saleEnAgenda } from "@/features/empleados/types";
+import { profesionalesMock } from "@/features/profesionales/mocks";
+import { saleEnAgenda } from "@/features/profesionales/types";
 import type {
   DiaIngresos,
   FilaAgrupada,
@@ -190,7 +190,7 @@ export function reporteMock({ desde, hasta }: ParamsReporte): Reporte {
       "s"
     ),
     por_profesional: desglose(
-      empleadosMock.filter(saleEnAgenda),
+      profesionalesMock.filter(saleEnAgenda),
       actual.completadas,
       "e"
     ),

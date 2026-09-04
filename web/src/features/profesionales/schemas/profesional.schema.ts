@@ -53,31 +53,21 @@ const excepcionSchema = yup.object({
 });
 
 /**
- * `esEdicion` controla la contraseña: obligatoria al crear, opcional al
- * editar (vacía = no cambiarla).
+ * La ficha del profesional.
+ *
+ * **Ni correo, ni rol, ni contraseña sueltos**: eso es una cuenta del panel y
+ * vive en `/usuarios`. Lo único que cruza es la casilla «darle acceso», que
+ * enciende `dar_acceso` y con ella los dos campos de abajo.
+ *
+ * `tieneCuenta` apaga esa casilla: a quien ya entra al sistema no se le cambia
+ * el correo ni el rol desde aquí — el backend lo ignora en silencio, así que
+ * el formulario no debe ni ofrecerlo.
  */
-export const crearEmpleadoSchema = (esEdicion: boolean) =>
+export const crearProfesionalSchema = (tieneCuenta: boolean) =>
   yup.object({
     // --- Datos ---
     nombre: yup.string().trim().required("El nombre es obligatorio"),
     foto: yup.array<any, ImagenSeleccionada>().max(1).defined(),
-    // La credencial de acceso: `users.usuario` se eliminó y el login es el
-    // correo, único global.
-    email: yup
-      .string()
-      .trim()
-      .required("El correo es obligatorio")
-      .email("Escribe un correo válido"),
-    // El largo mínimo se comprueba solo si hay algo escrito: si no, un campo
-    // vacío mostraría "Mínimo 8 caracteres" en vez de "es obligatoria".
-    password: (esEdicion
-      ? textoOpcional
-      : yup.string().trim().required("La contraseña es obligatoria")
-    ).test(
-      "largo-minimo",
-      "Mínimo 8 caracteres",
-      (valor) => !valor || valor.length >= 8
-    ),
     // Se teclean 9 dígitos y viaja como `+51…`, igual que en el registro:
     // escriben la MISMA columna y el WhatsApp cuenta con ese formato.
     telefono: textoOpcional.test(
@@ -85,16 +75,27 @@ export const crearEmpleadoSchema = (esEdicion: boolean) =>
       "El teléfono debe tener 9 dígitos",
       (valor) => !valor || soloDigitos(valor).length === 9
     ),
-    // Un rol de los del negocio, no el ENUM central: es lo que deja asignar
-    // los que cree el dueño.
-    rol_id: yup
-      .number()
-      .typeError("Elige un rol")
-      .min(1, "Elige un rol")
-      .required("Elige un rol"),
     cargo: textoOpcional,
     activo: yup.boolean().required(),
     atiende: yup.boolean().required(),
+
+    // --- Acceso al panel (opcional) ---
+    dar_acceso: yup.boolean().required(),
+    // Requeridos solo con la casilla marcada, y nunca si ya tiene cuenta.
+    acceso_email: textoOpcional
+      .email("Escribe un correo válido")
+      .test("requerido-con-acceso", "El correo es obligatorio", function (valor) {
+        if (tieneCuenta || !this.parent.dar_acceso) return true;
+        return !!valor;
+      }),
+    acceso_rol_id: yup
+      .number()
+      .transform((valor, original) => (original === "" ? 0 : valor))
+      .required()
+      .test("requerido-con-acceso", "Elige un rol", function (valor) {
+        if (tieneCuenta || !this.parent.dar_acceso) return true;
+        return !!valor && valor > 0;
+      }),
 
     // --- Pago ---
     tipo_pago: yup
@@ -130,34 +131,42 @@ export const crearEmpleadoSchema = (esEdicion: boolean) =>
     excepciones: yup.array().of(excepcionSchema).defined(),
   });
 
-export type EmpleadoFormValues = yup.InferType<
-  ReturnType<typeof crearEmpleadoSchema>
+export type ProfesionalFormValues = yup.InferType<
+  ReturnType<typeof crearProfesionalSchema>
 >;
 
 /**
  * Qué pestaña contiene cada campo, para marcar la que tiene errores.
  *
- * `atiende` está aquí y no en Pago aunque hable del plan: es donde cae el 422
- * del cupo, y el mensaje ofrece apagarlo como alternativa a subir de plan.
+ * `activo` está en la primera y no en Pago aunque hable del plan: es donde cae
+ * el 422 del cupo desde que el cupo cuenta fichas activas.
  */
 export const CAMPOS_POR_PESTANA: Record<number, string[]> = {
-  0: ["nombre", "foto", "email", "password", "telefono", "rol_id", "cargo", "activo", "atiende"],
+  0: [
+    "nombre", "foto", "telefono", "cargo", "activo", "atiende",
+    "dar_acceso", "acceso_email", "acceso_rol_id",
+    // El backend valida el objeto anidado, así que sus 422 llegan con estas
+    // claves. Se listan para que la pestaña se marque igual.
+    "usuario.email", "usuario.rol_id",
+  ],
   1: ["tipo_pago", "comision_porcentaje", "monto_sueldo", "periodo_pago"],
   2: ["horario", "excepciones"],
 };
 
-export const valoresIniciales: EmpleadoFormValues = {
+export const valoresIniciales: ProfesionalFormValues = {
   nombre: "",
   foto: [],
-  email: "",
-  password: "",
   telefono: null,
-  // Sin preselección: el rol decide qué puede hacer la persona y qué barandillas
-  // saltan, así que se elige a propósito.
-  rol_id: 0,
   cargo: null,
   activo: true,
+  // Por defecto sale en la tienda: es a lo que se da de alta a un profesional.
   atiende: true,
+  // Apagada a propósito: la mayoría de los profesionales de una barbería no
+  // entran al sistema, y darle cuenta a quien no la necesita crea una
+  // credencial que nadie vigila.
+  dar_acceso: false,
+  acceso_email: null,
+  acceso_rol_id: 0,
   tipo_pago: "comision",
   comision_porcentaje: 0,
   monto_sueldo: null,

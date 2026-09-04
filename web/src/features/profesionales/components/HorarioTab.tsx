@@ -19,12 +19,12 @@ import { IconPlus, IconTrash } from "@tabler/icons-react";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { DIAS_SEMANA } from "../constants";
-import type { EmpleadoFormValues } from "../schemas/empleado.schema";
+import type { ProfesionalFormValues } from "../schemas/profesional.schema";
 import DiaHorarioRow from "./DiaHorarioRow";
 
 interface Props {
-  control: Control<EmpleadoFormValues>;
-  errors: FieldErrors<EmpleadoFormValues>;
+  control: Control<ProfesionalFormValues>;
+  errors: FieldErrors<ProfesionalFormValues>;
 }
 
 const HorarioTab = ({ control, errors }: Props) => {

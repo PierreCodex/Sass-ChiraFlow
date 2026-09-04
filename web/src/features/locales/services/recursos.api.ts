@@ -2,8 +2,8 @@ import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
-import { empleadosMock } from "@/features/empleados/mocks";
-import { saleEnAgenda } from "@/features/empleados/types";
+import { profesionalesMock as fichasProfesionales } from "@/features/profesionales/mocks";
+import { saleEnAgenda } from "@/features/profesionales/types";
 import { serviciosMock } from "@/features/servicios/mocks";
 import { localesMock } from "../mocks";
 import { gruposMock, localProfesionalMock } from "../mocks-recursos";
@@ -86,9 +86,9 @@ export const gruposApi = crearRecurso<Grupo, GrupoPayload>({
 });
 
 /** Profesionales del negocio: los que se pueden asignar a un local o grupo. */
-export const profesionalesMock = empleadosMock
+export const profesionalesMock = fichasProfesionales
   .filter(saleEnAgenda)
-  .map((empleado) => ({ id: empleado.id, nombre: empleado.nombre }));
+  .map((profesional) => ({ id: profesional.id, nombre: profesional.nombre }));
 
 function aNombres<T extends { id: number; nombre: string }>(
   fuente: T[],

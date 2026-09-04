@@ -1,7 +1,7 @@
 import { haceDias } from "@/lib/mock-utils";
 import type { RolResumen } from "@/features/roles/types";
 import { horarioPorDefecto } from "./constants";
-import type { DiaHorario, Empleado } from "./types";
+import type { CuentaDelProfesional, DiaHorario, Profesional } from "./types";
 
 /** Horario de lunes a viernes con un break al mediodía. */
 function horarioConAlmuerzo(): DiaHorario[] {
@@ -19,21 +19,44 @@ function horarioConAlmuerzo(): DiaHorario[] {
 */
 const DUENO: RolResumen = { id: 1, nombre: "Administrador general", clave: "dueno" };
 const PROFESIONAL: RolResumen = { id: 3, nombre: "Profesional", clave: "profesional" };
-const RECEPCION: RolResumen = { id: 4, nombre: "Recepción", clave: null };
 
-export const empleadosMock: Empleado[] = [
+/** Atajo: la cuenta del panel de quien sí entra al sistema. */
+const cuenta = (
+  id: number,
+  email: string,
+  rol: RolResumen
+): CuentaDelProfesional => ({
+  id,
+  email,
+  activo: true,
+  rol_id: rol.id,
+  rol,
+});
+
+/*
+  Cinco fichas que cubren los casos que la pantalla tiene que saber pintar.
+
+  Lo importante es quién NO tiene cuenta: dos de los cinco. Antes era
+  imposible —el correo era obligatorio y había que inventárselo—, y un correo
+  inventado es peor que ninguno porque parece un canal y no lo es.
+
+  Y no está la recepcionista, que sí estaba antes: no presta servicios, así
+  que su sitio es Usuarios y no esta tabla. Que falte aquí es parte de lo que
+  hay que ver.
+*/
+export const profesionalesMock: Profesional[] = [
   {
-    id: 1, nombre: "MANUEL JAIURO GANOLL callare", foto_url: "/images/profile/user-1.jpg",
-    usuario: "manuel@elrosal.pe", email: "manuel@elrosal.pe",
-    rol_id: DUENO.id, rol: DUENO, cargo: "Dueño", telefono: "+51981912809",
+    id: 1, nombre: "Manuel Ganoza", foto_url: "/images/profile/user-1.jpg",
+    usuario: cuenta(1, "manuel@elrosal.pe", DUENO),
+    cargo: "Dueño", telefono: "+51981912809",
     activo: true, atiende: true, tipo_pago: "sueldo", comision_porcentaje: 0,
     monto_sueldo: 12000, periodo_pago: "mensual",
     horario: horarioPorDefecto(), excepciones: [],
   },
   {
     id: 2, nombre: "Dra. Carmen Ríos", foto_url: "/images/profile/user-2.jpg",
-    usuario: "carmen.rios@elrosal.pe", email: "carmen.rios@elrosal.pe",
-    rol_id: PROFESIONAL.id, rol: PROFESIONAL, cargo: "doctor cirujano",
+    usuario: cuenta(2, "carmen.rios@elrosal.pe", PROFESIONAL),
+    cargo: "doctor cirujano",
     telefono: "+51987441220", activo: true, atiende: true, tipo_pago: "ambos",
     comision_porcentaje: 50, monto_sueldo: 12000, periodo_pago: "quincenal",
     horario: horarioConAlmuerzo(),
@@ -59,34 +82,31 @@ export const empleadosMock: Empleado[] = [
     ],
   },
   {
+    // El caso que antes no se podía dar de alta: presta servicios y nunca
+    // abre el panel.
     id: 3, nombre: "Dr. Julio Mendoza", foto_url: "/images/profile/user-3.jpg",
-    usuario: "julio.mendoza@elrosal.pe", email: "julio.mendoza@elrosal.pe",
-    rol_id: PROFESIONAL.id, rol: PROFESIONAL, cargo: "DOCTOR",
+    usuario: null,
+    cargo: "DOCTOR",
     telefono: "+51987112903", activo: true, atiende: true, tipo_pago: "comision",
     comision_porcentaje: 25, monto_sueldo: null, periodo_pago: null,
     horario: horarioPorDefecto(), excepciones: [],
   },
   {
+    // Atiende pero no sale en la tienda: solo le reservan por teléfono. Ocupa
+    // plaza igual, porque está de alta.
     id: 4, nombre: "Lic. Rosa Paredes", foto_url: "/images/profile/user-4.jpg",
-    usuario: "rosa.paredes@elrosal.pe", email: "rosa.paredes@elrosal.pe",
-    rol_id: PROFESIONAL.id, rol: PROFESIONAL, cargo: "laboratorista",
-    telefono: "+51955320118", activo: true, atiende: true, tipo_pago: "comision",
+    usuario: null,
+    cargo: "laboratorista",
+    telefono: "+51955320118", activo: true, atiende: false, tipo_pago: "comision",
     comision_porcentaje: 20, monto_sueldo: null, periodo_pago: null,
     horario: horarioConAlmuerzo(), excepciones: [],
   },
   {
-    // Entra al panel pero no sale en la agenda: no ocupa plaza del plan.
-    id: 5, nombre: "Srta. Lucía Herrera", foto_url: "/images/profile/user-5.jpg",
-    usuario: "lucia.herrera@elrosal.pe", email: "lucia.herrera@elrosal.pe",
-    rol_id: RECEPCION.id, rol: RECEPCION, cargo: "Recepción",
-    telefono: "+51931208776", activo: true, atiende: false, tipo_pago: "sueldo",
-    comision_porcentaje: 0, monto_sueldo: 1800, periodo_pago: "mensual",
-    horario: horarioPorDefecto(), excepciones: [],
-  },
-  {
-    id: 6, nombre: "Dr. Andrés Vílchez", foto_url: "/images/profile/user-6.jpg",
-    usuario: "andres.vilchez@elrosal.pe", email: "andres.vilchez@elrosal.pe",
-    rol_id: PROFESIONAL.id, rol: PROFESIONAL, cargo: "pediatra",
+    // De baja: conserva su cuenta del panel, que es justo lo que el diálogo
+    // de borrado tiene que explicar.
+    id: 5, nombre: "Dr. Andrés Vílchez", foto_url: "/images/profile/user-6.jpg",
+    usuario: cuenta(3, "andres.vilchez@elrosal.pe", PROFESIONAL),
+    cargo: "pediatra",
     telefono: "+51998023471", activo: false, atiende: true, tipo_pago: "comision",
     comision_porcentaje: 30, monto_sueldo: null, periodo_pago: null,
     horario: horarioPorDefecto(), excepciones: [],

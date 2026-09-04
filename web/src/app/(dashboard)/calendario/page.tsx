@@ -23,8 +23,8 @@ import CalendarioLista from "@/features/calendario/components/CalendarioLista";
 import LeyendaCalendario from "@/features/calendario/components/LeyendaCalendario";
 import CitaFormDialog from "@/features/citas/components/CitaFormDialog";
 import { useCitasDelDia } from "@/features/citas/hooks/useCitas";
-import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
-import { saleEnAgenda } from "@/features/empleados/types";
+import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
+import { saleEnAgenda } from "@/features/profesionales/types";
 import type { Cita } from "@/features/citas/types";
 
 
@@ -42,11 +42,11 @@ export default function CalendarioPage() {
   } | null>(null);
 
   const { data: citas = [], isPending, error } = useCitasDelDia(fecha);
-  const { data: empleados = [] } = useTodosLosEmpleados();
+  const { data: todosLosProfesionales = [] } = useTodosLosProfesionales();
 
   const profesionales = useMemo(
-    () => empleados.filter(saleEnAgenda),
-    [empleados]
+    () => todosLosProfesionales.filter(saleEnAgenda),
+    [todosLosProfesionales]
   );
 
   const profesionalesVisibles = useMemo(

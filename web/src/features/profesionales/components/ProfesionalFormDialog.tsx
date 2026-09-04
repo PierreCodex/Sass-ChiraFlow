@@ -39,37 +39,67 @@ import {
   horarioParaFormulario,
   horarioPorDefecto,
 } from "../constants";
-import { useActualizarEmpleado, useCrearEmpleado } from "../hooks/useEmpleados";
+import {
+  useActualizarProfesional,
+  useCrearProfesional,
+} from "../hooks/useProfesionales";
 import {
   CAMPOS_POR_PESTANA,
-  crearEmpleadoSchema,
+  crearProfesionalSchema,
   valoresIniciales,
-  type EmpleadoFormValues,
-} from "../schemas/empleado.schema";
-import type { Empleado, EmpleadoPayload } from "../types";
+  type ProfesionalFormValues,
+} from "../schemas/profesional.schema";
+import type { Profesional, ProfesionalPayload } from "../types";
 import HorarioTab from "./HorarioTab";
 
 interface Props {
   abierto: boolean;
-  empleado?: Empleado | null;
+  profesional?: Profesional | null;
   onCerrar: () => void;
 }
 
 const PESTANAS = ["Datos", "Pago", "Horario"];
 
-const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
-  const theme = useTheme();
+/**
+ * Los tres interruptores de la pestaña Datos van en recuadro y no sueltos:
+ * cada uno decide algo con consecuencias —el cupo del plan, la tienda
+ * pública, una credencial nueva— y una casilla a pelo no da sitio para
+ * explicarlo.
+ */
+const recuadro = (conError: boolean) => ({
+  p: 2,
+  borderRadius: 1,
+  border: "1px solid",
+  borderColor: conError ? "error.main" : "divider",
+});
+
+const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
   const [pestana, setPestana] = useState(0);
 
-  const esEdicion = !!empleado;
+  const esEdicion = !!profesional;
+
+  /*
+    A quien YA tiene cuenta no se le toca desde aquí: cambiarle el correo o el
+    rol se hace en /usuarios, y el backend ignora el objeto `usuario` en ese
+    caso. Ofrecerlo sería un formulario que acepta cambios y no los guarda.
+  */
+  const tieneCuenta = !!profesional?.usuario;
+
   // El select de rol es dinámico: el negocio tiene los tres de sistema más los
   // que cree el dueño, y sin la lista no se le puede asignar ninguno.
-  const { data: roles, isPending: rolesCargando } = useRoles();
-  const crear = useCrearEmpleado();
-  const actualizar = useActualizarEmpleado();
+  const {
+    data: roles,
+    isPending: rolesCargando,
+    isError: rolesFallaron,
+  } = useRoles();
+  const crear = useCrearProfesional();
+  const actualizar = useActualizarProfesional();
   const mutacion = esEdicion ? actualizar : crear;
 
-  const schema = useMemo(() => crearEmpleadoSchema(esEdicion), [esEdicion]);
+  const schema = useMemo(
+    () => crearProfesionalSchema(tieneCuenta),
+    [tieneCuenta]
+  );
 
   const {
     control,
@@ -77,12 +107,13 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
     reset,
     setError,
     formState: { errors },
-  } = useForm<EmpleadoFormValues>({
+  } = useForm<ProfesionalFormValues>({
     resolver: yupResolver(schema),
     defaultValues: valoresIniciales,
   });
 
   const tipoPago = useWatch({ control, name: "tipo_pago" });
+  const darAcceso = useWatch({ control, name: "dar_acceso" });
   const muestraComision = PAGO_INCLUYE_COMISION.includes(tipoPago);
   const muestraSueldo = PAGO_INCLUYE_SUELDO.includes(tipoPago);
 
@@ -103,48 +134,46 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
     setPestana(0);
 
     reset(
-      empleado
+      profesional
         ? {
-            nombre: empleado.nombre,
-            foto: empleado.foto_url ? [{ url: empleado.foto_url }] : [],
-            email: empleado.email,
-            password: "",
+            nombre: profesional.nombre,
+            foto: profesional.foto_url ? [{ url: profesional.foto_url }] : [],
             // Se guarda como `+51987654321` y se teclea en 9 dígitos.
-            telefono: empleado.telefono
-              ? soloDigitos(empleado.telefono).slice(-9)
+            telefono: profesional.telefono
+              ? soloDigitos(profesional.telefono).slice(-9)
               : null,
-            rol_id: empleado.rol_id,
-            cargo: empleado.cargo,
-            activo: empleado.activo,
-            atiende: empleado.atiende,
-            tipo_pago: empleado.tipo_pago,
-            comision_porcentaje: empleado.comision_porcentaje,
-            monto_sueldo: empleado.monto_sueldo,
-            periodo_pago: empleado.periodo_pago,
-            horario: empleado.horario?.length
-              ? horarioParaFormulario(empleado.horario)
+            cargo: profesional.cargo,
+            activo: profesional.activo,
+            atiende: profesional.atiende,
+            // La casilla arranca apagada también al editar: es una acción que
+            // se toma hoy, no un estado de la ficha.
+            dar_acceso: false,
+            acceso_email: null,
+            acceso_rol_id: 0,
+            tipo_pago: profesional.tipo_pago,
+            comision_porcentaje: profesional.comision_porcentaje,
+            monto_sueldo: profesional.monto_sueldo,
+            periodo_pago: profesional.periodo_pago,
+            horario: profesional.horario?.length
+              ? horarioParaFormulario(profesional.horario)
               : horarioPorDefecto(),
-            excepciones: empleado.excepciones ?? [],
+            excepciones: profesional.excepciones ?? [],
           }
         : valoresIniciales
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, empleado, reset]);
+  }, [abierto, profesional, reset]);
 
   const onSubmit = handleSubmit(
     (valores) => {
-      const payload: EmpleadoPayload = {
+      const payload: ProfesionalPayload = {
         nombre: valores.nombre,
         foto: valores.foto[0]?.file ?? null,
         // No mandar el archivo significa "déjala como está", así que quitarla
         // necesita bandera propia.
         foto_eliminar:
-          esEdicion && !!empleado.foto_url && valores.foto.length === 0,
-        email: valores.email,
-        // En edición, vacía significa "no cambiar la contraseña".
-        password: valores.password || null,
+          esEdicion && !!profesional.foto_url && valores.foto.length === 0,
         telefono: valores.telefono ? normalizarTelefono(valores.telefono) : null,
-        rol_id: valores.rol_id,
         cargo: valores.cargo,
         activo: valores.activo,
         atiende: valores.atiende,
@@ -153,9 +182,21 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
         // Solo se envían si el tipo de pago los usa.
         monto_sueldo: muestraSueldo ? valores.monto_sueldo : null,
         periodo_pago: muestraSueldo ? valores.periodo_pago : null,
-        horario: valores.horario as EmpleadoPayload["horario"],
-        excepciones: valores.excepciones as EmpleadoPayload["excepciones"],
+        horario: valores.horario as ProfesionalPayload["horario"],
+        excepciones: valores.excepciones as ProfesionalPayload["excepciones"],
       };
+
+      /*
+        La casilla «darle acceso al panel». Viaja SOLO cuando está marcada: si
+        se mandara siempre, aunque fuera vacía, el backend intentaría crear una
+        cuenta sin correo en cada guardado.
+      */
+      if (!tieneCuenta && valores.dar_acceso && valores.acceso_email) {
+        payload.usuario = {
+          email: valores.acceso_email,
+          rol_id: valores.acceso_rol_id,
+        };
+      }
 
       const alTerminar = {
         onSuccess: () => onCerrar(),
@@ -163,7 +204,20 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
           const apiError = toApiError(error);
           if (apiError.errors) {
             Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
-              setError(campo as keyof EmpleadoFormValues, {
+              /*
+                El backend valida el objeto anidado y devuelve `usuario.email`
+                y `usuario.rol_id`; en pantalla esos campos se llaman
+                `acceso_*`. Sin esta traducción, el 422 del correo repetido
+                —el más probable de los dos— no se pintaría en ninguna parte.
+              */
+              const destino =
+                campo === "usuario.email"
+                  ? "acceso_email"
+                  : campo === "usuario.rol_id"
+                    ? "acceso_rol_id"
+                    : campo;
+
+              setError(destino as keyof ProfesionalFormValues, {
                 message: mensajes[0],
               });
             });
@@ -172,7 +226,7 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
       };
 
       if (esEdicion) {
-        actualizar.mutate({ id: empleado.id, payload }, alTerminar);
+        actualizar.mutate({ id: profesional.id, payload }, alTerminar);
       } else {
         crear.mutate(payload, alTerminar);
       }
@@ -210,7 +264,7 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
       >
         <DialogTitle component="div" sx={{ pb: 0 }}>
           <Typography variant="h5" fontWeight={600}>
-            {esEdicion ? "Editar empleado" : "Nuevo empleado"}
+            {esEdicion ? "Editar profesional" : "Nuevo profesional"}
           </Typography>
 
           <Tabs
@@ -290,52 +344,6 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="email">
-                  Correo de acceso
-                </CustomFormLabel>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <CustomTextField
-                      {...field}
-                      id="email"
-                      type="email"
-                      fullWidth
-                      autoComplete="off"
-                      error={!!errors.email}
-                      helperText={
-                        errors.email?.message ?? "Con este correo inicia sesión."
-                      }
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="password">Contraseña</CustomFormLabel>
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <CustomTextField
-                      {...field}
-                      value={field.value ?? ""}
-                      id="password"
-                      type="password"
-                      fullWidth
-                      autoComplete="new-password"
-                      placeholder={
-                        esEdicion ? "Dejar vacío para no cambiarla" : ""
-                      }
-                      error={!!errors.password}
-                      helperText={errors.password?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomFormLabel htmlFor="telefono">Teléfono</CustomFormLabel>
                 <Controller
                   name="telefono"
@@ -364,37 +372,6 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="rol_id">Rol</CustomFormLabel>
-                <Controller
-                  name="rol_id"
-                  control={control}
-                  render={({ field }) => (
-                    <CustomTextField
-                      {...field}
-                      select
-                      id="rol_id"
-                      fullWidth
-                      disabled={rolesCargando}
-                      error={!!errors.rol_id}
-                      helperText={errors.rol_id?.message}
-                      slotProps={{ select: { displayEmpty: true } }}
-                    >
-                      {/* Los roles los define el negocio: los tres de sistema
-                          más los que cree el dueño. */}
-                      <MenuItem value={0}>
-                        {rolesCargando ? "Cargando roles…" : "Elige un rol"}
-                      </MenuItem>
-                      {(roles ?? []).map((rol) => (
-                        <MenuItem key={rol.id} value={rol.id}>
-                          {rol.nombre}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomFormLabel htmlFor="cargo">Cargo</CustomFormLabel>
                 <Controller
                   name="cargo"
@@ -411,20 +388,15 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
               </Grid>
 
               {/*
-                «Atiende» va a la vista y no escondido: es donde cae el 422 del
-                cupo del plan, y su texto ofrece apagarlo como alternativa
-                gratis a subir de plan. Con el interruptor oculto, el mensaje
-                propondría una salida que no se ve por ninguna parte.
+                «Atiende» ya NO habla del plan. Desde que usuarios y
+                profesionales son cosas distintas, este interruptor solo decide
+                si la persona sale en la tienda pública: un barbero al que solo
+                le reservan por teléfono cuesta lo mismo que uno que recibe
+                reservas por la web. El cupo lo consume estar de alta, y por eso
+                el 422 del tope cae abajo, en «Está de alta».
               */}
               <Grid size={12}>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: errors.atiende ? "error.main" : "divider",
-                  }}
-                >
+                <Box sx={recuadro(false)}>
                   <Controller
                     name="atiende"
                     control={control}
@@ -437,37 +409,176 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
                             onChange={(e) => field.onChange(e.target.checked)}
                           />
                         }
-                        label="Atiende clientes"
+                        label="Se puede reservar con esta persona por internet"
+                      />
+                    )}
+                  />
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+                    Aparece en tu tienda pública y tus clientes pueden elegirla
+                    al reservar. Apagado sigue teniendo agenda: solo que las
+                    citas se las creas tú.
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/*
+                Aquí cae el 422 del cupo del plan: el cupo cuenta fichas
+                ACTIVAS, sin mirar roles ni `atiende`. Por eso el interruptor
+                lleva recuadro propio y el mensaje de error se pinta debajo, en
+                vez de esconderse en un `helperText` de casilla.
+              */}
+              <Grid size={12}>
+                <Box sx={recuadro(!!errors.activo)}>
+                  <Controller
+                    name="activo"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        sx={{ m: 0 }}
+                        control={
+                          <Switch
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Está de alta"
                       />
                     )}
                   />
                   <Typography
                     variant="body2"
-                    color={errors.atiende ? "error" : "textSecondary"}
+                    color={errors.activo ? "error" : "textSecondary"}
                     sx={{ mt: 0.5 }}
                   >
-                    {errors.atiende?.message ??
-                      "Aparece en la agenda y en la tienda pública, y ocupa una plaza del plan. Quien solo entra al panel —recepción, administración— no ocupa ninguna."}
+                    {errors.activo?.message ??
+                      "Ocupa una plaza de tu plan. Quien solo entra al panel —recepción, administración— no aparece en esta lista y no ocupa ninguna."}
                   </Typography>
                 </Box>
               </Grid>
 
+              {/* ------------------------------- Acceso al panel */}
               <Grid size={12}>
-                <Controller
-                  name="activo"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={field.value}
-                          onChange={(e) => field.onChange(e.target.checked)}
-                        />
-                      }
-                      label="Activo"
-                    />
+                <Box sx={recuadro(!!errors.acceso_email || !!errors.acceso_rol_id)}>
+                  {tieneCuenta ? (
+                    /*
+                      Ya entra al sistema. No se le edita desde aquí —el
+                      backend ignora el objeto `usuario` en ese caso—, así que
+                      se dice qué correo usa y dónde se cambia. Un formulario
+                      que acepta cambios y no los guarda es peor que uno que no
+                      los ofrece.
+                    */
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Entra al panel como {profesional!.usuario!.email}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Su rol es «{profesional!.usuario!.rol?.nombre ?? "—"}».
+                        Para cambiarle el correo, el rol o quitarle el acceso,
+                        ve a Usuarios.
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <>
+                      <Controller
+                        name="dar_acceso"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ m: 0 }}
+                            control={
+                              <Checkbox
+                                checked={field.value}
+                                onChange={(e) =>
+                                  field.onChange(e.target.checked)
+                                }
+                              />
+                            }
+                            label="Darle acceso al panel"
+                          />
+                        )}
+                      />
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ mt: 0.5 }}
+                      >
+                        Opcional. La mayoría de los profesionales no entran al
+                        sistema; márcalo solo si esta persona va a ver su agenda
+                        o trabajar en el panel.
+                      </Typography>
+
+                      {darAcceso ? (
+                        <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <CustomFormLabel htmlFor="acceso_email" sx={{ mt: 0 }}>
+                              Correo
+                            </CustomFormLabel>
+                            <Controller
+                              name="acceso_email"
+                              control={control}
+                              render={({ field }) => (
+                                <CustomTextField
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  id="acceso_email"
+                                  type="email"
+                                  fullWidth
+                                  autoComplete="off"
+                                  error={!!errors.acceso_email}
+                                  helperText={
+                                    errors.acceso_email?.message ??
+                                    "Le llegará una invitación para crear su contraseña."
+                                  }
+                                />
+                              )}
+                            />
+                          </Grid>
+
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <CustomFormLabel htmlFor="acceso_rol_id" sx={{ mt: 0 }}>
+                              Rol
+                            </CustomFormLabel>
+                            <Controller
+                              name="acceso_rol_id"
+                              control={control}
+                              render={({ field }) => (
+                                <CustomTextField
+                                  {...field}
+                                  select
+                                  id="acceso_rol_id"
+                                  fullWidth
+                                  disabled={rolesCargando || rolesFallaron}
+                                  error={!!errors.acceso_rol_id || rolesFallaron}
+                                  helperText={
+                                    rolesFallaron
+                                      ? "No se pudieron cargar los roles. Recarga la página o inténtalo en un momento."
+                                      : errors.acceso_rol_id?.message
+                                  }
+                                  slotProps={{ select: { displayEmpty: true } }}
+                                >
+                                  {/* Los roles los define el negocio: los tres
+                                      de sistema más los que cree el dueño. */}
+                                  <MenuItem value={0}>
+                                    {rolesCargando
+                                      ? "Cargando roles…"
+                                      : rolesFallaron
+                                        ? "Sin roles disponibles"
+                                        : "Elige un rol"}
+                                  </MenuItem>
+                                  {(roles ?? []).map((rol) => (
+                                    <MenuItem key={rol.id} value={rol.id}>
+                                      {rol.nombre}
+                                    </MenuItem>
+                                  ))}
+                                </CustomTextField>
+                              )}
+                            />
+                          </Grid>
+                        </Grid>
+                      ) : null}
+                    </>
                   )}
-                />
+                </Box>
               </Grid>
 
             </Grid>
@@ -630,4 +741,4 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
   );
 };
 
-export default EmpleadoFormDialog;
+export default ProfesionalFormDialog;

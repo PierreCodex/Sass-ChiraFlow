@@ -2,7 +2,7 @@ import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { citasMock } from "@/features/citas/mocks";
-import { empleadosMock } from "@/features/empleados/mocks";
+import { profesionalesMock } from "@/features/profesionales/mocks";
 import { configuracionMock } from "@/features/configuracion/mocks";
 import {
   huecosDisponibles,
@@ -72,7 +72,7 @@ export const publicoApi = {
     if (usarMocksPara("publico")) {
       await delay(300);
 
-      const empleado = empleadosMock.find(
+      const empleado = profesionalesMock.find(
         (item) => item.id === params.profesional_id
       );
       if (!empleado) return [];

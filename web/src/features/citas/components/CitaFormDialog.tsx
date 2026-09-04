@@ -32,8 +32,8 @@ import { dialogoResponsive, formularioCompacto } from "@/components/shared/estil
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useTodosLosClientes } from "@/features/clientes/hooks/useClientes";
-import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
-import { saleEnAgenda } from "@/features/empleados/types";
+import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
+import { saleEnAgenda } from "@/features/profesionales/types";
 import { useTodosLosServicios } from "@/features/servicios/hooks/useServicios";
 import { useTodosLosProductos } from "@/features/inventario/hooks/useProductos";
 import {
@@ -72,12 +72,12 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const mutacion = esEdicion ? actualizar : crear;
 
   const { data: clientes = [] } = useTodosLosClientes();
-  const { data: empleados = [] } = useTodosLosEmpleados();
+  const { data: todosLosProfesionales = [] } = useTodosLosProfesionales();
   const { data: servicios = [] } = useTodosLosServicios();
   const { data: productos = [] } = useTodosLosProductos();
 
   // El selector de profesional lista a quien sale en la agenda.
-  const profesionales = empleados.filter(saleEnAgenda);
+  const profesionales = todosLosProfesionales.filter(saleEnAgenda);
 
   const {
     control,
@@ -121,11 +121,11 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
       };
     }
 
-    const empleado = empleados.find((e) => e.id === empleadoId);
-    if (!empleado) return { huecos: [], motivoVacio: null };
+    const profesional = todosLosProfesionales.find((p) => p.id === empleadoId);
+    if (!profesional) return { huecos: [], motivoVacio: null };
 
     const jornada = jornadaDelDia(
-      empleado,
+      profesional,
       fechaElegida,
       horarioNegocio(configuracion)
     );
@@ -133,7 +133,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
       return {
         huecos: [],
         motivoVacio:
-          jornada.nota ?? `${empleado.nombre} no atiende este día.`,
+          jornada.nota ?? `${profesional.nombre} no atiende este día.`,
       };
     }
 
@@ -159,11 +159,11 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
       huecos: libres,
       motivoVacio: libres.length
         ? null
-        : `${empleado.nombre} tiene la agenda llena este día.`,
+        : `${profesional.nombre} tiene la agenda llena este día.`,
     };
   }, [
     empleadoId,
-    empleados,
+    todosLosProfesionales,
     fechaElegida,
     citasDelDia,
     servicioElegido,
