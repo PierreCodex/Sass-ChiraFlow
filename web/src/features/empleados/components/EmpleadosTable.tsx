@@ -1,5 +1,7 @@
 "use client";
+import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -10,6 +12,7 @@ import { IconPencil, IconTrash } from "@tabler/icons-react";
 import DataTable, { type Columna } from "@/components/shared/DataTable";
 import BuscadorTabla from "@/components/shared/BuscadorTabla";
 import { usePaginacion } from "@/hooks/usePaginacion";
+import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
 import { useEmpleados } from "../hooks/useEmpleados";
 import type { Empleado } from "../types";
 
@@ -22,6 +25,22 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
   const { page, perPage, search, setPage, setPerPage, buscar, params } =
     usePaginacion();
   const { data, isPending, error } = useEmpleados(params);
+  const { data: usuario } = useUsuarioActual();
+
+  /*
+    Tu propia ficha no se edita ni se borra desde aquí.
+
+    Se compara por email y no por id porque no son el mismo: el `id` del
+    empleado es el de `profesionales` (la base del negocio) y el de la sesión
+    es el del `users` central. El email es la credencial y es único GLOBAL, así
+    que identifica la fila sin ambigüedad.
+
+    No es una barandilla inventada: el backend ya responde 422 a «No puedes
+    darte de baja a ti mismo». Esto solo evita ofrecer un botón que siempre
+    falla, y manda a Mi perfil, que es donde esos datos SÍ se cambian.
+  */
+  const esTuFicha = (empleado: Empleado) =>
+    !!usuario && empleado.email === usuario.email;
 
   const columnas: Columna<Empleado>[] = [
     {
@@ -39,6 +58,9 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
           <Typography variant="subtitle2" fontWeight={600}>
             {empleado.nombre}
           </Typography>
+          {esTuFicha(empleado) ? (
+            <Chip size="small" label="Tú" color="primary" variant="outlined" />
+          ) : null}
         </Stack>
       ),
     },
@@ -93,28 +115,47 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
       id: "acciones",
       label: "Acciones",
       align: "right",
-      render: (empleado) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-          <Tooltip title="Editar">
-            <IconButton
+      render: (empleado) =>
+        esTuFicha(empleado) ? (
+          // Un enlace y no dos botones apagados: deshabilitados dirían «aquí
+          // no» sin decir dónde sí, y el nombre y la contraseña sí se cambian.
+          //
+          // Sin `Tooltip`: el suyo viaja como `aria-label` y le pisa el nombre
+          // accesible al enlace, que pasaría a anunciarse como la frase entera
+          // en vez de «Mi perfil».
+          <Stack direction="row" justifyContent="flex-end">
+            <Button
+              component={Link}
+              href="/configuracion/perfil"
               size="small"
-              color="primary"
-              onClick={() => onEditar(empleado)}
+              color="inherit"
+              sx={{ color: "text.secondary", fontWeight: 400 }}
             >
-              <IconPencil size={18} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => onEliminar(empleado)}
-            >
-              <IconTrash size={18} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
+              Mi perfil
+            </Button>
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+            <Tooltip title="Editar">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => onEditar(empleado)}
+              >
+                <IconPencil size={18} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Eliminar">
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => onEliminar(empleado)}
+              >
+                <IconTrash size={18} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
     },
   ];
 
