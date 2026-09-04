@@ -81,16 +81,22 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         soloDueno: true,
       },
       {
-        slug: "empleados",
-        titulo: "Empleados",
+        /*
+         * Quien PRESTA los servicios. No se llama «Empleados» porque no todo
+         * el que trabaja aquí sale en esta lista —la recepcionista está en
+         * Usuarios— y porque a mucha gente de esta lista no se la contrata:
+         * un profesional independiente que alquila el sillón también está.
+         */
+        slug: "profesionales",
+        titulo: "Profesionales",
         descripcion:
-          "Quién atiende, en qué local y con qué horario. El plan limita cuántos caben.",
+          "Quién presta los servicios y con qué horario. No hace falta que use el sistema. El plan limita cuántos caben.",
       },
       {
         slug: "roles",
         titulo: "Roles",
         descripcion:
-          "Qué puede ver y hacer cada quien. Hoy el rol se elige dentro de la ficha del empleado.",
+          "Qué puede ver y hacer cada quien. El rol se elige al dar de alta un usuario.",
       },
     ],
   },

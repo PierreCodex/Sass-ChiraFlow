@@ -38,7 +38,7 @@ export const dialogoResponsive: SxProps<Theme> = (theme) => ({
   /*
    * Un hijo flex arranca con `min-height: auto`, así que **no encoge por
    * debajo de su contenido**. En un formulario largo eso empuja los botones
-   * fuera del panel: en Empleados se salían 8px y quedaban inalcanzables.
+   * fuera del panel: en Profesionales se salían 8px y quedaban inalcanzables.
    *
    * Con `minHeight: 0` el contenido cede y scrollea, y la botonera se queda
    * anclada abajo. Vale para cualquier tamaño de pantalla, no solo móvil.

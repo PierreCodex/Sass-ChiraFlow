@@ -26,7 +26,7 @@ export const ticketsMock: Ticket[] = [
     mensaje:
       "Carmen entra a las 11:00 los jueves de este mes, pero no quiero cambiarle el horario fijo. ¿Hay forma de hacerlo solo para esa fecha?",
     respuesta:
-      "Sí. En Empleados → editar → pestaña Horario, abajo tienes «Excepciones». Agrega la fecha y marca el horario especial de ese día; el horario semanal se mantiene igual.",
+      "Sí. En Profesionales → editar → pestaña Horario, abajo tienes «Excepciones». Agrega la fecha y marca el horario especial de ese día; el horario semanal se mantiene igual.",
     estado: "cerrado",
     prioridad: "media",
     autor: "Ana Torres",

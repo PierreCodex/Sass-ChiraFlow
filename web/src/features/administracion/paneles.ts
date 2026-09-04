@@ -16,7 +16,7 @@ import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
  */
 const PANELES: Record<string, ComponentType> = {
   "equipo/usuarios": PantallaUsuarios,
-  "equipo/empleados": PantallaProfesionales,
+  "equipo/profesionales": PantallaProfesionales,
 };
 
 export function panelDeSeccion(

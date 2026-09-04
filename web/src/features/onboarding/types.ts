@@ -50,7 +50,7 @@ export const DESCRIPCION_PASOS: Record<string, DescripcionPaso> = {
     etiqueta: "Agrega tu primer profesional",
     descripcion: "El resto de tu equipo",
     // Sale de `nav.ts` y no a mano: la próxima mudanza se cambia en un sitio.
-    href: rutaDeSeccion("equipo", "empleados"),
+    href: rutaDeSeccion("equipo", "profesionales"),
   },
   primer_servicio: {
     etiqueta: "Crea tu primer servicio",

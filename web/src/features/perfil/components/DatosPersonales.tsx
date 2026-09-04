@@ -249,7 +249,7 @@ const DatosPersonales = () => {
         {/* Lo que NO se edita aquí, dicho antes de que lo busquen. */}
         <Typography variant="body2" color="textSecondary" mt={3}>
           ¿Buscas tu horario, tu cargo o tu biografía pública? Están en tu ficha
-          de profesional, en Empleados.
+          de profesional, en Profesionales.
         </Typography>
       </Box>
     </DashboardCard>

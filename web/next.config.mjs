@@ -18,7 +18,17 @@ const nextConfig = {
     return [
       {
         source: "/empleados",
-        destination: "/administracion/equipo/empleados",
+        destination: "/administracion/equipo/profesionales",
+        permanent: false,
+      },
+      /*
+       * La sección se llamó `equipo/empleados` durante esta misma rama, sin
+       * llegar a `main`. Se redirige igual porque el enlace se repartió en
+       * capturas y en el historial de esta sesión, y cuesta una línea.
+       */
+      {
+        source: "/administracion/equipo/empleados",
+        destination: "/administracion/equipo/profesionales",
         permanent: false,
       },
     ];

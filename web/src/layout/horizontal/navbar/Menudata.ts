@@ -102,7 +102,7 @@ const Menuitems = [
 // Ocultos, no borrados: esperan a la segunda vista. Igual que en el sidebar.
 export const MenuitemsOcultos = [
   {
-    // Empleados salió de aquí con la mudanza a Administración.
+    // Profesionales (antes Empleados) salió de aquí con la mudanza a Administración.
     id: uniqueId(),
     title: "Gestión",
     icon: IconBuildingStore,

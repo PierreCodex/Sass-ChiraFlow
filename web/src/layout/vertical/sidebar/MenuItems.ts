@@ -124,9 +124,9 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     navlabel: true,
     subheader: "Gestión",
   },
-  // Empleados ya no está aquí: vive en /administracion/equipo/empleados. Con
-  // la misma pantalla en dos sitios habría dos puertas a la misma habitación
-  // y el usuario no aprendería ninguna.
+  // Profesionales ya no está aquí: vive en /administracion/equipo/profesionales.
+  // Con la misma pantalla en dos sitios habría dos puertas a la misma
+  // habitación y el usuario no aprendería ninguna.
   {
     id: uniqueId(),
     title: "Locales",

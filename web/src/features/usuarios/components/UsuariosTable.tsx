@@ -94,7 +94,7 @@ const UsuariosTable = ({ onEditar, onEliminar }: Props) => {
         usuario.profesional ? (
           <Button
             component={Link}
-            href={rutaDeSeccion("equipo", "empleados")}
+            href={rutaDeSeccion("equipo", "profesionales")}
             size="small"
             color="inherit"
             sx={{ color: "text.secondary", fontWeight: 400 }}
