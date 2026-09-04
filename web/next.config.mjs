@@ -1,3 +1,28 @@
-const nextConfig = { reactStrictMode: false, images: { unoptimized: true } };
+/**
+ * Las pantallas que se mudan a la vista de Administración dejan aquí su
+ * redirección. La ruta vieja no deja de responder: hay enlaces guardados en
+ * marcadores, en correos del onboarding y en `href` del propio panel.
+ *
+ * `source` **exacto**, sin comodín: `/configuracion` se muda pero
+ * `/configuracion/perfil` (Mi perfil) se queda donde está, y un `/:path*`
+ * se lo llevaría por delante.
+ *
+ * `permanent: false` (307) a propósito: el 308 lo cachea el navegador para
+ * siempre, y mientras la mudanza está en curso eso deja a quien la probó
+ * atado a un destino que todavía puede cambiar.
+ */
+const nextConfig = {
+  reactStrictMode: false,
+  images: { unoptimized: true },
+  redirects() {
+    return [
+      {
+        source: "/empleados",
+        destination: "/administracion/equipo/empleados",
+        permanent: false,
+      },
+    ];
+  },
+};
 
 export default nextConfig;

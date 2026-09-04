@@ -65,7 +65,6 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Empleados",
         descripcion:
           "Quién atiende, en qué local y con qué horario. El plan limita cuántos caben.",
-        rutaActual: "/empleados",
       },
       {
         slug: "roles",

@@ -3,19 +3,24 @@ import { useState } from "react";
 import Button from "@mui/material/Button";
 import { IconPlus } from "@tabler/icons-react";
 
-import PageContainer from "@/components/container/PageContainer";
-import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import CupoPlanCard from "@/features/empleados/components/CupoPlanCard";
-import EmpleadosTable from "@/features/empleados/components/EmpleadosTable";
-import EmpleadoFormDialog from "@/features/empleados/components/EmpleadoFormDialog";
-import { useEliminarEmpleado } from "@/features/empleados/hooks/useEmpleados";
-import type { Empleado } from "@/features/empleados/types";
 import { toApiError } from "@/lib/api/client";
 
+import CupoPlanCard from "./CupoPlanCard";
+import EmpleadosTable from "./EmpleadosTable";
+import EmpleadoFormDialog from "./EmpleadoFormDialog";
+import { useEliminarEmpleado } from "../hooks/useEmpleados";
+import type { Empleado } from "../types";
 
-export default function EmpleadosPage() {
+/**
+ * La pantalla de Empleados: la tarjeta del cupo, la tabla y sus diálogos.
+ *
+ * Sin encabezado a propósito. Vive dentro de la vista de Administración, que
+ * ya pone el título y la descripción de la sección desde `nav.ts`; ponerle uno
+ * propio repetiría el rótulo que el usuario acaba de leer en el índice.
+ */
+export default function PantallaEmpleados() {
   const [formAbierto, setFormAbierto] = useState(false);
   const [empleadoEditando, setEmpleadoEditando] = useState<Empleado | null>(null);
   const [empleadoAEliminar, setEmpleadoAEliminar] = useState<Empleado | null>(null);
@@ -40,9 +45,7 @@ export default function EmpleadosPage() {
   };
 
   return (
-    <PageContainer title="Empleados" description="Personal del negocio">
-      <EncabezadoPagina titulo="Empleados" />
-
+    <>
       <CupoPlanCard
         accion={
           <Button
@@ -75,7 +78,7 @@ export default function EmpleadosPage() {
           <>
             ¿Seguro que quieres eliminar a{" "}
             <strong>{empleadoAEliminar?.nombre}</strong>? Perderá el acceso al
-            sistema y esta acción no se puede deshacer.
+            sistema y sus citas quedarán a su nombre.
           </>
         }
         textoConfirmar="Eliminar"
@@ -84,6 +87,6 @@ export default function EmpleadosPage() {
         onConfirmar={confirmarEliminacion}
         onCancelar={() => setEmpleadoAEliminar(null)}
       />
-    </PageContainer>
+    </>
   );
 }

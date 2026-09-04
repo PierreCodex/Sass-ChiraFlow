@@ -9,11 +9,12 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import { buscarSeccion } from "@/features/administracion/nav";
+import { panelDeSeccion } from "@/features/administracion/paneles";
 
 /*
-  El panel de una sección. Por ahora solo el encabezado: el formulario de cada
-  una se maqueta después, uno a uno. Mientras tanto se enlaza la pantalla del
-  panel que hoy hace ese trabajo, si existe.
+  El panel de una sección. Las que ya tienen el suyo lo montan desde
+  `paneles.ts`; el resto sigue enseñando el aviso de «por maquetar» y, si
+  existe, el enlace a la pantalla del panel que hoy hace ese trabajo.
 */
 export default function SeccionAdminPage({
   params,
@@ -40,9 +41,12 @@ export default function SeccionAdminPage({
   }
 
   const { grupo, seccion } = encontrado;
+  const Panel = panelDeSeccion(grupo.slug, seccion.slug);
 
   return (
-    <Box sx={{ maxWidth: 760 }}>
+    // El ancho se limita solo cuando no hay panel: un formulario corto se lee
+    // mejor estrecho, pero una tabla necesita todo el sitio que haya.
+    <Box sx={{ maxWidth: Panel ? "none" : 760 }}>
       <Typography variant="caption" color="text.secondary" textTransform="uppercase">
         {grupo.titulo}
       </Typography>
@@ -55,22 +59,26 @@ export default function SeccionAdminPage({
 
       <Divider sx={{ my: 3 }} />
 
-      <Stack spacing={2} alignItems="flex-start">
-        <Alert severity="info" sx={{ width: "100%" }}>
-          Esta sección todavía no tiene su formulario. Está por maquetar.
-        </Alert>
+      {Panel ? (
+        <Panel />
+      ) : (
+        <Stack spacing={2} alignItems="flex-start">
+          <Alert severity="info" sx={{ width: "100%" }}>
+            Esta sección todavía no tiene su formulario. Está por maquetar.
+          </Alert>
 
-        {seccion.rutaActual ? (
-          <Button
-            component={Link}
-            href={seccion.rutaActual}
-            variant="outlined"
-            size="small"
-          >
-            Abrir la pantalla actual
-          </Button>
-        ) : null}
-      </Stack>
+          {seccion.rutaActual ? (
+            <Button
+              component={Link}
+              href={seccion.rutaActual}
+              variant="outlined"
+              size="small"
+            >
+              Abrir la pantalla actual
+            </Button>
+          ) : null}
+        </Stack>
+      )}
     </Box>
   );
 }

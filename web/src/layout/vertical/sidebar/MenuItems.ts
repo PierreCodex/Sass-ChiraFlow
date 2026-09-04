@@ -124,12 +124,9 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     navlabel: true,
     subheader: "Gestión",
   },
-  {
-    id: uniqueId(),
-    title: "Empleados",
-    icon: IconUserCheck,
-    href: "/empleados",
-  },
+  // Empleados ya no está aquí: vive en /administracion/equipo/empleados. Con
+  // la misma pantalla en dos sitios habría dos puertas a la misma habitación
+  // y el usuario no aprendería ninguna.
   {
     id: uniqueId(),
     title: "Locales",
