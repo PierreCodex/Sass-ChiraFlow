@@ -63,6 +63,17 @@ export interface ResetPasswordPayload {
   password_confirmation: string;
 }
 
+/**
+ * Misma forma que el reset, y aun así un tipo aparte: el destino es otro.
+ *
+ * A quien se da de alta en el panel no se le escribe la contraseña —la cuenta
+ * nace con una aleatoria que no conoce nadie— y le llega una invitación con
+ * enlace de 7 días. Detrás hay un **broker distinto** del de recuperación, con
+ * su propia tabla y su propia caducidad: canjear este token en
+ * `/reset-password` no funciona, y al revés tampoco.
+ */
+export type AceptarInvitacionPayload = ResetPasswordPayload;
+
 /** Respuesta de los endpoints que solo traen un mensaje. */
 export interface RespuestaMensaje {
   message: string;
@@ -140,6 +151,26 @@ export const authApi = {
   resetPassword: async (payload: ResetPasswordPayload) => {
     const { data } = await api.post<RespuestaMensaje>(
       "/reset-password",
+      payload
+    );
+    return data;
+  },
+
+  /**
+   * El invitado elige su contraseña y su cuenta queda usable.
+   *
+   * Ojo con la ruta: **`/invitacion/aceptar`, no `/reset-password`**. Son
+   * brokers distintos con caducidades distintas (7 días aquí, 60 minutos
+   * allá), así que cruzarlos devuelve «la invitación no es válida» sobre un
+   * token que sí lo era.
+   *
+   * De paso deja el correo verificado: llegar hasta aquí exige haber abierto
+   * un enlace enviado a esa dirección, que es justo lo que la verificación
+   * demuestra.
+   */
+  aceptarInvitacion: async (payload: AceptarInvitacionPayload) => {
+    const { data } = await api.post<RespuestaMensaje>(
+      "/invitacion/aceptar",
       payload
     );
     return data;

@@ -34,12 +34,17 @@ const COOKIE_TOKEN = "mi_saas_token";
  *
  * `/reservar` es la tienda pública: nunca lleva cookie, y es también donde
  * aterriza el reescrito por subdominio.
+ *
+ * `/invitacion` es la landing del correo con el que alguien recién dado de
+ * alta elige su contraseña. Sin ella aquí, el guardia lo mandaría al login —
+ * que es exactamente lo que todavía no puede hacer.
  */
 const RUTAS_PUBLICAS = [
   "/login",
   "/register",
   "/forgot-password",
   "/reset-password",
+  "/invitacion",
   "/verificar-correo",
   "/reservar",
 ];
