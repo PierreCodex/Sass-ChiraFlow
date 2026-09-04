@@ -24,6 +24,7 @@ import LeyendaCalendario from "@/features/calendario/components/LeyendaCalendari
 import CitaFormDialog from "@/features/citas/components/CitaFormDialog";
 import { useCitasDelDia } from "@/features/citas/hooks/useCitas";
 import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
+import { saleEnAgenda } from "@/features/empleados/types";
 import type { Cita } from "@/features/citas/types";
 
 
@@ -44,7 +45,7 @@ export default function CalendarioPage() {
   const { data: empleados = [] } = useTodosLosEmpleados();
 
   const profesionales = useMemo(
-    () => empleados.filter((e) => e.rol === "profesional" && e.activo),
+    () => empleados.filter(saleEnAgenda),
     [empleados]
   );
 

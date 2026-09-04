@@ -3,6 +3,7 @@ import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { empleadosMock } from "@/features/empleados/mocks";
+import { saleEnAgenda } from "@/features/empleados/types";
 import { serviciosMock } from "@/features/servicios/mocks";
 import { localesMock } from "../mocks";
 import { gruposMock, localProfesionalMock } from "../mocks-recursos";
@@ -86,7 +87,7 @@ export const gruposApi = crearRecurso<Grupo, GrupoPayload>({
 
 /** Profesionales del negocio: los que se pueden asignar a un local o grupo. */
 export const profesionalesMock = empleadosMock
-  .filter((empleado) => empleado.rol === "profesional")
+  .filter(saleEnAgenda)
   .map((empleado) => ({ id: empleado.id, nombre: empleado.nombre }));
 
 function aNombres<T extends { id: number; nombre: string }>(

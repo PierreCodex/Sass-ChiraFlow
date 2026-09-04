@@ -10,7 +10,6 @@ import { IconPencil, IconTrash } from "@tabler/icons-react";
 import DataTable, { type Columna } from "@/components/shared/DataTable";
 import BuscadorTabla from "@/components/shared/BuscadorTabla";
 import { usePaginacion } from "@/hooks/usePaginacion";
-import { ROLES_EMPLEADO } from "../constants";
 import { useEmpleados } from "../hooks/useEmpleados";
 import type { Empleado } from "../types";
 
@@ -44,20 +43,22 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
       ),
     },
     {
-      id: "usuario",
-      label: "Usuario",
+      id: "email",
+      label: "Correo",
       render: (empleado) => (
         <Typography variant="body2" color="textSecondary">
-          {empleado.usuario}
+          {empleado.email}
         </Typography>
       ),
     },
     {
+      // El nombre lo pone el negocio: puede haber renombrado «Administrador»
+      // a «Encargada», así que se pinta tal cual llega.
       id: "rol",
       label: "Rol",
       render: (empleado) => (
         <Typography variant="body2" color="textSecondary">
-          {ROLES_EMPLEADO[empleado.rol] ?? empleado.rol}
+          {empleado.rol?.nombre ?? "-"}
         </Typography>
       ),
     },
@@ -74,11 +75,18 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
       id: "estado",
       label: "Estado",
       render: (empleado) => (
-        <Chip
-          size="small"
-          label={empleado.activo ? "Activo" : "Inactivo"}
-          color={empleado.activo ? "success" : "default"}
-        />
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <Chip
+            size="small"
+            label={empleado.activo ? "Activo" : "Inactivo"}
+            color={empleado.activo ? "success" : "default"}
+          />
+          {/* Quien no atiende entra al panel pero no ocupa plaza del plan:
+              explica por qué el contador dice menos que las filas. */}
+          {empleado.activo && !empleado.atiende ? (
+            <Chip size="small" variant="outlined" label="Sin agenda" />
+          ) : null}
+        </Stack>
       ),
     },
     {
@@ -116,7 +124,7 @@ const EmpleadosTable = ({ onEditar, onEliminar }: Props) => {
         <BuscadorTabla
           valor={search}
           onChange={buscar}
-          placeholder="Buscar empleado…"
+          placeholder="Buscar por nombre, correo o cargo…"
         />
       </Stack>
 

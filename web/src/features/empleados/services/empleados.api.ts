@@ -2,7 +2,7 @@ import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
-import { ROL_QUE_CONSUME_PLAN } from "../constants";
+import { rolesMock } from "@/features/roles/mocks";
 import { empleadosMock } from "../mocks";
 import type {
   Empleado,
@@ -13,10 +13,22 @@ import type {
 const recurso = crearRecurso<Empleado, EmpleadoPayload>({
   path: "empleados",
   mocks: empleadosMock,
-  camposBusqueda: ["nombre", "usuario", "cargo"],
+  camposBusqueda: ["nombre", "email", "cargo"],
   // Sube la foto del profesional: no puede ir como JSON.
   enviarComoFormData: true,
-  valoresPorDefecto: { activo: true, foto_url: null },
+  valoresPorDefecto: { activo: true, atiende: true, foto_url: null },
+  // El payload manda `rol_id` y `email`; la entidad devuelve el rol resuelto y
+  // el `usuario` con el correo dentro. Con el backend real lo hace el Resource.
+  alGuardarMock: (payload: EmpleadoPayload) => {
+    const rol = rolesMock.find((r) => r.id === payload.rol_id);
+    return {
+      usuario: payload.email,
+      foto_url: payload.foto ? URL.createObjectURL(payload.foto) : undefined,
+      rol: rol
+        ? { id: rol.id, nombre: rol.nombre, clave: rol.clave }
+        : undefined,
+    };
+  },
 });
 
 export const empleadosApi = {
@@ -34,10 +46,15 @@ export const empleadosApi = {
       await delay(200);
       // mockItems() y no empleadosMock: así el contador refleja las altas
       // y bajas hechas durante la sesión.
+      //
+      // Cuenta a quien está activo Y atiende, no por rol: los usuarios del
+      // panel son ilimitados y los profesionales no, así que el dueño
+      // también ocupa su plaza y una recepcionista sin agenda no ocupa
+      // ninguna.
       return {
         profesionales_activos: recurso
           .mockItems()
-          .filter((e) => e.rol === ROL_QUE_CONSUME_PLAN && e.activo).length,
+          .filter((e) => e.activo && e.atiende).length,
         limite_profesionales: 5,
       };
     }

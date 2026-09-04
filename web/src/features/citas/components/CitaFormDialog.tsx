@@ -33,6 +33,7 @@ import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useTodosLosClientes } from "@/features/clientes/hooks/useClientes";
 import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
+import { saleEnAgenda } from "@/features/empleados/types";
 import { useTodosLosServicios } from "@/features/servicios/hooks/useServicios";
 import { useTodosLosProductos } from "@/features/inventario/hooks/useProductos";
 import {
@@ -75,10 +76,8 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const { data: servicios = [] } = useTodosLosServicios();
   const { data: productos = [] } = useTodosLosProductos();
 
-  // El selector de profesional solo lista profesionales activos.
-  const profesionales = empleados.filter(
-    (e) => e.rol === "profesional" && e.activo
-  );
+  // El selector de profesional lista a quien sale en la agenda.
+  const profesionales = empleados.filter(saleEnAgenda);
 
   const {
     control,

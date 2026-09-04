@@ -18,6 +18,7 @@ import Grid from "@mui/material/Grid";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
@@ -28,13 +29,14 @@ import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import CampoImagenes from "@/components/shared/CampoImagenes";
 import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
+import { normalizarTelefono, PREFIJO_TELEFONO, soloDigitos } from "@/features/auth/types";
+import { useRoles } from "@/features/roles/hooks/useRoles";
 import {
   PAGO_INCLUYE_COMISION,
   PAGO_INCLUYE_SUELDO,
   PERIODOS_PAGO,
-  ROLES_ASIGNABLES,
-  ROLES_EMPLEADO,
   TIPOS_PAGO,
+  horarioParaFormulario,
   horarioPorDefecto,
 } from "../constants";
 import { useActualizarEmpleado, useCrearEmpleado } from "../hooks/useEmpleados";
@@ -60,6 +62,9 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
   const [pestana, setPestana] = useState(0);
 
   const esEdicion = !!empleado;
+  // El select de rol es dinámico: el negocio tiene los tres de sistema más los
+  // que cree el dueño, y sin la lista no se le puede asignar ninguno.
+  const { data: roles, isPending: rolesCargando } = useRoles();
   const crear = useCrearEmpleado();
   const actualizar = useActualizarEmpleado();
   const mutacion = esEdicion ? actualizar : crear;
@@ -102,19 +107,22 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
         ? {
             nombre: empleado.nombre,
             foto: empleado.foto_url ? [{ url: empleado.foto_url }] : [],
-            usuario: empleado.usuario,
-            password: "",
             email: empleado.email,
-            telefono: empleado.telefono,
-            rol: empleado.rol,
+            password: "",
+            // Se guarda como `+51987654321` y se teclea en 9 dígitos.
+            telefono: empleado.telefono
+              ? soloDigitos(empleado.telefono).slice(-9)
+              : null,
+            rol_id: empleado.rol_id,
             cargo: empleado.cargo,
             activo: empleado.activo,
+            atiende: empleado.atiende,
             tipo_pago: empleado.tipo_pago,
             comision_porcentaje: empleado.comision_porcentaje,
             monto_sueldo: empleado.monto_sueldo,
             periodo_pago: empleado.periodo_pago,
             horario: empleado.horario?.length
-              ? empleado.horario
+              ? horarioParaFormulario(empleado.horario)
               : horarioPorDefecto(),
             excepciones: empleado.excepciones ?? [],
           }
@@ -128,14 +136,18 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
       const payload: EmpleadoPayload = {
         nombre: valores.nombre,
         foto: valores.foto[0]?.file ?? null,
-        usuario: valores.usuario,
+        // No mandar el archivo significa "déjala como está", así que quitarla
+        // necesita bandera propia.
+        foto_eliminar:
+          esEdicion && !!empleado.foto_url && valores.foto.length === 0,
+        email: valores.email,
         // En edición, vacía significa "no cambiar la contraseña".
         password: valores.password || null,
-        email: valores.email,
-        telefono: valores.telefono,
-        rol: valores.rol,
+        telefono: valores.telefono ? normalizarTelefono(valores.telefono) : null,
+        rol_id: valores.rol_id,
         cargo: valores.cargo,
         activo: valores.activo,
+        atiende: valores.atiende,
         tipo_pago: valores.tipo_pago,
         comision_porcentaje: valores.comision_porcentaje,
         // Solo se envían si el tipo de pago los usa.
@@ -278,18 +290,23 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="usuario">Usuario</CustomFormLabel>
+                <CustomFormLabel htmlFor="email">
+                  Correo de acceso
+                </CustomFormLabel>
                 <Controller
-                  name="usuario"
+                  name="email"
                   control={control}
                   render={({ field }) => (
                     <CustomTextField
                       {...field}
-                      id="usuario"
+                      id="email"
+                      type="email"
                       fullWidth
                       autoComplete="off"
-                      error={!!errors.usuario}
-                      helperText={errors.usuario?.message}
+                      error={!!errors.email}
+                      helperText={
+                        errors.email?.message ?? "Con este correo inicia sesión."
+                      }
                     />
                   )}
                 />
@@ -319,25 +336,6 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="email">Email</CustomFormLabel>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <CustomTextField
-                      {...field}
-                      value={field.value ?? ""}
-                      id="email"
-                      type="email"
-                      fullWidth
-                      error={!!errors.email}
-                      helperText={errors.email?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
                 <CustomFormLabel htmlFor="telefono">Teléfono</CustomFormLabel>
                 <Controller
                   name="telefono"
@@ -348,25 +346,47 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
                       value={field.value ?? ""}
                       id="telefono"
                       fullWidth
+                      placeholder="987 654 321"
                       error={!!errors.telefono}
                       helperText={errors.telefono?.message}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              {PREFIJO_TELEFONO}
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
                     />
                   )}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <CustomFormLabel htmlFor="rol">Rol</CustomFormLabel>
+                <CustomFormLabel htmlFor="rol_id">Rol</CustomFormLabel>
                 <Controller
-                  name="rol"
+                  name="rol_id"
                   control={control}
                   render={({ field }) => (
-                    <CustomTextField {...field} select id="rol" fullWidth>
-                      {/* Solo los roles del negocio: `superadmin` es de la
-                          plataforma y `cliente` se crea al reservar. */}
-                      {ROLES_ASIGNABLES.map((valor) => (
-                        <MenuItem key={valor} value={valor}>
-                          {ROLES_EMPLEADO[valor]}
+                    <CustomTextField
+                      {...field}
+                      select
+                      id="rol_id"
+                      fullWidth
+                      disabled={rolesCargando}
+                      error={!!errors.rol_id}
+                      helperText={errors.rol_id?.message}
+                      slotProps={{ select: { displayEmpty: true } }}
+                    >
+                      {/* Los roles los define el negocio: los tres de sistema
+                          más los que cree el dueño. */}
+                      <MenuItem value={0}>
+                        {rolesCargando ? "Cargando roles…" : "Elige un rol"}
+                      </MenuItem>
+                      {(roles ?? []).map((rol) => (
+                        <MenuItem key={rol.id} value={rol.id}>
+                          {rol.nombre}
                         </MenuItem>
                       ))}
                     </CustomTextField>
@@ -390,6 +410,48 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
                 />
               </Grid>
 
+              {/*
+                «Atiende» va a la vista y no escondido: es donde cae el 422 del
+                cupo del plan, y su texto ofrece apagarlo como alternativa
+                gratis a subir de plan. Con el interruptor oculto, el mensaje
+                propondría una salida que no se ve por ninguna parte.
+              */}
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1,
+                    border: "1px solid",
+                    borderColor: errors.atiende ? "error.main" : "divider",
+                  }}
+                >
+                  <Controller
+                    name="atiende"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        sx={{ m: 0 }}
+                        control={
+                          <Switch
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Atiende clientes"
+                      />
+                    )}
+                  />
+                  <Typography
+                    variant="body2"
+                    color={errors.atiende ? "error" : "textSecondary"}
+                    sx={{ mt: 0.5 }}
+                  >
+                    {errors.atiende?.message ??
+                      "Aparece en la agenda y en la tienda pública, y ocupa una plaza del plan. Quien solo entra al panel —recepción, administración— no ocupa ninguna."}
+                  </Typography>
+                </Box>
+              </Grid>
+
               <Grid size={12}>
                 <Controller
                   name="activo"
@@ -407,6 +469,7 @@ const EmpleadoFormDialog = ({ abierto, empleado, onCerrar }: Props) => {
                   )}
                 />
               </Grid>
+
             </Grid>
           </Box>
 
