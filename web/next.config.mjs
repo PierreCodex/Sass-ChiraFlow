@@ -41,6 +41,11 @@ const nextConfig = {
         destination: "/administracion/general/negocio",
         permanent: false,
       },
+      {
+        source: "/locales",
+        destination: "/administracion/locales/sedes",
+        permanent: false,
+      },
     ];
   },
 };

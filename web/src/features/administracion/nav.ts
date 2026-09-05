@@ -146,19 +146,39 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
     titulo: "Locales",
     icono: IconBuildingStore,
     secciones: [
+      /*
+       * Las pestañas de `/locales` pasan a ser secciones, igual que en
+       * General. Son TRES y no cuatro:
+       *
+       * - «Horarios de las sedes» no existía como pantalla: el horario es un
+       *   par de campos DENTRO del formulario del local, así que la sección
+       *   prometía una pantalla que nunca hubo.
+       * - La pestaña «Servicios» era un espejo de solo lectura del catálogo,
+       *   sin filtrar por local ni permitir editar. Lo suyo sería «qué
+       *   servicios se ofrecen en cada sede», pero no hay tabla
+       *   `local_servicio` que lo represente (ver `vistas/locales.md`), así
+       *   que se queda fuera en vez de duplicar el módulo Servicios dentro de
+       *   una pantalla que va de locales.
+       */
       {
         slug: "sedes",
         titulo: "Sedes",
-        descripcion: "Los locales del negocio, con su dirección y su teléfono.",
-        rutaActual: "/locales",
+        descripcion:
+          "Los locales del negocio, con su dirección, su horario y la marca que ve el cliente en cada uno.",
         modulo: "locales",
       },
       {
-        slug: "horarios",
-        titulo: "Horarios de las sedes",
+        slug: "profesionales",
+        titulo: "Quién atiende en cada sede",
         descripcion:
-          "El horario de cada local cuando no es el del negocio, y los días que cierra.",
-        rutaActual: "/locales",
+          "Quién trabaja en cada local, con qué nombre aparece en la tienda pública y en qué horario.",
+        modulo: "locales",
+      },
+      {
+        slug: "grupos",
+        titulo: "Grupos",
+        descripcion:
+          "Agrupa locales, profesionales y servicios que van juntos. Todavía no cambian nada en la reserva.",
         modulo: "locales",
       },
     ],

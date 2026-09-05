@@ -5,6 +5,9 @@ import SeccionAgenda from "@/features/configuracion/components/secciones/Seccion
 import SeccionMarca from "@/features/configuracion/components/secciones/SeccionMarca";
 import SeccionNegocio from "@/features/configuracion/components/secciones/SeccionNegocio";
 import SeccionSitioPublico from "@/features/configuracion/components/secciones/SeccionSitioPublico";
+import PantallaGrupos from "@/features/locales/components/PantallaGrupos";
+import PantallaSedes from "@/features/locales/components/PantallaSedes";
+import ProfesionalesPorLocal from "@/features/locales/components/ProfesionalesPorLocal";
 import PantallaRoles from "@/features/roles/components/PantallaRoles";
 import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 
@@ -27,6 +30,9 @@ const PANELES: Record<string, ComponentType> = {
   "equipo/usuarios": PantallaUsuarios,
   "equipo/profesionales": PantallaProfesionales,
   "equipo/roles": PantallaRoles,
+  "locales/sedes": PantallaSedes,
+  "locales/profesionales": ProfesionalesPorLocal,
+  "locales/grupos": PantallaGrupos,
 };
 
 export function panelDeSeccion(

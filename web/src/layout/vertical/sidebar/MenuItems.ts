@@ -9,7 +9,6 @@ import {
   IconListDetails,
   IconCategory,
   IconUserCheck,
-  IconBuildingStore,
   IconChartBar,
   IconCreditCard,
   IconBrandWhatsapp,
@@ -141,20 +140,12 @@ const Menuitems: MenuitemsType[] = [
   reparten desde aquí.
 */
 export const MenuitemsOcultos: MenuitemsType[] = [
-  {
-    navlabel: true,
-    subheader: "Gestión",
-  },
-  // Profesionales ya no está aquí: vive en /administracion/equipo/profesionales.
-  // Con la misma pantalla en dos sitios habría dos puertas a la misma
-  // habitación y el usuario no aprendería ninguna.
-  {
-    id: uniqueId(),
-    title: "Locales",
-    icon: IconBuildingStore,
-    href: "/locales",
-    modulo: "locales",
-  },
+  /*
+   * El bloque «Gestión» se vació: Profesionales vive en
+   * /administracion/equipo/profesionales y Locales en
+   * /administracion/locales/sedes. Con la misma pantalla en dos sitios habría
+   * dos puertas a la misma habitación y el usuario no aprendería ninguna.
+   */
 
   {
     navlabel: true,
