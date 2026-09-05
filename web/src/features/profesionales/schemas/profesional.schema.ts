@@ -88,14 +88,15 @@ export const crearProfesionalSchema = (tieneCuenta: boolean) =>
         if (tieneCuenta || !this.parent.dar_acceso) return true;
         return !!valor;
       }),
-    acceso_rol_id: yup
-      .number()
-      .transform((valor, original) => (original === "" ? 0 : valor))
-      .required()
-      .test("requerido-con-acceso", "Elige un rol", function (valor) {
-        if (tieneCuenta || !this.parent.dar_acceso) return true;
-        return !!valor && valor > 0;
-      }),
+    /*
+      El rol NO se elige aquí, así que no hay campo que validar.
+
+      Quien da de alta a un barbero está diciendo «que pueda ver su agenda»,
+      no repartiendo poder sobre el sistema: ofrecerle un desplegable con
+      «Dueño» y «Administrador» dentro invita a un error caro con dos clics.
+      Se le pone el rol de sistema `profesional` y se cambia en Usuarios, que
+      es la pantalla que existe para eso.
+    */
 
     // --- Pago ---
     tipo_pago: yup
@@ -144,10 +145,10 @@ export type ProfesionalFormValues = yup.InferType<
 export const CAMPOS_POR_PESTANA: Record<number, string[]> = {
   0: [
     "nombre", "foto", "telefono", "cargo", "activo", "atiende",
-    "dar_acceso", "acceso_email", "acceso_rol_id",
-    // El backend valida el objeto anidado, así que sus 422 llegan con estas
-    // claves. Se listan para que la pestaña se marque igual.
-    "usuario.email", "usuario.rol_id",
+    "dar_acceso", "acceso_email",
+    // El backend valida el objeto anidado, así que su 422 llega con esta
+    // clave. Se lista para que la pestaña se marque igual.
+    "usuario.email",
   ],
   1: ["tipo_pago", "comision_porcentaje", "monto_sueldo", "periodo_pago"],
   2: ["horario", "excepciones"],
@@ -166,7 +167,6 @@ export const valoresIniciales: ProfesionalFormValues = {
   // credencial que nadie vigila.
   dar_acceso: false,
   acceso_email: null,
-  acceso_rol_id: 0,
   tipo_pago: "comision",
   comision_porcentaje: 0,
   monto_sueldo: null,

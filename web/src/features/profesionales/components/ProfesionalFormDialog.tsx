@@ -75,6 +75,8 @@ const recuadro = (conError: boolean) => ({
 
 const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
   const [pestana, setPestana] = useState(0);
+  /** 422 del servidor que no corresponden a ningún campo de la pantalla. */
+  const [erroresSueltos, setErroresSueltos] = useState<string[]>([]);
 
   const esEdicion = !!profesional;
 
@@ -85,13 +87,16 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
   */
   const tieneCuenta = !!profesional?.usuario;
 
-  // El select de rol es dinámico: el negocio tiene los tres de sistema más los
-  // que cree el dueño, y sin la lista no se le puede asignar ninguno.
-  const {
-    data: roles,
-    isPending: rolesCargando,
-    isError: rolesFallaron,
-  } = useRoles();
+  /*
+    Los roles se piden para RESOLVER uno, no para ofrecerlos.
+
+    A quien se le da acceso desde aquí le toca el rol de sistema
+    `profesional`: es un profesional, y eso es lo que dice ese rol. Se busca
+    por `clave` y no por nombre porque el negocio puede haberlo renombrado —
+    la clave es justo lo que sobrevive al renombrado.
+  */
+  const { data: roles, isPending: rolesCargando } = useRoles();
+  const rolProfesional = roles?.find((rol) => rol.clave === "profesional");
   const crear = useCrearProfesional();
   const actualizar = useActualizarProfesional();
   const mutacion = esEdicion ? actualizar : crear;
@@ -145,6 +150,7 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
     crear.reset();
     actualizar.reset();
     setPestana(0);
+    setErroresSueltos([]);
 
     reset(
       profesional
@@ -162,7 +168,6 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
             // se toma hoy, no un estado de la ficha.
             dar_acceso: false,
             acceso_email: null,
-            acceso_rol_id: 0,
             tipo_pago: profesional.tipo_pago,
             comision_porcentaje: profesional.comision_porcentaje,
             monto_sueldo: profesional.monto_sueldo,
@@ -204,10 +209,15 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
         se mandara siempre, aunque fuera vacía, el backend intentaría crear una
         cuenta sin correo en cada guardado.
       */
-      if (!tieneCuenta && valores.dar_acceso && valores.acceso_email) {
+      if (
+        !tieneCuenta &&
+        valores.dar_acceso &&
+        valores.acceso_email &&
+        rolProfesional
+      ) {
         payload.usuario = {
           email: valores.acceso_email,
-          rol_id: valores.acceso_rol_id,
+          rol_id: rolProfesional.id,
         };
       }
 
@@ -228,6 +238,14 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
             */
             let saltarA = Infinity;
 
+            /*
+              Los 422 cuya clave no tiene campo en el formulario. `setError`
+              sobre un nombre que no existe no pinta nada, así que sin esto
+              desaparecían en silencio y el diálogo se quedaba abierto sin
+              motivo visible. Ahora se cuentan y salen en el aviso de arriba.
+            */
+            const sinCampo: string[] = [];
+
             Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
               /*
                 El backend valida el objeto anidado y devuelve `usuario.email`
@@ -247,12 +265,15 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
               });
 
               const pestanaDelError = pestanaDelCampo(destino);
-              if (pestanaDelError >= 0 && pestanaDelError < saltarA) {
-                saltarA = pestanaDelError;
+              if (pestanaDelError >= 0) {
+                if (pestanaDelError < saltarA) saltarA = pestanaDelError;
+              } else {
+                sinCampo.push(mensajes[0]);
               }
             });
 
             if (Number.isFinite(saltarA)) setPestana(saltarA);
+            setErroresSueltos(sinCampo);
           }
         },
       };
@@ -331,6 +352,12 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}
+            </Alert>
+          ) : null}
+
+          {erroresSueltos.length > 0 ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {erroresSueltos.join(" ")}
             </Alert>
           ) : null}
 
@@ -491,7 +518,7 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
 
               {/* ------------------------------- Acceso al panel */}
               <Grid size={12}>
-                <Box sx={recuadro(!!errors.acceso_email || !!errors.acceso_rol_id)}>
+                <Box sx={recuadro(!!errors.acceso_email)}>
                   {tieneCuenta ? (
                     /*
                       Ya entra al sistema. No se le edita desde aquí —el
@@ -541,73 +568,48 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
                       </Typography>
 
                       {darAcceso ? (
-                        <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                          <Grid size={{ xs: 12, sm: 6 }}>
-                            <CustomFormLabel htmlFor="acceso_email" sx={{ mt: 0 }}>
-                              Correo
-                            </CustomFormLabel>
-                            <Controller
-                              name="acceso_email"
-                              control={control}
-                              render={({ field }) => (
-                                <CustomTextField
-                                  {...field}
-                                  value={field.value ?? ""}
-                                  id="acceso_email"
-                                  type="email"
-                                  fullWidth
-                                  autoComplete="off"
-                                  error={!!errors.acceso_email}
-                                  helperText={
-                                    errors.acceso_email?.message ??
-                                    "Le llegará una invitación para crear su contraseña."
-                                  }
-                                />
-                              )}
-                            />
-                          </Grid>
+                        <Box sx={{ mt: 1.5 }}>
+                          <CustomFormLabel htmlFor="acceso_email" sx={{ mt: 0 }}>
+                            Correo
+                          </CustomFormLabel>
+                          <Controller
+                            name="acceso_email"
+                            control={control}
+                            render={({ field }) => (
+                              <CustomTextField
+                                {...field}
+                                value={field.value ?? ""}
+                                id="acceso_email"
+                                type="email"
+                                fullWidth
+                                autoComplete="off"
+                                error={!!errors.acceso_email}
+                                helperText={
+                                  errors.acceso_email?.message ??
+                                  "Le llegará una invitación para crear su contraseña."
+                                }
+                              />
+                            )}
+                          />
 
-                          <Grid size={{ xs: 12, sm: 6 }}>
-                            <CustomFormLabel htmlFor="acceso_rol_id" sx={{ mt: 0 }}>
-                              Rol
-                            </CustomFormLabel>
-                            <Controller
-                              name="acceso_rol_id"
-                              control={control}
-                              render={({ field }) => (
-                                <CustomTextField
-                                  {...field}
-                                  select
-                                  id="acceso_rol_id"
-                                  fullWidth
-                                  disabled={rolesCargando || rolesFallaron}
-                                  error={!!errors.acceso_rol_id || rolesFallaron}
-                                  helperText={
-                                    rolesFallaron
-                                      ? "No se pudieron cargar los roles. Recarga la página o inténtalo en un momento."
-                                      : errors.acceso_rol_id?.message
-                                  }
-                                  slotProps={{ select: { displayEmpty: true } }}
-                                >
-                                  {/* Los roles los define el negocio: los tres
-                                      de sistema más los que cree el dueño. */}
-                                  <MenuItem value={0}>
-                                    {rolesCargando
-                                      ? "Cargando roles…"
-                                      : rolesFallaron
-                                        ? "Sin roles disponibles"
-                                        : "Elige un rol"}
-                                  </MenuItem>
-                                  {(roles ?? []).map((rol) => (
-                                    <MenuItem key={rol.id} value={rol.id}>
-                                      {rol.nombre}
-                                    </MenuItem>
-                                  ))}
-                                </CustomTextField>
-                              )}
-                            />
-                          </Grid>
-                        </Grid>
+                          {/*
+                            Se dice qué rol le toca, pero no se ofrece cambiarlo:
+                            aquí se decide que alguien vea su agenda, no cuánto
+                            poder tiene sobre el negocio. Para eso está Usuarios,
+                            y se enlaza en vez de esconderlo.
+                          */}
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            sx={{ mt: 1.5 }}
+                          >
+                            {rolesCargando
+                              ? "Cargando el rol…"
+                              : rolProfesional
+                                ? `Entrará con el rol «${rolProfesional.nombre}»: su agenda y sus citas. Si necesita más permisos, cámbiaselos luego en Usuarios.`
+                                : "No se pudo cargar el rol de profesional. Recarga la página o inténtalo en un momento."}
+                          </Typography>
+                        </Box>
                       ) : null}
                     </>
                   )}
