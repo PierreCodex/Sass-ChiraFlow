@@ -70,7 +70,13 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
             email: local.email,
             latitud: local.latitud,
             longitud: local.longitud,
-            color: local.color,
+            /*
+              El backend lo permite nulo y el `input[type=color]` no: sin
+              valor pinta negro y la regla de hex lo rechaza al guardar, con un
+              error sobre un campo que el usuario no ha tocado. Se cae al
+              mismo color con el que nace un local nuevo.
+            */
+            color: local.color ?? valoresIniciales.color,
             horario_desde: local.horario_desde,
             horario_hasta: local.horario_hasta,
             banner: local.banner_url ? [{ url: local.banner_url }] : [],

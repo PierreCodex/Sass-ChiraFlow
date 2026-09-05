@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
@@ -33,6 +33,8 @@ import {
 } from "@/features/auth/types";
 import { useRoles } from "@/features/roles/hooks/useRoles";
 
+import PermisosDelRol from "./PermisosDelRol";
+
 import { useActualizarUsuario, useCrearUsuario } from "../hooks/useUsuarios";
 import {
   usuarioSchema,
@@ -64,6 +66,7 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
     isPending: rolesCargando,
     isError: rolesFallaron,
   } = useRoles();
+
   const crear = useCrearUsuario();
   const actualizar = useActualizarUsuario();
   const mutacion = esEdicion ? actualizar : crear;
@@ -78,6 +81,32 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
     resolver: yupResolver(usuarioSchema),
     defaultValues: valoresIniciales,
   });
+
+  const rolElegido = useWatch({ control, name: "rol_id" });
+
+  /*
+    Dos roles de sistema NO se ofrecen aquí.
+
+    Quien lo lleva sin ficha queda a medias: permisos pensados para ver «su»
+    agenda y sus citas, y ninguna agenda que ver. Ese alta se hace en
+    Profesionales, que crea las dos mitades a la vez y ya asigna este rol.
+
+    Y `admin_general` tampoco: hay exactamente uno por negocio y lo crea el
+    registro, así que elegirlo aquí solo lleva a un 422 —«Ya hay un
+    administrador general en este negocio»—. Ofrecer una puerta que siempre
+    da error es peor que no ofrecerla.
+
+    Los dos se siguen mostrando **al editar a quien ya lo tiene**, porque si no
+    el desplegable aparecería en blanco sobre su propio rol y guardar se lo
+    cambiaría sin querer.
+  */
+  const ROLES_QUE_NO_SE_REPARTEN = ["profesional", "admin_general"];
+
+  const rolesOfrecidos = (roles ?? []).filter(
+    (rol) => !ROLES_QUE_NO_SE_REPARTEN.includes(rol.clave ?? "") || rol.id === usuario?.rol_id
+  );
+
+  const rolActual = roles?.find((rol) => rol.id === rolElegido);
 
   useEffect(() => {
     if (!abierto) return;
@@ -148,9 +177,19 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
       open={abierto}
       onClose={mutacion.isPending ? undefined : onCerrar}
       fullWidth
-      maxWidth="sm"
+      maxWidth="md"
     >
-      <Box component="form" onSubmit={onSubmit} noValidate>
+      {/*
+        `minHeight: 0` en el contenido: sin él la botonera se sale del panel
+        cuando la matriz de permisos crece (misma trampa que en el formulario
+        de profesionales).
+      */}
+      <Box
+        component="form"
+        onSubmit={onSubmit}
+        noValidate
+        sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}
+      >
         <DialogTitle component="div">
           <Typography variant="h5" fontWeight={600}>
             {esEdicion ? "Editar acceso" : "Dar acceso al panel"}
@@ -159,7 +198,7 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
 
         <Divider />
 
-        <DialogContent sx={formularioCompacto}>
+        <DialogContent sx={{ ...formularioCompacto, minHeight: 0 }}>
           {errorGeneral ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral}
@@ -291,7 +330,7 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
                           ? "Sin roles disponibles"
                           : "Elige un rol"}
                     </MenuItem>
-                    {(roles ?? []).map((rol) => (
+                    {rolesOfrecidos.map((rol) => (
                       <MenuItem key={rol.id} value={rol.id}>
                         {rol.nombre}
                       </MenuItem>
@@ -317,6 +356,14 @@ const UsuarioFormDialog = ({ abierto, usuario, onCerrar }: Props) => {
                   />
                 )}
               />
+            </Grid>
+
+            <Grid size={12}>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                Qué podrá hacer
+              </Typography>
+              <PermisosDelRol rol={rolActual} cargando={rolesCargando} />
             </Grid>
 
             {/*
