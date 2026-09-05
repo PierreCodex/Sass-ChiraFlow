@@ -30,6 +30,10 @@ interface Props {
  * Los permisos de un rol: un acordeón por bloque y, dentro, una tabla con una
  * casilla por nivel.
  *
+ * Las dos casillas se leen así: **Ver** es «tiene acceso» y **Gestionar** es
+ * «además puede escribir». Quitar Ver retira el módulo entero; quitar
+ * Gestionar lo deja en solo lectura.
+ *
  * **Dos columnas y no cuatro.** El backend guarda dos niveles por módulo —`ver`
  * y `gestionar`— y descartó los verbos CRUD a propósito: nadie en una barbería
  * quiere «puede crear clientes pero no borrarlos», y multiplica la matriz por
@@ -37,9 +41,10 @@ interface Props {
  * se guarda: marcar solo «Crear» acabaría escribiendo `gestionar` y al reabrir
  * saldrían las tres marcadas.
  *
- * **`Gestionar` implica `Ver`**, así que al marcarlo la casilla de ver queda
- * marcada y bloqueada. Es la regla del backend, no una comodidad: allí
- * `gestionar` incluye `ver` y los listados se anotan una sola vez.
+ * **`Gestionar` implica `Ver`** —es la regla del backend, donde `gestionar`
+ * incluye `ver` y los listados se anotan una sola vez—, así que marcar
+ * Gestionar marca también Ver. Pero Ver **no** se bloquea: quitarla retira el
+ * módulo entero, que es lo que uno espera al desmarcar «tiene acceso».
  */
 export default function MatrizPermisos({
   permisos,
@@ -159,12 +164,19 @@ export default function MatrizPermisos({
                           <Checkbox
                             size="small"
                             /*
-                              Marcada y bloqueada cuando gestiona: quitar el
-                              «ver» a quien gestiona no significa nada, y
-                              dejarlo pulsable invitaría a intentarlo.
+                              «Ver» significa «tiene algo de acceso», así que
+                              se marca también cuando gestiona — pero NO se
+                              bloquea.
+
+                              Bloquearla dejaba un callejón sin salida: para
+                              quitarle un módulo del todo había que desmarcar
+                              «Gestionar» y después «Ver», dos clics con un
+                              momento en medio en que la casilla no responde.
+                              Ahora quitarla retira el acceso entero, que es lo
+                              que significa desmarcar «tiene acceso».
                             */
                             checked={actual !== null}
-                            disabled={soloLectura || gestiona}
+                            disabled={soloLectura}
                             onChange={(e) =>
                               poner(modulo, e.target.checked ? "ver" : null)
                             }
