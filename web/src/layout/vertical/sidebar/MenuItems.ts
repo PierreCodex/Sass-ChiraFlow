@@ -1,4 +1,6 @@
 import { uniqueId } from "lodash";
+
+import type { Modulo } from "@/features/capacidades/types";
 import {
   IconLayoutDashboard,
   IconCalendarEvent,
@@ -17,7 +19,7 @@ import {
   IconLifebuoy,
 } from "@tabler/icons-react";
 
-interface MenuitemsType {
+export interface MenuitemsType {
   [x: string]: any;
   id?: string;
   navlabel?: boolean;
@@ -30,6 +32,16 @@ interface MenuitemsType {
   chipColor?: string;
   variant?: string;
   external?: boolean;
+  /**
+   * El módulo de la matriz de permisos al que pertenece esta entrada.
+   *
+   * Lo usa `SidebarItems` para esconder lo que el rol de quien mira no
+   * alcanza. Es la clave del backend, no la ruta ni el título: `empleados`
+   * sigue llamándose así aunque su pantalla se llame Profesionales.
+   *
+   * Una entrada sin `modulo` se ve siempre.
+   */
+  modulo?: Modulo;
 }
 
 /*
@@ -53,24 +65,28 @@ const Menuitems: MenuitemsType[] = [
     title: "Dashboard",
     icon: IconLayoutDashboard,
     href: "/",
+    modulo: "dashboard",
   },
   {
     id: uniqueId(),
     title: "Calendario",
     icon: IconCalendar,
     href: "/calendario",
+    modulo: "calendario",
   },
   {
     id: uniqueId(),
     title: "Citas",
     icon: IconCalendarEvent,
     href: "/citas",
+    modulo: "citas",
   },
   {
     id: uniqueId(),
     title: "Clientes",
     icon: IconUsers,
     href: "/clientes",
+    modulo: "clientes",
   },
 
   {
@@ -82,12 +98,15 @@ const Menuitems: MenuitemsType[] = [
     title: "Categorías",
     icon: IconCategory,
     href: "/categorias",
+    // Las categorías no son un módulo aparte en la matriz: son del catálogo.
+    modulo: "servicios",
   },
   {
     id: uniqueId(),
     title: "Servicios",
     icon: IconListDetails,
     href: "/servicios",
+    modulo: "servicios",
   },
 
   {
@@ -99,18 +118,21 @@ const Menuitems: MenuitemsType[] = [
     title: "Caja",
     icon: IconCashRegister,
     href: "/caja",
+    modulo: "caja",
   },
   {
     id: uniqueId(),
     title: "Inventario",
     icon: IconPackage,
     href: "/inventario",
+    modulo: "inventario",
   },
   {
     id: uniqueId(),
     title: "Reportes",
     icon: IconChartBar,
     href: "/reportes",
+    modulo: "reportes",
   },
 ];
 
@@ -132,6 +154,7 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     title: "Locales",
     icon: IconBuildingStore,
     href: "/locales",
+    modulo: "locales",
   },
 
   {
@@ -143,12 +166,14 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     title: "Mi Plan",
     icon: IconCreditCard,
     href: "/mi-plan",
+    modulo: "facturacion",
   },
   {
     id: uniqueId(),
     title: "WhatsApp",
     icon: IconBrandWhatsapp,
     href: "/whatsapp",
+    modulo: "whatsapp",
   },
   {
     id: uniqueId(),
@@ -175,6 +200,7 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     title: "Soporte",
     icon: IconLifebuoy,
     href: "/soporte",
+    modulo: "soporte",
   },
 ];
 

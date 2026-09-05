@@ -1,3 +1,4 @@
+import { puedeVer, type Capacidades, type Modulo } from "@/features/capacidades/types";
 import {
   IconBrandWhatsapp,
   IconBuildingStore,
@@ -33,6 +34,13 @@ export interface SeccionAdmin {
    * menú fuera lo que protege, bastaría con adivinar la URL.
    */
   soloAdminGeneral?: boolean;
+  /**
+   * El módulo de la matriz de permisos del que depende esta sección.
+   *
+   * Se esconde a quien no lo alcanza, igual que en el sidebar. Sin `modulo` la
+   * sección se ve siempre — y la restricción de verdad sigue siendo el 403.
+   */
+  modulo?: Modulo;
 }
 
 export interface GrupoAdmin {
@@ -54,6 +62,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         descripcion:
           "Nombre, RUC, teléfono, dirección y la marca que ven tus clientes.",
         rutaActual: "/configuracion",
+        modulo: "configuracion",
       },
       {
         slug: "horario",
@@ -61,6 +70,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         descripcion:
           "Los días y las horas en que el negocio atiende. Cada local y cada empleado pueden apartarse de aquí.",
         rutaActual: "/configuracion",
+        modulo: "configuracion",
       },
     ],
   },
@@ -92,12 +102,22 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Profesionales",
         descripcion:
           "Quién presta los servicios y con qué horario. No hace falta que use el sistema. El plan limita cuántos caben.",
+        modulo: "empleados",
       },
       {
+        /*
+         * Leer los roles lo puede cualquiera —el select de rol tiene que
+         * funcionarle a quien da altas—, pero esta pantalla es para
+         * GESTIONARLOS, y crear, editar y borrar es solo del administrador
+         * general: quien reparte permisos puede fabricarse uno con todo
+         * marcado y asignárselo. Se esconde donde vive la escritura, no
+         * donde vive la lectura.
+         */
         slug: "roles",
         titulo: "Roles",
         descripcion:
           "Qué puede ver y hacer cada quien. El rol se elige al dar de alta un usuario.",
+        soloAdminGeneral: true,
       },
     ],
   },
@@ -111,6 +131,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Sedes",
         descripcion: "Los locales del negocio, con su dirección y su teléfono.",
         rutaActual: "/locales",
+        modulo: "locales",
       },
       {
         slug: "horarios",
@@ -118,6 +139,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         descripcion:
           "El horario de cada local cuando no es el del negocio, y los días que cierra.",
         rutaActual: "/locales",
+        modulo: "locales",
       },
     ],
   },
@@ -132,6 +154,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         descripcion:
           "El texto de la confirmación, el recordatorio y la cancelación.",
         rutaActual: "/whatsapp",
+        modulo: "whatsapp",
       },
     ],
   },
@@ -145,18 +168,21 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Mi Plan",
         descripcion: "En qué plan estás y qué límites trae.",
         rutaActual: "/mi-plan",
+        modulo: "facturacion",
       },
       {
         slug: "suscripcion",
         titulo: "Suscripción",
         descripcion: "Cambiar de plan, renovar o darla de baja.",
         rutaActual: "/mi-plan",
+        modulo: "facturacion",
       },
       {
         slug: "pagos",
         titulo: "Pagos",
         descripcion: "El historial de cobros y sus comprobantes.",
         rutaActual: "/mi-plan",
+        modulo: "facturacion",
       },
     ],
   },
@@ -170,6 +196,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Tickets",
         descripcion: "Lo que nos has escrito y en qué va.",
         rutaActual: "/soporte",
+        modulo: "soporte",
       },
     ],
   },
@@ -181,6 +208,12 @@ export const RUTA_ADMIN_INICIAL = `/administracion/${GRUPOS_ADMIN[0].slug}/${GRU
 export const rutaDeSeccion = (grupo: string, seccion: string) =>
   `/administracion/${grupo}/${seccion}`;
 
+/** Lo que hace falta saber de quien mira para decidir qué ve. */
+export interface QuienMira {
+  esAdminGeneral: boolean;
+  capacidades: Capacidades | undefined;
+}
+
 /**
  * ¿Se le enseña esta sección a quien está mirando?
  *
@@ -188,13 +221,26 @@ export const rutaDeSeccion = (grupo: string, seccion: string) =>
  * sección apliquen **la misma** regla: si divergieran, el menú escondería algo
  * que la página sigue pintando, o al revés.
  */
-export function puedeVerSeccion(seccion: SeccionAdmin, esAdminGeneral: boolean) {
-  return !seccion.soloAdminGeneral || esAdminGeneral;
+export function puedeVerSeccion(
+  seccion: SeccionAdmin,
+  { esAdminGeneral, capacidades }: QuienMira
+) {
+  if (seccion.soloAdminGeneral && !esAdminGeneral) return false;
+
+  /*
+    Mientras las capacidades no han llegado se enseña todo, igual que en el
+    sidebar: esta es la única navegación de la vista de Administración, y
+    vaciarla medio segundo en cada carga es peor que un enlace de más que
+    aterriza en un aviso.
+  */
+  if (!capacidades || !seccion.modulo) return true;
+
+  return puedeVer(capacidades, seccion.modulo);
 }
 
 /** Las secciones de un grupo que le tocan a quien está mirando. */
-export function seccionesVisibles(grupo: GrupoAdmin, esAdminGeneral: boolean) {
-  return grupo.secciones.filter((s) => puedeVerSeccion(s, esAdminGeneral));
+export function seccionesVisibles(grupo: GrupoAdmin, quien: QuienMira) {
+  return grupo.secciones.filter((s) => puedeVerSeccion(s, quien));
 }
 
 /** Busca por slugs; devuelve `null` si la URL no corresponde a nada. */

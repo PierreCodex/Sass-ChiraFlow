@@ -21,6 +21,7 @@ import {
   useExportarReporte,
   useReporte,
 } from "@/features/reportes/hooks/useReporte";
+import AvisoError from "@/components/shared/AvisoError";
 
 
 export default function ReportesPage() {
@@ -46,7 +47,7 @@ export default function ReportesPage() {
         ) : null}
 
         {isError ? (
-          <Alert severity="error">{toApiError(error).message}</Alert>
+          <AvisoError error={error} />
         ) : isPending || !data ? (
           <>
             <Grid container spacing={3}>

@@ -6,9 +6,11 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import NavItem from './NavItem';
 import NavCollapse from './NavCollapse';
 import NavGroup from './NavGroup/NavGroup';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 
 import { CustomizerContext } from '@/context/customizerContext';
+import { useCapacidades } from '@/features/capacidades/hooks/useCapacidades';
+import { filtrarMenu } from '@/features/capacidades/menu';
 
 const SidebarItems = () => {
   const pathname = usePathname();
@@ -19,10 +21,21 @@ const SidebarItems = () => {
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
   const hideMenu: any = lgUp ? isCollapse == "mini-sidebar" && !isSidebarHover : '';
 
+  /*
+    El menú lo arma la matriz de permisos del backend, no una lista fija: un
+    profesional que no lleva la caja no ve Caja. `useMemo` porque el filtro
+    recorre el árbol y esto se re-renderiza en cada navegación.
+  */
+  const { data: capacidades } = useCapacidades();
+  const items = useMemo(
+    () => filtrarMenu(Menuitems, capacidades),
+    [capacidades]
+  );
+
   return (
     <Box sx={{ px: 3 }}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item) => {
+        {items.map((item) => {
           // {/********SubHeader**********/}
           if (item.subheader) {
             return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;

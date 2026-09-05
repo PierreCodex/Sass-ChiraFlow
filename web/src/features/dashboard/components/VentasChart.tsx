@@ -8,6 +8,7 @@ import DashboardCard from "@/components/shared/DashboardCard";
 import { toApiError } from "@/lib/api/client";
 import { formatDiaMes, formatMoneda } from "@/lib/format";
 import { useResumenDashboard } from "../hooks/useDashboard";
+import AvisoError from "@/components/shared/AvisoError";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -65,7 +66,7 @@ const VentasChart = () => {
       {isPending ? (
         <Skeleton variant="rounded" height={300} />
       ) : isError ? (
-        <Alert severity="error">{toApiError(error).message}</Alert>
+        <AvisoError error={error} />
       ) : (
         <Chart options={opciones} series={series} type="bar" height={300} width="100%" />
       )}

@@ -30,6 +30,7 @@ import CerrarCajaDialog from "@/features/caja/components/CerrarCajaDialog";
 import MovimientoCajaDialog from "@/features/caja/components/MovimientoCajaDialog";
 import { useEstadoCaja } from "@/features/caja/hooks/useCaja";
 import { diferenciaArqueo, saldoEsperado } from "@/features/caja/types";
+import AvisoError from "@/components/shared/AvisoError";
 
 
 export default function CajaPage() {
@@ -60,7 +61,7 @@ export default function CajaPage() {
           <Skeleton variant="rounded" height={320} />
         </Stack>
       ) : isError ? (
-        <Alert severity="error">{toApiError(error).message}</Alert>
+        <AvisoError error={error} />
       ) : !sesion ? (
         // Todavía no se ha abierto caja hoy: no hay nada que mostrar.
         <Card elevation={9}>

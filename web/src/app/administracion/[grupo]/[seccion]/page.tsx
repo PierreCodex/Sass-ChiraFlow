@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
+import { useCapacidades } from "@/features/capacidades/hooks/useCapacidades";
 import { buscarSeccion, puedeVerSeccion } from "@/features/administracion/nav";
 import { panelDeSeccion } from "@/features/administracion/paneles";
 
@@ -25,6 +26,7 @@ export default function SeccionAdminPage({
   const { grupo: grupoSlug, seccion: seccionSlug } = use(params);
   const encontrado = buscarSeccion(grupoSlug, seccionSlug);
   const { data: sesion } = useUsuarioActual();
+  const { data: capacidades } = useCapacidades();
   const esAdminGeneral = sesion?.rol === "admin_general";
 
   // Una URL inventada no saca al usuario de la vista: se queda con el índice
@@ -54,15 +56,16 @@ export default function SeccionAdminPage({
     Esto NO es lo que protege los datos: `/usuarios` responde 403 a cualquiera
     que no sea el dueño, pase lo que pase con esta pantalla.
   */
-  if (!puedeVerSeccion(seccion, esAdminGeneral)) {
+  if (!puedeVerSeccion(seccion, { esAdminGeneral, capacidades })) {
     return (
       <Box sx={{ maxWidth: 760 }}>
         <Typography variant="h4" fontWeight={600}>
           {seccion.titulo}
         </Typography>
         <Alert severity="info" sx={{ mt: 2 }}>
-          Esta sección la gestiona quien es dueño del negocio. Pídele que haga
-          el cambio, o que te dé ese rol.
+          {seccion.soloAdminGeneral
+            ? "Esta sección la gestiona el administrador general del negocio. Pídele que haga el cambio, o que te dé ese rol."
+            : "Tu rol no incluye esta sección. Si necesitas entrar, pídeselo a quien administra el negocio."}
         </Alert>
       </Box>
     );

@@ -20,6 +20,7 @@ import {
   useSolicitarPlan,
   useSuscripcion,
 } from "@/features/suscripcion/hooks/useSuscripcion";
+import AvisoError from "@/components/shared/AvisoError";
 
 
 export default function MiPlanPage() {
@@ -56,7 +57,7 @@ export default function MiPlanPage() {
       <EncabezadoPagina titulo="Elige tu plan" />
 
       {isError ? (
-        <Alert severity="error">{toApiError(error).message}</Alert>
+        <AvisoError error={error} />
       ) : isPending || !planes || !plan ? (
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, lg: 8 }}>

@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 
 import { toApiError } from "@/lib/api/client";
 import type { Paginated } from "@/lib/api/types";
+import AvisoError from "@/components/shared/AvisoError";
 
 export interface Columna<T> {
   /** Identificador único de la columna. */
@@ -65,7 +66,7 @@ export default function DataTable<T extends { id: number }>({
   }
 
   if (error) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
+    return <AvisoError error={error} />;
   }
 
   if (!datos || datos.data.length === 0) {

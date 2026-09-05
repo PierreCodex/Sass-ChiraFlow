@@ -26,6 +26,7 @@ import { useCitasDelDia } from "@/features/citas/hooks/useCitas";
 import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
 import { saleEnAgenda } from "@/features/profesionales/types";
 import type { Cita } from "@/features/citas/types";
+import AvisoError from "@/components/shared/AvisoError";
 
 
 export default function CalendarioPage() {
@@ -123,7 +124,7 @@ export default function CalendarioPage() {
         {isPending ? (
           <Skeleton variant="rounded" height={520} />
         ) : error ? (
-          <Alert severity="error">{toApiError(error).message}</Alert>
+          <AvisoError error={error} />
         ) : vista === "lista" ? (
           <CalendarioLista
             citas={citasVisibles}

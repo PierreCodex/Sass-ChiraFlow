@@ -8,10 +8,12 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
+import { useCapacidades } from "@/features/capacidades/hooks/useCapacidades";
 
 import { GRUPOS_ADMIN, rutaDeSeccion, seccionesVisibles } from "../nav";
 
@@ -30,7 +32,8 @@ import { GRUPOS_ADMIN, rutaDeSeccion, seccionesVisibles } from "../nav";
 export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
   const pathname = usePathname();
   const { data: sesion } = useUsuarioActual();
-  const esAdminGeneral = sesion?.rol === "admin_general";
+  const { data: capacidades } = useCapacidades();
+  const quienMira = { esAdminGeneral: sesion?.rol === "admin_general", capacidades };
   const grupoActivo = GRUPOS_ADMIN.find((g) =>
     pathname.startsWith(`/administracion/${g.slug}`),
   );
@@ -46,11 +49,37 @@ export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
         : [...previos, slug],
     );
 
+  /*
+    A quien no le toca ninguna seccion no se le deja una barra en blanco.
+
+    Pasa de verdad: un profesional no administra nada del negocio, y hasta
+    ahora aterrizaba en un panel vacio que parece un fallo de carga en vez de
+    una respuesta. Se espera a que las capacidades lleguen para no decirlo
+    durante el primer render.
+  */
+  const sinNada =
+    !!capacidades &&
+    GRUPOS_ADMIN.every((g) => seccionesVisibles(g, quienMira).length === 0);
+
+  if (sinNada) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Nada que administrar
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Tu rol no incluye ninguna sección de administración. Vuelve al panel
+          con el botón de arriba.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <List sx={{ p: 2 }} component="nav" aria-label="Secciones de administración">
       {GRUPOS_ADMIN.map((grupo) => {
         const Icono = grupo.icono;
-        const secciones = seccionesVisibles(grupo, esAdminGeneral);
+        const secciones = seccionesVisibles(grupo, quienMira);
 
         // Un grupo sin secciones visibles no pinta una fila que no lleva a
         // ninguna parte.

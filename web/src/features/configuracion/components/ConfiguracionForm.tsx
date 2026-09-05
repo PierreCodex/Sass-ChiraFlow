@@ -46,6 +46,7 @@ import {
   type ConfiguracionFormValues,
 } from "../schemas/configuracion.schema";
 import type { Configuracion, ConfiguracionPayload } from "../types";
+import AvisoError from "@/components/shared/AvisoError";
 
 const PESTANAS = [
   { titulo: "Negocio", Icono: IconBuildingStore },
@@ -195,7 +196,7 @@ const ConfiguracionForm = () => {
   }
 
   if (error) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
+    return <AvisoError error={error} />;
   }
 
   const errorGeneral = guardar.isError ? toApiError(guardar.error) : null;
