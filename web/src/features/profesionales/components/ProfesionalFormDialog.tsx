@@ -117,6 +117,19 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
   const muestraComision = PAGO_INCLUYE_COMISION.includes(tipoPago);
   const muestraSueldo = PAGO_INCLUYE_SUELDO.includes(tipoPago);
 
+  /**
+   * En qué pestaña vive un campo. `-1` si no está en ninguna.
+   *
+   * Se usa para saltar a la pestaña del primer error, y hace falta tanto para
+   * los de yup como para los 422 del servidor.
+   */
+  const pestanaDelCampo = (campo: string) =>
+    Number(
+      Object.entries(CAMPOS_POR_PESTANA).find(([, campos]) =>
+        campos.includes(campo)
+      )?.[0] ?? -1
+    );
+
   /** Pestañas que tienen algún error, para marcarlas con un punto. */
   const pestanasConError = useMemo(() => {
     const conError = new Set<number>();
@@ -203,6 +216,18 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
         onError: (error: unknown) => {
           const apiError = toApiError(error);
           if (apiError.errors) {
+            /*
+              A qué pestaña saltar. Se calcula con las claves que manda el
+              servidor y no leyendo `errors` después, porque el 422 llega de
+              forma asíncrona: cuando esto corre, `formState` todavía no se ha
+              propagado a este render.
+
+              Sin esto el diálogo se quedaba abierto sin decir nada cuando el
+              error caía en una pestaña que no estabas mirando — el caso del
+              422 del cupo del plan, que cae en «Está de alta».
+            */
+            let saltarA = Infinity;
+
             Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
               /*
                 El backend valida el objeto anidado y devuelve `usuario.email`
@@ -220,7 +245,14 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
               setError(destino as keyof ProfesionalFormValues, {
                 message: mensajes[0],
               });
+
+              const pestanaDelError = pestanaDelCampo(destino);
+              if (pestanaDelError >= 0 && pestanaDelError < saltarA) {
+                saltarA = pestanaDelError;
+              }
             });
+
+            if (Number.isFinite(saltarA)) setPestana(saltarA);
           }
         },
       };
@@ -233,10 +265,11 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
     },
     (erroresValidacion) => {
       // Saltar a la primera pestaña con errores, para que no queden ocultos.
-      const primera = Object.entries(CAMPOS_POR_PESTANA).find(([, campos]) =>
-        campos.some((campo) => campo in erroresValidacion)
-      );
-      if (primera) setPestana(Number(primera[0]));
+      const pestanas = Object.keys(erroresValidacion)
+        .map(pestanaDelCampo)
+        .filter((indice) => indice >= 0);
+
+      if (pestanas.length > 0) setPestana(Math.min(...pestanas));
     }
   );
 
