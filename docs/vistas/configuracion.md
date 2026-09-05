@@ -1,10 +1,12 @@
 # Configuración
 
-**Ruta:** `/configuracion`
-**Estado:** ✅ Validado contra el código Laravel
+**Ruta:** `/administracion/general/{negocio,agenda,marca,sitio-publico}`
+(`/configuracion` redirige a la primera; **`/configuracion/perfil` NO se mudó**)
+**Estado:** ✅ **Conectada al backend** (2026-09-05), partida en cuatro secciones
 **Archivos:**
-- `web/src/app/(dashboard)/configuracion/page.tsx`
-- `web/src/features/configuracion/components/ConfiguracionForm.tsx`
+- `web/src/features/configuracion/components/secciones/*.tsx` — una por sección
+- `web/src/features/configuracion/hooks/useSeccion.ts` — el formulario compartido
+- `web/src/features/configuracion/components/MarcoSeccion.tsx`
 - `web/src/features/configuracion/components/SeccionCampos.tsx`
 - `web/src/features/configuracion/components/BarraGuardado.tsx`
 - `web/src/features/configuracion/components/{EnlaceTienda,BotonVerSitio}.tsx`
@@ -13,8 +15,31 @@
 
 ## Qué muestra
 
-Un solo formulario con **cuatro secciones**. Son 19 campos: en una sola columna
-sería inmanejable.
+**Cuatro secciones de la vista de Administración**, una por URL:
+
+| Sección | URL | Qué lleva |
+|---|---|---|
+| Datos del negocio | `/administracion/general/negocio` | nombre, zona horaria, descripción, contacto, ubicación |
+| Agenda | `/administracion/general/agenda` | horario de respaldo y cómo se generan los huecos |
+| Marca | `/administracion/general/marca` | logo, portada y colores |
+| Sitio público | `/administracion/general/sitio-publico` | el enlace, si está encendido y los términos |
+
+Eran **cuatro pestañas verticales** dentro de `/configuracion`. Se partieron el
+2026-09-05: el shell de Administración ya lleva índice a la izquierda —el mismo
+trabajo que hacían las pestañas—, así que anidarlas duplicaba la navegación.
+
+### Cada sección guarda solo lo suyo
+
+El `PUT` es un **parche**: llega lo que llega y se toca solo eso. Guardar
+Agenda no borra el email que escribió Negocio.
+
+La distinción que importa al mandar es entre **clave ausente** —«no lo
+toques»— y **clave presente con valor vacío**, que sí escribe: por eso
+`sitio_publico_activo: false` se guarda y `email: ""` vacía el campo.
+
+Las reglas salen de un único `configuracionSchema` con `.pick()`, no de un
+esquema por sección: con cuatro, la validación del intervalo o la del horario
+acabarían divergiendo del backend en una sola de ellas.
 
 ### Cómo está montado (rediseño del 2026-08-22)
 
@@ -100,8 +125,8 @@ Devuelve el negocio del usuario autenticado.
     "zona_horaria": "America/Lima",
     "horario_apertura": "09:00",
     "horario_cierre": "20:00",
-    "color_primario": "#7c3aed",
-    "color_secundario": "#0ea5e9",
+    "color_primario": "#4f46e5",
+    "color_secundario": "#06b6d4",
     "logo_url": null,
     "cover_url": null,
     "sitio_publico_activo": true,
@@ -144,8 +169,8 @@ Reglas exactas de `ConfiguracionController::update`:
 ```
 horario_apertura   → configuracion.horario.apertura      (por defecto 09:00)
 horario_cierre     → configuracion.horario.cierre        (por defecto 20:00)
-color_primario     → configuracion.marca.color_primario  (por defecto #7c3aed)
-color_secundario   → configuracion.marca.color_secundario (por defecto #0ea5e9)
+color_primario     → columna de `tenants` (por defecto #4f46e5)
+color_secundario   → columna de `tenants` (por defecto #06b6d4)
 ```
 
 El resto son columnas directas de `negocios`.

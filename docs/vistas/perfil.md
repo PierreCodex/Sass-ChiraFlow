@@ -16,7 +16,7 @@
 La cuenta de **la persona**, no la del negocio. Es la distinción que evita la
 mitad de las dudas: lo de la empresa está en
 [Configuración](configuracion.md), y el horario o la biografía pública de quien
-atiende están en su ficha de [Empleados](empleados.md).
+atiende están en su ficha de [Profesionales](profesionales.md).
 
 Tres bloques:
 

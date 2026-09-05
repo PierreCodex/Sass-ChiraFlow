@@ -203,7 +203,7 @@ modo edición y precarga los valores.
 | 5 | Precio | Número con prefijo `S/` | Sí | ≥ 0 |
 | 6 | Duración (min) | Número | Sí | Entero > 0 |
 | 7 | Imagen principal | Selector de 1 imagen | No | — |
-| 8 | Color | `input[type=color]` | Sí | Por defecto morado |
+| 8 | Color | `input[type=color]` | Sí | Por defecto `#4f46e5`, el de la migración. La ficha decía «morado» por el Laravel anterior |
 | 9 | Galería de trabajos | Selector de hasta 4 imágenes | No | Máx. 4 |
 | 10 | Profesionales | Checkboxes de empleados | No | — |
 

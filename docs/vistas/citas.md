@@ -60,7 +60,7 @@ con los huecos disponibles**.
 
 Los huecos los calcula `features/calendario/disponibilidad.ts` a partir de:
 
-1. La jornada del profesional ese día (ver [empleados.md](empleados.md)).
+1. La jornada del profesional ese día (ver [profesionales.md](profesionales.md)).
 2. Menos sus breaks.
 3. Menos las citas que ya tiene (las canceladas no ocupan).
 4. Solo los inicios donde **cabe entera** la duración del servicio.
@@ -291,6 +291,6 @@ para la página pública de reservas.
 La columna `citas.fuente` (`web` · `panel` · `publica`) registra de dónde vino
 cada reserva. Todavía no se muestra en ninguna vista.
 - [ ] ¿Se valida que el profesional esté disponible según su horario? (ver
-      [empleados.md](empleados.md))
+      [profesionales.md](profesionales.md))
 - [ ] ¿Los productos descuentan stock al guardar la cita, o al cobrarla en Caja?
 - [ ] ¿El monto incluye los productos, o van aparte?

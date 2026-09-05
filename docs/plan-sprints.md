@@ -2,7 +2,7 @@
 
 Fecha: 2026-08-14. Fuentes: [`api-contract.md`](api-contract.md), las 17 fichas
 de [`vistas/`](vistas/), [`plan-backend.md`](plan-backend.md), y
-`F:\PERSONAL_JEAN\backend-sass\docs\discrepancias.md` (**CONGELADO** — sus
+`D:\PERSONAL_JEAN\Backend-Sass\docs\discrepancias.md` (**CONGELADO** — sus
 decisiones prevalecen sobre los SQL de referencia; aquí se cita por §).
 
 **Contexto de ejecución.** Una sola persona, dos repos, sesiones de Claude
@@ -151,9 +151,9 @@ Copiar como tests/verificaciones en cada módulo. No son opcionales:
 
 ## 4. Paso final de CADA sprint (ritual de cierre)
 
-Desde el repo `mi-saas` (el único autorizado a editar el contrato):
+Desde el repo `Sass-ChiraFlow` (el único autorizado a editar el contrato):
 
-1. Leer `F:\PERSONAL_JEAN\backend-sass\docs\pendientes-contrato.md`
+1. Leer `D:\PERSONAL_JEAN\Backend-Sass\docs\pendientes-contrato.md`
    (se crea en el Sprint 0 si no existe).
 2. Aplicar lo aceptado a `docs/api-contract.md` y a las fichas de
    `docs/vistas/` afectadas; rechazar con motivo lo que no proceda.

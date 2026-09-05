@@ -2,7 +2,7 @@
 
 **Ruta:** `/administracion` → redirige a `/administracion/general/negocio`
 **Entrada:** menú del usuario (avatar) → **Configuración**
-**Estado:** 🚧 solo el índice; el formulario de cada sección está por maquetar
+**Estado:** ✅ **Con panel propio en 10 de sus 12 secciones** (2026-09-05)
 
 ---
 
@@ -22,14 +22,30 @@ oscuro, esto entra en oscuro.
 
 ## El índice
 
-| Grupo | Secciones | Ruta |
+| Grupo | Secciones | Panel |
 |---|---|---|
-| General | Datos del negocio · Horario base | `/administracion/general/{negocio,horario}` |
-| Equipo | Empleados · Roles | `/administracion/equipo/{empleados,roles}` |
-| Locales | Sedes · Horarios de las sedes | `/administracion/locales/{sedes,horarios}` |
-| WhatsApp | Plantillas de mensaje | `/administracion/whatsapp/plantillas` |
-| Facturación | Mi Plan · Suscripción · Pagos | `/administracion/facturacion/{plan,suscripcion,pagos}` |
-| Soporte | Tickets | `/administracion/soporte/tickets` |
+| General | Datos del negocio · Agenda · Marca · Sitio público | ✅ [Configuración](configuracion.md) |
+| Equipo | Usuarios · Profesionales · Roles | ✅ [Usuarios](usuarios.md) · [Profesionales](profesionales.md) · [Roles](roles.md) |
+| Locales | Sedes · Quién atiende en cada sede · Grupos | ✅ [Locales](locales.md) |
+| WhatsApp | Plantillas de mensaje | 🚧 enlaza a `/whatsapp` |
+| Facturación | Mi Plan · Suscripción · Pagos | 🚧 enlaza a `/mi-plan` |
+| Soporte | Tickets | 🚧 enlaza a `/soporte` |
+
+Las rutas viejas (`/configuracion`, `/empleados`, `/locales`) **no dejan de
+responder**: redirigen a su sección, con `source` exacto. Hay enlaces guardados
+en marcadores y en correos del onboarding.
+
+### Quién ve qué
+
+El índice se filtra con la matriz de permisos (`GET /api/capacidades`): una
+sección cuyo módulo el rol no alcanza no se enseña, y a quien no le toca
+ninguna se le dice «Nada que administrar» en vez de dejarle una barra en
+blanco. `/administracion` entra por la primera sección **que le toque**, no por
+una fija.
+
+**Esconder no es autorizar**: el backend responde 403 igual. Y dos secciones
+—Usuarios y Roles— son solo del administrador general por un candado aparte,
+no por la matriz (`soloAdminGeneral` en `nav.ts`).
 
 Los grupos de una sola sección van como fila normal, sin desplegar: sería un
 clic de más.
@@ -42,7 +58,8 @@ Administración es lo que se configura una vez.
 
 ```
 app/administracion/layout.tsx                   el caparazón (barra + índice + panel)
-app/administracion/page.tsx                     redirige a la primera sección
+app/administracion/page.tsx                     entra por la primera que le toque
+features/administracion/paneles.ts              qué componente monta cada sección
 app/administracion/[grupo]/[seccion]/page.tsx   el panel de una sección
 features/administracion/nav.ts                  el índice: grupos, secciones y textos
 features/administracion/components/AdminNav.tsx el menú desplegable
@@ -55,10 +72,8 @@ existe"), en vez de la página de error de Next.
 
 ## Pendientes
 
-- **El formulario de cada sección.** Hoy cada panel enseña el título, la
-  descripción y un enlace (`rutaActual` en `nav.ts`) a la pantalla del panel que
-  hace ese trabajo: `/configuracion`, `/empleados`, `/locales`, `/whatsapp`,
-  `/mi-plan`, `/soporte`. Esas pantallas siguen montadas y funcionando; están **ocultas del sidebar**, no
-  borradas (`MenuitemsOcultos` en `layout/vertical/sidebar/MenuItems.ts`).
-- **Roles** no tiene pantalla: el rol se elige dentro de la ficha del empleado.
-- No hay endpoints propios: esta vista no habla con la API todavía.
+- **WhatsApp, Facturación y Soporte** siguen enlazando a su pantalla del panel
+  (`rutaActual` en `nav.ts`). Se mudan cuando se conecte su módulo, en su
+  sprint.
+- El **alcance por sedes** de una cuenta no tiene dónde asignarse todavía: el
+  backend lo aplica pero no hay endpoint que lo escriba.
