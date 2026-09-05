@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import PantallaProfesionales from "@/features/profesionales/components/PantallaProfesionales";
+import PantallaRoles from "@/features/roles/components/PantallaRoles";
 import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 
 /**
@@ -17,6 +18,7 @@ import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 const PANELES: Record<string, ComponentType> = {
   "equipo/usuarios": PantallaUsuarios,
   "equipo/profesionales": PantallaProfesionales,
+  "equipo/roles": PantallaRoles,
 };
 
 export function panelDeSeccion(
