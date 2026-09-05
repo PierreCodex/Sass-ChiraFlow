@@ -56,20 +56,40 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
     titulo: "General",
     icono: IconSettings,
     secciones: [
+      /*
+       * Las cuatro pestañas verticales de `/configuracion` pasan a ser cuatro
+       * secciones. El shell de Administración ya lleva índice a la izquierda
+       * —el mismo trabajo que hacían las pestañas—, así que anidarlas
+       * duplicaba la navegación.
+       *
+       * Ya no llevan `rutaActual`: la pantalla vieja se mudó aquí entera.
+       */
       {
         slug: "negocio",
         titulo: "Datos del negocio",
         descripcion:
-          "Nombre, RUC, teléfono, dirección y la marca que ven tus clientes.",
-        rutaActual: "/configuracion",
+          "El nombre, cómo te contactan y dónde estás. Es lo que ven tus clientes al reservar.",
         modulo: "configuracion",
       },
       {
-        slug: "horario",
-        titulo: "Horario base",
+        slug: "agenda",
+        titulo: "Agenda",
         descripcion:
-          "Los días y las horas en que el negocio atiende. Cada local y cada empleado pueden apartarse de aquí.",
-        rutaActual: "/configuracion",
+          "El horario en que atiende el negocio y cada cuánto se ofrece un turno. Cada local y cada profesional pueden apartarse de aquí.",
+        modulo: "configuracion",
+      },
+      {
+        slug: "marca",
+        titulo: "Marca",
+        descripcion:
+          "El logo, la portada y los colores de tu página de reservas. No cambian este panel.",
+        modulo: "configuracion",
+      },
+      {
+        slug: "sitio-publico",
+        titulo: "Sitio público",
+        descripcion:
+          "Tu enlace de reservas, si está encendido y los términos que acepta el cliente.",
         modulo: "configuracion",
       },
     ],

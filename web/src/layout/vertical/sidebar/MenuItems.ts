@@ -13,7 +13,6 @@ import {
   IconChartBar,
   IconCreditCard,
   IconBrandWhatsapp,
-  IconSettings,
   IconCashRegister,
   IconPackage,
   IconLifebuoy,
@@ -175,25 +174,18 @@ export const MenuitemsOcultos: MenuitemsType[] = [
     href: "/whatsapp",
     modulo: "whatsapp",
   },
+  /*
+   * «Configuración» ya no está aquí: sus cuatro pestañas viven en
+   * /administracion/general/*. Lo que queda es **Mi perfil**, que no se mudó
+   * porque es personal y no administración del negocio — y por eso sube un
+   * nivel, en vez de quedarse como único hijo de un padre que ya no lleva a
+   * ninguna parte.
+   */
   {
     id: uniqueId(),
-    title: "Configuración",
-    icon: IconSettings,
-    href: "/configuracion",
-    children: [
-      {
-        id: uniqueId(),
-        title: "General",
-        icon: IconSettings,
-        href: "/configuracion",
-      },
-      {
-        id: uniqueId(),
-        title: "Mi perfil",
-        icon: IconUserCheck,
-        href: "/configuracion/perfil",
-      },
-    ],
+    title: "Mi perfil",
+    icon: IconUserCheck,
+    href: "/configuracion/perfil",
   },
   {
     id: uniqueId(),

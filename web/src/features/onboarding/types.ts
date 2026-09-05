@@ -44,7 +44,7 @@ export const DESCRIPCION_PASOS: Record<string, DescripcionPaso> = {
   horario_local: {
     etiqueta: "Configura el horario de tu local",
     descripcion: "Los días y horas en que atiendes",
-    href: "/configuracion",
+    href: rutaDeSeccion("general", "agenda"),
   },
   primer_profesional: {
     etiqueta: "Agrega tu primer profesional",

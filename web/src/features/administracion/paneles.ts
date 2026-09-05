@@ -1,6 +1,10 @@
 import type { ComponentType } from "react";
 
 import PantallaProfesionales from "@/features/profesionales/components/PantallaProfesionales";
+import SeccionAgenda from "@/features/configuracion/components/secciones/SeccionAgenda";
+import SeccionMarca from "@/features/configuracion/components/secciones/SeccionMarca";
+import SeccionNegocio from "@/features/configuracion/components/secciones/SeccionNegocio";
+import SeccionSitioPublico from "@/features/configuracion/components/secciones/SeccionSitioPublico";
 import PantallaRoles from "@/features/roles/components/PantallaRoles";
 import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 
@@ -16,6 +20,10 @@ import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
  * La clave es `grupo/seccion`, los mismos slugs que forman la URL.
  */
 const PANELES: Record<string, ComponentType> = {
+  "general/negocio": SeccionNegocio,
+  "general/agenda": SeccionAgenda,
+  "general/marca": SeccionMarca,
+  "general/sitio-publico": SeccionSitioPublico,
   "equipo/usuarios": PantallaUsuarios,
   "equipo/profesionales": PantallaProfesionales,
   "equipo/roles": PantallaRoles,

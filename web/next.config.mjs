@@ -31,6 +31,16 @@ const nextConfig = {
         destination: "/administracion/equipo/profesionales",
         permanent: false,
       },
+      /*
+       * `source` exacto y no `/configuracion/:path*`: **Mi perfil** vive en
+       * `/configuracion/perfil` y NO se muda —es personal, no administración
+       * del negocio—, así que un comodín se lo llevaría por delante.
+       */
+      {
+        source: "/configuracion",
+        destination: "/administracion/general/negocio",
+        permanent: false,
+      },
     ];
   },
 };
