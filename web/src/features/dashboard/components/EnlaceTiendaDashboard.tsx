@@ -2,7 +2,7 @@
 import Skeleton from "@mui/material/Skeleton";
 
 import EnlaceTienda from "@/features/configuracion/components/EnlaceTienda";
-import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
+import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 
 /**
  * Enlace a la tienda pública, en el dashboard.
@@ -12,7 +12,7 @@ import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracio
  * dashboard no puede romperse por esto.
  */
 const EnlaceTiendaDashboard = () => {
-  const { data, isPending, isError } = useConfiguracion();
+  const { data, isPending, isError } = useNegocio();
 
   if (isPending) return <Skeleton variant="rounded" height={116} />;
   if (isError || !data) return null;

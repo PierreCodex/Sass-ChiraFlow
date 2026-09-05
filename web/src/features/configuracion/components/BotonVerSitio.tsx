@@ -2,7 +2,7 @@
 import Button from "@mui/material/Button";
 import { IconExternalLink } from "@tabler/icons-react";
 
-import { useConfiguracion } from "../hooks/useConfiguracion";
+import { useNegocio } from "../hooks/useConfiguracion";
 import { urlTienda } from "./EnlaceTienda";
 
 /**
@@ -11,11 +11,11 @@ import { urlTienda } from "./EnlaceTienda";
  * El bloque completo del enlace —copiar, compartir por WhatsApp— vive en la
  * pestaña "Sitio público"; aquí solo queda el gesto más frecuente: ir a verla.
  *
- * Usa el mismo `useConfiguracion` que el formulario, así que no dispara una
+ * Usa el mismo `useNegocio` que el formulario, así que no dispara una
  * segunda petición: React Query ya tiene la respuesta en caché.
  */
 const BotonVerSitio = () => {
-  const { data: configuracion } = useConfiguracion();
+  const { data: configuracion } = useNegocio();
 
   if (!configuracion?.slug) return null;
 

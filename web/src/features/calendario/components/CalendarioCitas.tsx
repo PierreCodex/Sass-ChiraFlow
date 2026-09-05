@@ -12,7 +12,7 @@ import { useTheme } from "@mui/material/styles";
 
 import type { Cita } from "@/features/citas/types";
 import type { Profesional } from "@/features/profesionales/types";
-import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
+import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import {
   atiendeA,
@@ -61,7 +61,7 @@ const CalendarioCitas = ({
 }: Props) => {
   const theme = useTheme();
   // Respaldo para los profesionales que no tienen horario propio.
-  const { data: configuracion } = useConfiguracion();
+  const { data: configuracion } = useNegocio();
 
   /**
    * Columnas del calendario: un recurso por profesional.

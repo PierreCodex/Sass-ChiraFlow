@@ -4,6 +4,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
+import Autocomplete from "@mui/material/Autocomplete";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import CardContent from "@mui/material/CardContent";
@@ -31,6 +32,7 @@ import CampoImagenes from "@/components/shared/CampoImagenes";
 import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 
+import { opcionesDeZonas } from "../zonas";
 import BarraGuardado from "./BarraGuardado";
 import EnlaceTienda from "./EnlaceTienda";
 import SeccionCampos from "./SeccionCampos";
@@ -43,7 +45,7 @@ import {
   configuracionSchema,
   type ConfiguracionFormValues,
 } from "../schemas/configuracion.schema";
-import type { Configuracion } from "../types";
+import type { Configuracion, ConfiguracionPayload } from "../types";
 
 const PESTANAS = [
   { titulo: "Negocio", Icono: IconBuildingStore },
@@ -58,7 +60,9 @@ const CampoColor = ({ id, value, onChange }: any) => (
     component="input"
     type="color"
     id={id}
-    value={value ?? "#7c3aed"}
+    // El de la columna de `tenants`. El #7c3aed de antes era del Laravel
+    // anterior y ya no lo devuelve nadie.
+    value={value ?? "#4f46e5"}
     onChange={onChange}
     sx={{
       width: "100%",
@@ -73,20 +77,38 @@ const CampoColor = ({ id, value, onChange }: any) => (
   />
 );
 
-/** Lo que viene de la API, con la forma que espera el formulario. */
+/**
+ * Lo que viene de la API, con la forma que espera el formulario.
+ *
+ * `slug`, `logo_url` y `cover_url` se quedan fuera: son de solo lectura y no
+ * hay campo que los edite. `zona_horaria` cae a `America/Lima` si llegara
+ * vacía, porque el select no admite un valor que no esté en la lista.
+ */
 function valoresDesde(configuracion: Configuracion) {
+  const { slug, logo_url, cover_url, agenda, zona_horaria, ...resto } =
+    configuracion;
+
   return {
-    ...configuracion,
-    logo: configuracion.logo_url ? [{ url: configuracion.logo_url }] : [],
-    cover: configuracion.cover_url ? [{ url: configuracion.cover_url }] : [],
-    modo_intervalo: configuracion.agenda.modo_intervalo,
-    intervalo_min: configuracion.agenda.intervalo_min,
+    ...resto,
+    zona_horaria: zona_horaria ?? "America/Lima",
+    logo: logo_url ? [{ url: logo_url }] : [],
+    cover: cover_url ? [{ url: cover_url }] : [],
+    modo_intervalo: agenda.modo_intervalo,
+    intervalo_min: agenda.intervalo_min,
   };
 }
 
 const ConfiguracionForm = () => {
   const [pestana, setPestana] = useState(0);
-  const { data: configuracion, isPending, error } = useConfiguracion();
+  const { data, isPending, error } = useConfiguracion();
+  const configuracion = data?.configuracion;
+
+  // Las 419 zonas del backend, con su rótulo y su desfase. El cálculo del
+  // desfase pasa por `Intl` una vez por zona, así que no se repite por render.
+  const zonas = useMemo(
+    () => opcionesDeZonas(data?.zonasHorarias ?? []),
+    [data?.zonasHorarias]
+  );
   const guardar = useGuardarConfiguracion();
 
   const theme = useTheme();
@@ -126,15 +148,25 @@ const ConfiguracionForm = () => {
 
   const onSubmit = handleSubmit(
     (valores) => {
-      const payload: Configuracion = {
-        ...configuracion!,
-        ...valores,
-        logo_url: valores.logo[0]?.url ?? null,
-        cover_url: valores.cover[0]?.url ?? null,
-        agenda: {
-          modo_intervalo: valores.modo_intervalo,
-          intervalo_min: valores.intervalo_min,
-        },
+      const { logo, cover, modo_intervalo, intervalo_min, ...campos } = valores;
+
+      const payload: ConfiguracionPayload = {
+        ...campos,
+        /*
+          Los dos campos de agenda viajan JUNTOS: la regla del intervalo se
+          apoya en el modo para saber si aplica, así que mandar el intervalo
+          solo no hace nada.
+        */
+        agenda: { modo_intervalo, intervalo_min },
+        /*
+          El archivo solo si es nuevo. No mandarlo significa «déjalo como
+          está», así que quitarlo necesita su bandera: sin ella, vaciar el
+          campo no borraría nada y la imagen volvería al recargar.
+        */
+        logo: logo[0]?.file ?? undefined,
+        logo_eliminar: !!configuracion?.logo_url && logo.length === 0,
+        cover: cover[0]?.file ?? undefined,
+        cover_eliminar: !!configuracion?.cover_url && cover.length === 0,
       };
 
       guardar.mutate(payload, {
@@ -256,12 +288,6 @@ const ConfiguracionForm = () => {
 
           <Grid size={{ xs: 12, md: 9 }}>
             <CardContent sx={{ ...formularioCompacto, p: 3, minHeight: 420 }}>
-              {guardar.isSuccess && !isDirty ? (
-                <Alert severity="success" sx={{ mb: 3 }}>
-                  Configuración guardada.
-                </Alert>
-              ) : null}
-
               {errorGeneral && !errorGeneral.errors ? (
                 <Alert severity="error" sx={{ mb: 3 }}>
                   {errorGeneral.message}
@@ -279,9 +305,50 @@ const ConfiguracionForm = () => {
                       {campoTexto("nombre", "Nombre del negocio")}
                     </Grid>
                     <Grid size={{ xs: 12, sm: 5 }}>
-                      {campoTexto("zona_horaria", "Zona horaria", {
-                        placeholder: "America/Lima",
-                      })}
+                      <CustomFormLabel htmlFor="zona_horaria">
+                        Zona horaria
+                      </CustomFormLabel>
+                      {/*
+                        Con búsqueda y no un `select` plano: son 419 opciones y
+                        recorrerlas con la rueda no es navegar. El desfase va en
+                        el rótulo porque «America/Lima» no le dice nada a quien
+                        no conoce la nomenclatura IANA, y «GMT-5» sí.
+                      */}
+                      <Controller
+                        name="zona_horaria"
+                        control={control}
+                        render={({ field }) => (
+                          <Autocomplete
+                            /*
+                              El `id` va aquí y no en el CustomTextField: el
+                              Autocomplete genera el suyo para su input y pisa
+                              el que le pongas al campo, así que la etiqueta
+                              apuntaría a un id que no existe.
+                            */
+                            id="zona_horaria"
+                            options={zonas}
+                            groupBy={(o) => o.region}
+                            getOptionLabel={(o) =>
+                              o.desfase ? `${o.etiqueta} (${o.desfase})` : o.etiqueta
+                            }
+                            isOptionEqualToValue={(o, v) => o.valor === v.valor}
+                            value={
+                              zonas.find((o) => o.valor === field.value) ?? null
+                            }
+                            onChange={(_, opcion) =>
+                              field.onChange(opcion?.valor ?? "")
+                            }
+                            disabled={zonas.length === 0}
+                            renderInput={(params) => (
+                              <CustomTextField
+                                {...params}
+                                error={!!errors.zona_horaria}
+                                helperText={errors.zona_horaria?.message}
+                              />
+                            )}
+                          />
+                        )}
+                      />
                     </Grid>
                     <Grid size={12}>
                       {campoTexto("descripcion", "Descripción", {

@@ -41,7 +41,7 @@ import {
   jornadaDelDia,
   pasoDeAgenda,
 } from "@/features/calendario/disponibilidad";
-import { useConfiguracion } from "@/features/configuracion/hooks/useConfiguracion";
+import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
@@ -107,7 +107,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     useCitasDelDia(fechaElegida);
 
   // El dueño decide cómo se generan los huecos (ver Configuración).
-  const { data: configuracion } = useConfiguracion();
+  const { data: configuracion } = useNegocio();
 
   /**
    * Huecos en los que cabe esta cita: jornada del profesional, menos sus

@@ -69,12 +69,44 @@ export interface Configuracion {
   mostrar_en_marketplace: boolean;
   terminos_servicio: string | null;
 
-  /**
-   * Ajuste propio del panel: todavía **no existe en el backend**. Define cómo
-   * se generan los huecos de reserva (ver `disponibilidad.ts`).
-   */
+  /** Cómo se generan los huecos de reserva (ver `disponibilidad.ts`). */
   agenda: ConfiguracionAgenda;
 }
+
+/**
+ * Lo que devuelve `GET /configuracion`: el negocio **y la lista de zonas**.
+ *
+ * `zonas_horarias` viaja FUERA de `data`, junto al recurso, con las 419 zonas
+ * IANA. Es el mismo criterio que `modulos` en el listado de roles: la pantalla
+ * necesita el valor y las opciones para pintar un select, y pedirlas aparte
+ * serían dos peticiones para un campo.
+ */
+export interface RespuestaConfiguracion {
+  configuracion: Configuracion;
+  zonasHorarias: string[];
+}
+
+/**
+ * Lo que viaja en el `PUT`. **Es un parche**: llega lo que llega y se toca solo
+ * eso.
+ *
+ * La distinción que importa es entre **clave ausente** y **clave presente con
+ * valor vacío**: la primera significa «no lo toques», la segunda sí escribe.
+ * Así `sitio_publico_activo: false` se guarda y `email: ""` vacía el campo. Por
+ * eso los campos son opcionales y no nullables a secas — `undefined` y `null`
+ * significan cosas distintas, y `aFormData` ya omite el primero.
+ *
+ * `slug` no está: lo fija el paso 1 del onboarding y el backend lo ignora.
+ */
+export type ConfiguracionPayload = Partial<
+  Omit<Configuracion, "slug" | "logo_url" | "cover_url">
+> & {
+  logo?: File | null;
+  cover?: File | null;
+  /** No mandar el archivo significa «déjalo como está»; esto lo quita. */
+  logo_eliminar?: boolean;
+  cover_eliminar?: boolean;
+};
 
 /** Valores por defecto del controlador cuando el campo llega vacío. */
 export const HORARIO_POR_DEFECTO: HorarioNegocio = {
