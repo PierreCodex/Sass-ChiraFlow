@@ -1,25 +1,16 @@
 "use client";
 import Link from "next/link";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
-import { IconChevronDown, IconLock } from "@tabler/icons-react";
+import { IconLock } from "@tabler/icons-react";
 
 import { rutaDeSeccion } from "@/features/administracion/nav";
-import {
-  contarAccesos,
-  etiquetaNivel,
-  ETIQUETAS_MODULO,
-  GRUPOS_MODULOS,
-} from "@/features/roles/modulos";
-import type { NivelPermiso, Rol } from "@/features/roles/types";
+import MatrizPermisos from "@/features/roles/components/MatrizPermisos";
+import { contarAccesos } from "@/features/roles/modulos";
+import type { Rol } from "@/features/roles/types";
 
 interface Props {
   rol: Rol | undefined;
@@ -27,22 +18,27 @@ interface Props {
 }
 
 /**
- * Qué puede hacer el rol que se acaba de elegir.
+ * Qué puede hacer el rol que se acaba de elegir, con el mismo checklist que la
+ * pantalla de Roles pero **sin poder tocarlo**.
  *
- * Existe porque el desplegable de rol dice «Recepción» y nada más: quien
- * reparte accesos elige a ciegas y solo descubre lo que dio cuando alguien se
- * queja de que no puede entrar a algo.
+ * Existe porque el desplegable dice «Recepción» y nada más: quien reparte
+ * accesos elige a ciegas y solo descubre lo que dio cuando alguien se queja de
+ * que no puede entrar a algo.
  *
- * **Es de solo lectura, y eso no es una limitación de la pantalla sino del
- * modelo.** Aquí los permisos son del ROL, no de la persona: `roles.permisos`
- * es la única matriz que existe. Poner casillas editables aquí no configuraría
- * a este usuario — cambiaría lo que pueden hacer todos los que llevan ese
- * mismo rol, que es justo lo que nadie espera al estar dando de alta a
- * alguien. Por eso enseña y enlaza, en vez de dejar tocar.
+ * Reutiliza `MatrizPermisos` a propósito, en vez de pintar su propia lista: si
+ * fueran dos componentes, el día que la matriz cambie —un módulo nuevo, otro
+ * nivel— habría que acordarse de tocar los dos, y la vista previa acabaría
+ * enseñando algo distinto de lo que la pantalla de Roles guarda.
+ *
+ * **Las casillas están apagadas, y eso no es una limitación de la pantalla
+ * sino del modelo**: aquí los permisos son del ROL, no de la persona.
+ * Dejarlas tocar no configuraría a este usuario — cambiaría lo que pueden
+ * hacer todos los que llevan ese mismo rol, que es justo lo que nadie espera
+ * estando en el alta de alguien. Por eso enseña y enlaza a Roles.
  */
 export default function PermisosDelRol({ rol, cargando }: Props) {
   if (cargando) {
-    return <Skeleton variant="rounded" height={180} />;
+    return <Skeleton variant="rounded" height={200} />;
   }
 
   if (!rol) {
@@ -54,6 +50,13 @@ export default function PermisosDelRol({ rol, cargando }: Props) {
   }
 
   const { gestiona, ve, total } = contarAccesos(rol.permisos);
+
+  /*
+    Los módulos salen de las claves de su propia matriz: el backend garantiza
+    que `permisos` trae SIEMPRE los 14, con `null` donde no hay acceso. Así
+    esta vista no necesita pedir la lista aparte solo para pintar un resumen.
+  */
+  const modulos = Object.keys(rol.permisos);
 
   return (
     <Box>
@@ -96,107 +99,16 @@ export default function PermisosDelRol({ rol, cargando }: Props) {
           icon={<IconLock size={18} />}
           sx={{ mb: 1.5 }}
         >
-          Solo verá lo suyo: sus citas y sus clientes, no los de sus
-          compañeros.
+          Solo verá lo suyo: sus citas y sus clientes, no los de sus compañeros.
         </Alert>
       ) : null}
 
-      {GRUPOS_MODULOS.map((grupo) => {
-        const conAcceso = grupo.modulos.filter((m) => rol.permisos[m] != null);
-
-        return (
-          <Accordion
-            key={grupo.titulo}
-            disableGutters
-            elevation={0}
-            sx={{
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-              mb: 1,
-              "&::before": { display: "none" },
-            }}
-          >
-            <AccordionSummary expandIcon={<IconChevronDown size={18} />}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ width: "100%", pr: 1 }}
-              >
-                <Typography variant="body2" fontWeight={600}>
-                  {grupo.titulo}
-                </Typography>
-                {/*
-                  El resumen a la derecha ahorra abrir los cinco bloques para
-                  descubrir que cuatro están vacíos.
-                */}
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  color={conAcceso.length ? "primary" : "default"}
-                  label={
-                    conAcceso.length
-                      ? `${conAcceso.length} de ${grupo.modulos.length}`
-                      : "Sin acceso"
-                  }
-                />
-              </Stack>
-            </AccordionSummary>
-
-            <AccordionDetails sx={{ pt: 0 }}>
-              <Stack spacing={0.5}>
-                {grupo.modulos.map((modulo) => (
-                  <Fila
-                    key={modulo}
-                    nombre={ETIQUETAS_MODULO[modulo] ?? modulo}
-                    nivel={rol.permisos[modulo]}
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-        );
-      })}
+      <MatrizPermisos
+        permisos={rol.permisos}
+        modulos={modulos}
+        onChange={() => {}}
+        soloLectura
+      />
     </Box>
-  );
-}
-
-function Fila({
-  nombre,
-  nivel,
-}: {
-  nombre: string;
-  nivel: NivelPermiso | null | undefined;
-}) {
-  const sinAcceso = nivel == null;
-
-  return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      justifyContent="space-between"
-      sx={{
-        py: 0.75,
-        px: 1,
-        borderRadius: 1,
-        bgcolor: (t) =>
-          sinAcceso ? "transparent" : alpha(t.palette.primary.main, 0.06),
-      }}
-    >
-      <Typography
-        variant="body2"
-        color={sinAcceso ? "text.disabled" : "text.primary"}
-      >
-        {nombre}
-      </Typography>
-      <Typography
-        variant="caption"
-        fontWeight={sinAcceso ? 400 : 600}
-        color={sinAcceso ? "text.disabled" : "primary.main"}
-      >
-        {etiquetaNivel(nivel)}
-      </Typography>
-    </Stack>
   );
 }
