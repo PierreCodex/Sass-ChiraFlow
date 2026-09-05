@@ -95,6 +95,13 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
       horario_hasta: valores.horario_hasta,
       banner: valores.banner[0]?.file ?? null,
       logo: valores.logo[0]?.file ?? null,
+      /*
+        No mandar el archivo significa «déjalo como está», así que vaciar el
+        campo necesita su bandera. Sin esto, quitar el banner en el formulario
+        no borraba nada: al recargar volvía a estar.
+      */
+      banner_eliminar: esEdicion && !!local.banner_url && valores.banner.length === 0,
+      logo_eliminar: esEdicion && !!local.logo_url && valores.logo.length === 0,
     };
 
     const alTerminar = {
@@ -199,6 +206,17 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                   />
                 )}
               />
+              {/*
+                El color no es un CustomTextField, así que no tiene dónde
+                pintar su `helperText`: el mensaje va debajo a mano. Puede
+                fallar de verdad — el backend exige hex de 6 porque la columna
+                es char(7) y con MySQL estricto otra cosa sería un 500.
+              */}
+              {errors.color ? (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>
+                  {errors.color.message}
+                </Typography>
+              ) : null}
             </Grid>
 
             <Grid size={12}>
@@ -212,6 +230,8 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                     value={field.value ?? ""}
                     id="direccion"
                     fullWidth
+                    error={!!errors.direccion}
+                    helperText={errors.direccion?.message}
                   />
                 )}
               />
@@ -232,7 +252,11 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                     fullWidth
                     multiline
                     rows={2}
-                    helperText="Se muestra en la página pública de reservas."
+                    error={!!errors.descripcion_publica}
+                    helperText={
+                      errors.descripcion_publica?.message ??
+                      "Se muestra en la página pública de reservas."
+                    }
                   />
                 )}
               />
@@ -249,6 +273,8 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                     value={field.value ?? ""}
                     id="telefono"
                     fullWidth
+                    error={!!errors.telefono}
+                    helperText={errors.telefono?.message}
                   />
                 )}
               />
@@ -325,6 +351,8 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                     id="horario_desde"
                     type="time"
                     fullWidth
+                    error={!!errors.horario_desde}
+                    helperText={errors.horario_desde?.message}
                   />
                 )}
               />
@@ -344,6 +372,8 @@ const LocalFormDialog = ({ abierto, local, onCerrar }: Props) => {
                     id="horario_hasta"
                     type="time"
                     fullWidth
+                    error={!!errors.horario_hasta}
+                    helperText={errors.horario_hasta?.message}
                   />
                 )}
               />

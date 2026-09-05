@@ -52,17 +52,18 @@ const ProfesionalesPorLocal = () => {
     useProfesionalesDelLocal(localId);
   const actualizar = useActualizarLocalProfesional(localId);
 
-  /** El interruptor guarda al momento, conservando el resto de la fila. */
+  /**
+   * El interruptor guarda al momento y manda **solo su campo**.
+   *
+   * Antes reenviaba la fila entera para «conservarla». Con el `PUT` parcial
+   * del backend eso no hace falta y además es peor: si el modal acabara de
+   * escribir un nombre público y la tabla todavía tuviera el valor viejo en
+   * caché, encender el interruptor lo revertiría sin que nadie lo pidiera.
+   */
   const alternarHabilitado = (fila: LocalProfesional) => {
     actualizar.mutate({
       profesionalId: fila.id,
-      payload: {
-        habilitado: !fila.habilitado,
-        nombre_publico: fila.nombre_publico,
-        perfil: fila.perfil,
-        horario_apertura: fila.horario_apertura,
-        horario_cierre: fila.horario_cierre,
-      },
+      payload: { habilitado: !fila.habilitado },
     });
   };
 
