@@ -6,7 +6,7 @@ import type { Usuario } from "./types";
   allí y aquí se pinta el nombre, así que si no coincidieran la tabla diría un
   rol y el desplegable marcaría otro.
 */
-const DUENO: RolResumen = { id: 1, nombre: "Administrador general", clave: "dueno" };
+const ADMIN_GENERAL: RolResumen = { id: 1, nombre: "Administrador general", clave: "admin_general" };
 const PROFESIONAL: RolResumen = { id: 3, nombre: "Profesional", clave: "profesional" };
 const RECEPCION: RolResumen = { id: 4, nombre: "Recepción", clave: null };
 
@@ -29,8 +29,8 @@ export const usuariosMock: Usuario[] = [
     email: "manuel@elrosal.pe",
     telefono: "+51981912809",
     activo: true,
-    rol_id: DUENO.id,
-    rol: DUENO,
+    rol_id: ADMIN_GENERAL.id,
+    rol: ADMIN_GENERAL,
     profesional: { id: 1, nombre: "Manuel Ganoza", atiende: true },
   },
   {

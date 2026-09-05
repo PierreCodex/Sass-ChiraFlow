@@ -30,7 +30,7 @@ import { GRUPOS_ADMIN, rutaDeSeccion, seccionesVisibles } from "../nav";
 export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
   const pathname = usePathname();
   const { data: sesion } = useUsuarioActual();
-  const esDueno = sesion?.rol === "dueno";
+  const esAdminGeneral = sesion?.rol === "admin_general";
   const grupoActivo = GRUPOS_ADMIN.find((g) =>
     pathname.startsWith(`/administracion/${g.slug}`),
   );
@@ -50,7 +50,7 @@ export default function AdminNav({ onNavegar }: { onNavegar?: () => void }) {
     <List sx={{ p: 2 }} component="nav" aria-label="Secciones de administración">
       {GRUPOS_ADMIN.map((grupo) => {
         const Icono = grupo.icono;
-        const secciones = seccionesVisibles(grupo, esDueno);
+        const secciones = seccionesVisibles(grupo, esAdminGeneral);
 
         // Un grupo sin secciones visibles no pinta una fila que no lleva a
         // ninguna parte.

@@ -11,11 +11,17 @@
 export type NivelPermiso = "ver" | "gestionar";
 
 /**
- * Los tres roles de sistema. La clave sobrevive al renombrado —el negocio
- * puede llamar «Encargada» a Administrador—, así que es lo que hay que mirar
- * para reconocerlos. Los roles propios del negocio la traen en `null`.
+ * Los tres roles de sistema. La clave sobrevive al renombrado del NOMBRE —el
+ * negocio puede llamar «Encargada» a Administrador local—, así que es lo que
+ * hay que mirar para reconocerlos. Los roles propios del negocio la traen en
+ * `null`.
+ *
+ * Ojo: el 2026-09-04 cambiaron las claves mismas (`dueno` → `admin_general`,
+ * `admin` → `admin_local`), y eso es otra cosa. No fue un renombrado de
+ * etiqueta sino de concepto: lo que separa a los dos administradores no es un
+ * permiso de más, es el ALCANCE — uno manda en la empresa, el otro en su sede.
  */
-export type ClaveRolSistema = "dueno" | "admin" | "profesional";
+export type ClaveRolSistema = "admin_general" | "admin_local" | "profesional";
 
 /** Módulo del panel → nivel de acceso. Vienen **siempre los 14**. */
 export type MatrizPermisos = Record<string, NivelPermiso | null>;
@@ -40,8 +46,12 @@ export interface Rol {
   borrable: boolean;
   duplicable: boolean;
 
-  /** Solo cuando el backend lo cuenta (listado). */
-  empleados_count?: number;
+  /**
+   * Cuántas CUENTAS llevan este rol. Solo cuando el backend lo cuenta
+   * (listado). Se llamaba `empleados_count`: cuenta cuentas del panel, no
+   * fichas de profesional, que desde el Sprint 2 son cosas distintas.
+   */
+  usuarios_count?: number;
 }
 
 export interface RolPayload {
@@ -61,10 +71,15 @@ export interface RolResumen {
 }
 
 /**
- * El rol del titular de la cuenta. Se llama «Administrador general» —quien
- * registra no siempre es el propietario—, pero su clave sigue siendo `dueno`,
- * que es lo que hay que mirar.
+ * El rol del titular de la cuenta.
+ *
+ * Hay exactamente uno por negocio y lo crea el registro: no se reparte, no se
+ * borra y no cambia de rol. Se llama «Administrador general» y no «Dueño»
+ * porque quien registra la cuenta no siempre es el propietario — en una
+ * clínica con socios suele ser la administradora.
+ *
+ * Se mira la `clave` y nunca el nombre: el negocio puede renombrarlo.
  */
-export function esRolDueno(rol?: RolResumen | Rol | null): boolean {
-  return rol?.clave === "dueno";
+export function esAdminGeneral(rol?: RolResumen | Rol | null): boolean {
+  return rol?.clave === "admin_general";
 }

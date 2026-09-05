@@ -26,19 +26,19 @@ export const rolesMock: Rol[] = [
   {
     id: 1,
     nombre: "Administrador general",
-    clave: "dueno",
+    clave: "admin_general",
     sistema: true,
     permisos: permisos("gestionar"),
     solo_propios: false,
     editable: false,
     borrable: false,
     duplicable: false,
-    empleados_count: 1,
+    usuarios_count: 1,
   },
   {
     id: 2,
     nombre: "Administrador",
-    clave: "admin",
+    clave: "admin_local",
     sistema: true,
     // La facturación es lo único que no se delega: separa al dueño de su mano
     // derecha.
@@ -51,7 +51,7 @@ export const rolesMock: Rol[] = [
     editable: true,
     borrable: false,
     duplicable: true,
-    empleados_count: 1,
+    usuarios_count: 1,
   },
   {
     id: 3,
@@ -70,7 +70,7 @@ export const rolesMock: Rol[] = [
     editable: true,
     borrable: false,
     duplicable: true,
-    empleados_count: 4,
+    usuarios_count: 4,
   },
   {
     id: 4,
@@ -89,6 +89,6 @@ export const rolesMock: Rol[] = [
     editable: true,
     borrable: true,
     duplicable: true,
-    empleados_count: 0,
+    usuarios_count: 0,
   },
 ];

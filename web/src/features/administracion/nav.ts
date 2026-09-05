@@ -25,13 +25,14 @@ export interface SeccionAdmin {
   /** Pantalla del panel que hoy hace este trabajo, si la hay. */
   rutaActual?: string;
   /**
-   * La sección entera es del dueño y el backend responde **403** al resto.
+   * La sección entera es del administrador general y el backend responde
+   * **403** al resto.
    *
    * Esconderla es cortesía, no autorización: evita ofrecer una puerta que da
    * error, pero quien la cierra es Laravel. Nunca al revés — si esconder el
    * menú fuera lo que protege, bastaría con adivinar la URL.
    */
-  soloDueno?: boolean;
+  soloAdminGeneral?: boolean;
 }
 
 export interface GrupoAdmin {
@@ -78,7 +79,7 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Usuarios",
         descripcion:
           "Quién puede entrar al panel y con qué rol. No hace falta que atienda clientes: una recepcionista entra y no ocupa plaza del plan.",
-        soloDueno: true,
+        soloAdminGeneral: true,
       },
       {
         /*
@@ -187,13 +188,13 @@ export const rutaDeSeccion = (grupo: string, seccion: string) =>
  * sección apliquen **la misma** regla: si divergieran, el menú escondería algo
  * que la página sigue pintando, o al revés.
  */
-export function puedeVerSeccion(seccion: SeccionAdmin, esDueno: boolean) {
-  return !seccion.soloDueno || esDueno;
+export function puedeVerSeccion(seccion: SeccionAdmin, esAdminGeneral: boolean) {
+  return !seccion.soloAdminGeneral || esAdminGeneral;
 }
 
 /** Las secciones de un grupo que le tocan a quien está mirando. */
-export function seccionesVisibles(grupo: GrupoAdmin, esDueno: boolean) {
-  return grupo.secciones.filter((s) => puedeVerSeccion(s, esDueno));
+export function seccionesVisibles(grupo: GrupoAdmin, esAdminGeneral: boolean) {
+  return grupo.secciones.filter((s) => puedeVerSeccion(s, esAdminGeneral));
 }
 
 /** Busca por slugs; devuelve `null` si la URL no corresponde a nada. */

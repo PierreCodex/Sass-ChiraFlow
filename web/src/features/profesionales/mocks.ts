@@ -17,7 +17,7 @@ function horarioConAlmuerzo(): DiaHorario[] {
   allí y aquí se pinta el nombre, así que si no coincidieran la tabla diría un
   rol y el desplegable marcaría otro.
 */
-const DUENO: RolResumen = { id: 1, nombre: "Administrador general", clave: "dueno" };
+const ADMIN_GENERAL: RolResumen = { id: 1, nombre: "Administrador general", clave: "admin_general" };
 const PROFESIONAL: RolResumen = { id: 3, nombre: "Profesional", clave: "profesional" };
 
 /** Atajo: la cuenta del panel de quien sí entra al sistema. */
@@ -47,7 +47,7 @@ const cuenta = (
 export const profesionalesMock: Profesional[] = [
   {
     id: 1, nombre: "Manuel Ganoza", foto_url: "/images/profile/user-1.jpg",
-    usuario: cuenta(1, "manuel@elrosal.pe", DUENO),
+    usuario: cuenta(1, "manuel@elrosal.pe", ADMIN_GENERAL),
     cargo: "Dueño", telefono: "+51981912809",
     activo: true, atiende: true, tipo_pago: "sueldo", comision_porcentaje: 0,
     monto_sueldo: 12000, periodo_pago: "mensual",

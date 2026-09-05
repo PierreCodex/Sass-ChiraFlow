@@ -14,7 +14,7 @@ import DataTable, { type Columna } from "@/components/shared/DataTable";
 import BuscadorTabla from "@/components/shared/BuscadorTabla";
 import { usePaginacion } from "@/hooks/usePaginacion";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { esRolDueno } from "@/features/roles/types";
+import { esAdminGeneral } from "@/features/roles/types";
 import { rutaDeSeccion } from "@/features/administracion/nav";
 
 import { useReenviarInvitacion, useUsuarios } from "../hooks/useUsuarios";
@@ -162,10 +162,11 @@ const UsuariosTable = ({ onEditar, onEliminar }: Props) => {
                 <IconPencil size={18} />
               </IconButton>
             </Tooltip>
-            {/* Al dueño no se le quita el acceso: es quien lleva facturación y
-                dejar al negocio sin él solo se arregla entrando a la base. El
-                backend responde 422; aquí ni se ofrece. */}
-            {esRolDueno(usuario.rol) ? null : (
+            {/* Al administrador general no se le quita el acceso: es quien
+                lleva facturación y dejar al negocio sin él solo se arregla
+                entrando a la base. El backend responde 422; aquí ni se
+                ofrece. */}
+            {esAdminGeneral(usuario.rol) ? null : (
               <Tooltip title="Quitar acceso">
                 <IconButton
                   size="small"

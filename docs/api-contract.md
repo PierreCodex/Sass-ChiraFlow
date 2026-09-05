@@ -366,7 +366,7 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | `telefono` | string? | |
 | `documento` | string? | DNI del titular. Opcional |
 | `avatar_url` | string? | |
-| `rol` | string? | |
+| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
 | `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |
 
 `negocio.nombre` y `negocio.slug` son **`null` hasta que el onboarding fije el
@@ -526,7 +526,7 @@ notas, productos: [{ id, cantidad }] }`.
 | `id` `nombre` | int, string | |
 | `foto_url` | string? | si falta se pintan iniciales |
 | `usuario` | string | con el que inicia sesión |
-| `rol` | `superadmin` \| `dueno` \| `admin` \| `profesional` \| `cliente` | solo `profesional` consume cupo del plan |
+| `rol` | `{ id, nombre, clave }` | el rol del NEGOCIO, no un enum central. `clave` es `admin_general` \| `admin_local` \| `profesional` en los tres de sistema y `null` en los que cree el negocio |
 | `cargo` | string? | texto libre |
 | `email` `telefono` | string? | |
 | `activo` | bool | |
