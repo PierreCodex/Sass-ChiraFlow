@@ -13,6 +13,7 @@ import MovimientoDialog from "@/features/inventario/components/MovimientoDialog"
 import { useEliminarProducto } from "@/features/inventario/hooks/useProductos";
 import type { Producto } from "@/features/inventario/types";
 import { toApiError } from "@/lib/api/client";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function InventarioPage() {
@@ -46,13 +47,15 @@ export default function InventarioPage() {
         titulo="Inventario"
         descripcion="Productos, stock y movimientos"
         acciones={
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNuevo}
-        >
-          Nuevo producto
-        </Button>
+        <SoloSiGestiona modulo="inventario">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNuevo}
+          >
+            Nuevo producto
+          </Button>
+        </SoloSiGestiona>
         }
       />
       <DashboardCard>

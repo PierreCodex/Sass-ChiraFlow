@@ -146,6 +146,7 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       </Stack>
 
       <DataTable
+        moduloEscritura="citas"
         columnas={columnas}
         datos={datosFiltrados}
         cargando={isPending}

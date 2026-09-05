@@ -14,6 +14,7 @@ import TicketsTable from "@/features/soporte/components/TicketsTable";
 import TicketFormDialog from "@/features/soporte/components/TicketFormDialog";
 import TicketDetalleDialog from "@/features/soporte/components/TicketDetalleDialog";
 import type { Ticket } from "@/features/soporte/types";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function SoportePage() {
@@ -32,13 +33,15 @@ export default function SoportePage() {
           title="Mis tickets"
           subtitle="Consultas enviadas al equipo de soporte"
           action={
-            <Button
-              variant="contained"
-              startIcon={<IconPlus size={18} />}
-              onClick={() => setFormAbierto(true)}
-            >
-              Nuevo ticket
-            </Button>
+            <SoloSiGestiona modulo="soporte">
+              <Button
+                variant="contained"
+                startIcon={<IconPlus size={18} />}
+                onClick={() => setFormAbierto(true)}
+              >
+                Nuevo ticket
+              </Button>
+            </SoloSiGestiona>
           }
         >
           <TicketsTable filtroEstado={filtroEstado} onVer={setTicketVisto} />

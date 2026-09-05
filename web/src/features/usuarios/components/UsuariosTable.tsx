@@ -193,6 +193,7 @@ const UsuariosTable = ({ onEditar, onEliminar }: Props) => {
       </Stack>
 
       <DataTable
+        moduloEscritura="empleados"
         columnas={columnas}
         datos={data}
         cargando={isPending}

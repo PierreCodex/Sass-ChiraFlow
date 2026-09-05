@@ -31,6 +31,7 @@ import MovimientoCajaDialog from "@/features/caja/components/MovimientoCajaDialo
 import { useEstadoCaja } from "@/features/caja/hooks/useCaja";
 import { diferenciaArqueo, saldoEsperado } from "@/features/caja/types";
 import AvisoError from "@/components/shared/AvisoError";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function CajaPage() {
@@ -125,13 +126,15 @@ export default function CajaPage() {
             action={
               abierta ? (
                 <Stack direction="row" spacing={1}>
-                  <Button
-                    variant="contained"
-                    startIcon={<IconPlus size={18} />}
-                    onClick={() => setMovimientoDialog(true)}
-                  >
-                    Nuevo movimiento
-                  </Button>
+                  <SoloSiGestiona modulo="caja">
+                    <Button
+                      variant="contained"
+                      startIcon={<IconPlus size={18} />}
+                      onClick={() => setMovimientoDialog(true)}
+                    >
+                      Nuevo movimiento
+                    </Button>
+                  </SoloSiGestiona>
                   <Button
                     variant="outlined"
                     color="error"

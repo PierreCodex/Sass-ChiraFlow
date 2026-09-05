@@ -12,6 +12,7 @@ import CategoriaFormDialog from "@/features/categorias/components/CategoriaFormD
 import { useEliminarCategoria } from "@/features/categorias/hooks/useCategorias";
 import type { Categoria } from "@/features/categorias/types";
 import { toApiError } from "@/lib/api/client";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function CategoriasPage() {
@@ -44,13 +45,15 @@ export default function CategoriasPage() {
         titulo="Categorías"
         descripcion="Cómo se agrupan tus servicios"
         acciones={
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNueva}
-        >
-          Nueva categoría
-        </Button>
+        <SoloSiGestiona modulo="servicios">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNueva}
+          >
+            Nueva categoría
+          </Button>
+        </SoloSiGestiona>
         }
       />
       <DashboardCard>

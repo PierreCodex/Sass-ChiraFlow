@@ -23,6 +23,7 @@ import type {
   PlantillaWhatsapp,
 } from "@/features/whatsapp/types";
 import { toApiError } from "@/lib/api/client";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function WhatsappPage() {
@@ -103,14 +104,16 @@ export default function WhatsappPage() {
                 >
                   Ver prediseñadas
                 </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<IconPlus size={18} />}
-                  onClick={abrirNueva}
-                  sx={{ whiteSpace: "nowrap" }}
-                >
-                  Nueva plantilla
-                </Button>
+                <SoloSiGestiona modulo="whatsapp">
+                  <Button
+                    variant="outlined"
+                    startIcon={<IconPlus size={18} />}
+                    onClick={abrirNueva}
+                    sx={{ whiteSpace: "nowrap" }}
+                  >
+                    Nueva plantilla
+                  </Button>
+                </SoloSiGestiona>
               </Stack>
             </Stack>
           </CardContent>

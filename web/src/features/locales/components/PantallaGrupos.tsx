@@ -12,6 +12,7 @@ import GruposTable from "./GruposTable";
 import GrupoFormDialog from "./GrupoFormDialog";
 import { useEliminarGrupo } from "../hooks/useRecursos";
 import type { Grupo } from "../types";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 /**
  * Agrupaciones de locales, profesionales y servicios.
@@ -48,13 +49,15 @@ export default function PantallaGrupos() {
       </Alert>
 
       <Stack direction="row" justifyContent="flex-end" mb={3}>
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNuevo}
-        >
-          Nuevo grupo
-        </Button>
+        <SoloSiGestiona modulo="locales">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNuevo}
+          >
+            Nuevo grupo
+          </Button>
+        </SoloSiGestiona>
       </Stack>
 
       <GruposTable onEditar={abrirEdicion} onEliminar={setAEliminar} />

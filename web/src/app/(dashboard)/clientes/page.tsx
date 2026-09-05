@@ -8,6 +8,7 @@ import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
 import DashboardCard from "@/components/shared/DashboardCard";
 import ClientesTable from "@/features/clientes/components/ClientesTable";
 import ClienteFormDialog from "@/features/clientes/components/ClienteFormDialog";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function ClientesPage() {
@@ -19,13 +20,15 @@ export default function ClientesPage() {
         titulo="Clientes"
         descripcion="Todos los clientes de tu cuenta"
         acciones={
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={() => setDialogAbierto(true)}
-        >
-          Nuevo cliente
-        </Button>
+        <SoloSiGestiona modulo="clientes">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={() => setDialogAbierto(true)}
+          >
+            Nuevo cliente
+          </Button>
+        </SoloSiGestiona>
         }
       />
       <DashboardCard>

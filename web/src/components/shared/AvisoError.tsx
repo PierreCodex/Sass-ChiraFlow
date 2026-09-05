@@ -25,16 +25,6 @@ import { toApiError } from "@/lib/api/client";
 export default function AvisoError({ error }: { error: unknown }) {
   const { status, message, codigo } = toApiError(error);
 
-  if (codigo === "sin_permiso") {
-    return (
-      <Alert severity="info">
-        <AlertTitle>No tienes acceso a esta sección</AlertTitle>
-        Tu rol no incluye este módulo. Si necesitas entrar, pídeselo a quien
-        administra el negocio.
-      </Alert>
-    );
-  }
-
   if (codigo === "suscripcion_vencida") {
     return (
       <Alert
@@ -53,6 +43,29 @@ export default function AvisoError({ error }: { error: unknown }) {
       >
         <AlertTitle>Tu suscripción venció</AlertTitle>
         Renueva para volver a usar el panel. Tus datos siguen aquí.
+      </Alert>
+    );
+  }
+
+  /*
+    Cualquier 403 del panel es falta de permiso, traiga `codigo` o no.
+
+    Casi todos los endpoints mandan `sin_permiso`, pero los candados de
+    `/usuarios` y `/roles` son un guardia aparte —no una capacidad de la
+    matriz— y responden 403 pelado. Sin este caso general, ese error caía en
+    la rama de abajo y salía en rojo de alarma cuando en realidad es una
+    respuesta normal: tu rol no llega ahí.
+
+    El mensaje del backend manda cuando lo hay, porque suele ser más preciso
+    que el genérico («Solo el administrador general puede hacer esto»); la
+    pared de cobro va antes y tiene su propio aviso.
+  */
+  if (status === 403) {
+    return (
+      <Alert severity="info">
+        <AlertTitle>No tienes acceso a esta sección</AlertTitle>
+        {message ||
+          "Tu rol no incluye este módulo. Si necesitas entrar, pídeselo a quien administra el negocio."}
       </Alert>
     );
   }

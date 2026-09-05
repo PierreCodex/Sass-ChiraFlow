@@ -145,6 +145,7 @@ const CategoriasTable = ({ onEditar, onEliminar }: Props) => {
       </Stack>
 
       <DataTable
+        moduloEscritura="servicios"
         columnas={columnas}
         datos={data}
         cargando={isPending}

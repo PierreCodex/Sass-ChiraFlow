@@ -11,6 +11,7 @@ import LocalesGrid from "./LocalesGrid";
 import LocalFormDialog from "./LocalFormDialog";
 import { useEliminarLocal } from "../hooks/useLocales";
 import type { Local } from "../types";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 /**
  * Las sedes del negocio.
@@ -38,13 +39,15 @@ export default function PantallaSedes() {
   return (
     <>
       <Stack direction="row" justifyContent="flex-end" mb={3}>
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNuevo}
-        >
-          Agregar local
-        </Button>
+        <SoloSiGestiona modulo="locales">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNuevo}
+          >
+            Agregar local
+          </Button>
+        </SoloSiGestiona>
       </Stack>
 
       <LocalesGrid onEditar={abrirEdicion} onEliminar={setAEliminar} />

@@ -99,6 +99,7 @@ const GruposTable = ({ onEditar, onEliminar }: Props) => {
 
   return (
     <DataTable
+        moduloEscritura="locales"
       columnas={columnas}
       datos={data}
       cargando={isPending}

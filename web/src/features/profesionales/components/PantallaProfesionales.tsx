@@ -13,6 +13,7 @@ import ProfesionalFormDialog from "./ProfesionalFormDialog";
 import SinProfesionales from "./SinProfesionales";
 import { useEliminarProfesional, useProfesionales } from "../hooks/useProfesionales";
 import type { Profesional } from "../types";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 /**
  * La pantalla de Profesionales: quién presta los servicios.
@@ -67,13 +68,15 @@ export default function PantallaProfesionales() {
         <>
           <CupoPlanCard
             accion={
-              <Button
-                variant="contained"
-                startIcon={<IconPlus size={18} />}
-                onClick={abrirNuevo}
-              >
-                Nuevo profesional
-              </Button>
+              <SoloSiGestiona modulo="empleados">
+                <Button
+                  variant="contained"
+                  startIcon={<IconPlus size={18} />}
+                  onClick={abrirNuevo}
+                >
+                  Nuevo profesional
+                </Button>
+              </SoloSiGestiona>
             }
           />
 
