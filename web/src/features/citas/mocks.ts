@@ -1,5 +1,5 @@
 import { haceDias } from "@/lib/mock-utils";
-import type { Cita } from "./types";
+import type { Cita, LineaServicio } from "./types";
 
 const hoy = haceDias(0);
 const manana = haceDias(-1);
@@ -18,7 +18,19 @@ const hemograma = { id: 9, nombre: "Hemograma completo", duracion_min: 15, preci
 const curacion = { id: 8, nombre: "Curación dental", duracion_min: 50, precio: 110, color: "#763EBD" };
 const atencionMedico = { id: 2, nombre: "ATENCION DEL MEDICO", duracion_min: 60, precio: 45, color: "#763EBD" };
 
-export const citasMock: Cita[] = [
+/*
+  Las filas se escriben con UN servicio y sin los campos que el backend deriva
+  --`codigo`, `monto_total`, `servicios`, `local_id`--. Repetirlos a mano en
+  cada fila era una copia mas que mantener, y la primera que se olvidara
+  mentiria en silencio.
+*/
+type ServicioBase = Omit<LineaServicio, "cantidad">;
+type CitaBase = Omit<
+  Cita,
+  "codigo" | "monto_total" | "servicios" | "servicio" | "local_id"
+> & { servicio: ServicioBase };
+
+const citasBase: CitaBase[] = [
   { id: 101, fecha: hoy, hora_inicio: "09:00", hora_fin: "09:30", estado: "completada", monto: 60, notas: null, cliente_id: 3, cliente_nombre: "manuel", cliente_telefono: "999 191 999", cliente_email: "manuel.s@ucvvirtual.edu.pe", servicio: consultaGeneral, empleado: carmen, productos: [] },
   { id: 102, fecha: hoy, hora_inicio: "09:15", hora_fin: "10:00", estado: "completada", monto: 108, notas: "Paciente con sensibilidad", cliente_id: 1, cliente_nombre: "Ana Torres Vega", cliente_telefono: "976 865 756", cliente_email: "ana.torres@gmail.com", servicio: limpiezaDental, empleado: julio, productos: [{ producto_id: 1, nombre: "Enjuague bucal 500ml", cantidad: 1, precio_unitario: 18 }] },
   { id: 103, fecha: hoy, hora_inicio: "10:00", hora_fin: "10:15", estado: "completada", monto: 55, notas: null, cliente_id: 17, cliente_nombre: "Patricia Núñez Ríos", cliente_telefono: "955 703 118", cliente_email: "paty.nunez@gmail.com", servicio: hemograma, empleado: rosaLab, productos: [] },
@@ -41,3 +53,21 @@ export const citasMock: Cita[] = [
   { id: 116, fecha: haceDias(2), hora_inicio: "08:00", hora_fin: "08:45", estado: "completada", monto: 90, notas: null, cliente_id: 9, cliente_nombre: "sandro david juarez gabino", cliente_telefono: "999 292 999", cliente_email: "sandroyoto@gmail.com", servicio: limpiezaDental, empleado: julio, productos: [] },
   { id: 117, fecha: haceDias(2), hora_inicio: "09:30", hora_fin: "10:00", estado: "completada", monto: 80, notas: null, cliente_id: 10, cliente_nombre: "JEAN", cliente_telefono: "+51 981 912 809", cliente_email: "jean.g@ucvvirtual.edu.pe", servicio: pediatrica, empleado: andres, productos: [] },
 ];
+
+export const citasMock: Cita[] = citasBase.map((cita) => {
+  const linea: LineaServicio = { ...cita.servicio, cantidad: 1 };
+  const productos = cita.productos.reduce(
+    (suma, p) => suma + p.precio_unitario * p.cantidad,
+    0
+  );
+
+  return {
+    ...cita,
+    codigo: `C-${cita.id}`,
+    local_id: 1,
+    // `servicios` manda y `servicio` es el puente, igual que en el Resource.
+    servicios: [linea],
+    servicio: linea,
+    monto_total: cita.monto + productos,
+  };
+});

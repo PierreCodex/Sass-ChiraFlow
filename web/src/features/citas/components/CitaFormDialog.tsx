@@ -36,6 +36,7 @@ import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProf
 import { saleEnAgenda } from "@/features/profesionales/types";
 import { useTodosLosServicios } from "@/features/servicios/hooks/useServicios";
 import { useTodosLosProductos } from "@/features/inventario/hooks/useProductos";
+import { useTodosLosLocales } from "@/features/locales/hooks/useLocales";
 import {
   huecosDisponibles,
   jornadaDelDia,
@@ -51,7 +52,12 @@ import {
   valoresIniciales,
   type CitaFormValues,
 } from "../schemas/cita.schema";
-import type { Cita, CitaPayload } from "../types";
+import {
+  ocupaSuHueco,
+  servicioPrincipal,
+  type Cita,
+  type CitaPayload,
+} from "../types";
 
 interface Props {
   abierto: boolean;
@@ -75,6 +81,18 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const { data: todosLosProfesionales = [] } = useTodosLosProfesionales();
   const { data: servicios = [] } = useTodosLosServicios();
   const { data: productos = [] } = useTodosLosProductos();
+  const { data: locales = [] } = useTodosLosLocales();
+
+  /*
+    El selector de sede solo aparece con mas de una.
+
+    Con una sola, el backend asigna la principal y preguntarlo seria pedir
+    una decision que no existe. Con varias hace falta, porque si no llega
+    `local_id` la cita cae en la principal EN SILENCIO --y agendar en la
+    sede equivocada no se nota hasta que el cliente aparece en la otra.
+  */
+  const hayVariasSedes = locales.length > 1;
+  const sedePrincipal = locales.find((local) => local.es_principal) ?? locales[0];
 
   // El selector de profesional lista a quien sale en la agenda.
   const profesionales = todosLosProfesionales.filter(saleEnAgenda);
@@ -101,6 +119,24 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const empleadoId = useWatch({ control, name: "empleado_id" });
   const fechaElegida = useWatch({ control, name: "fecha" });
   const servicioElegido = servicios.find((s) => s.id === servicioId);
+
+  /*
+    `monto` es lo del SERVICIO, y es lo unico que se envia: reenviarlo con el
+    total dentro subiria el precio del servicio con el importe de lo vendido.
+    Lo que se cobra --el `monto_total` del backend-- se calcula aqui solo para
+    ENSEÑARLO, para que nadie corrija el monto a mano creyendo que falta.
+
+    Los inputs numericos devuelven string y yup solo castea al enviar, asi que
+    el Number() va a mano (trampa ya anotada en el CLAUDE.md).
+  */
+  const montoServicio = useWatch({ control, name: "monto" });
+  const filasVigiladas = useWatch({ control, name: "productos" });
+  const importeProductos = (filasVigiladas ?? []).reduce((suma, fila) => {
+    const producto = productos.find((p) => p.id === Number(fila?.id));
+    if (!producto) return suma;
+    return suma + producto.precio_venta * (Number(fila?.cantidad) || 0);
+  }, 0);
+  const totalACobrar = (Number(montoServicio) || 0) + importeProductos;
 
   // Citas del día para descontar los huecos ya ocupados del profesional.
   const { data: citasDelDia = [], isPending: cargandoAgenda } =
@@ -139,10 +175,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
     const ocupados = citasDelDia
       .filter(
-        (c) =>
-          c.empleado.id === empleadoId &&
-          c.id !== cita?.id &&
-          c.estado !== "cancelada"
+        (c) => c.empleado.id === empleadoId && c.id !== cita?.id && ocupaSuHueco(c)
       )
       .map((c) => ({ inicio: c.hora_inicio, fin: c.hora_fin }));
 
@@ -181,9 +214,11 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
       cita
         ? {
             empleado_id: cita.empleado.id,
-            servicio_id: cita.servicio.id,
+            // La primera linea de `servicios`: el panel manda una sola.
+            servicio_id: servicioPrincipal(cita)?.id ?? 0,
             fecha: cita.fecha,
             hora_inicio: cita.hora_inicio,
+            local_id: cita.local_id,
             cliente_id: cita.cliente_id,
             cliente_nombre: cita.cliente_nombre,
             cliente_telefono: cita.cliente_telefono,
@@ -196,10 +231,17 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
               cantidad: p.cantidad,
             })),
           }
-        : { ...valoresIniciales, ...preseleccion }
+        : {
+            ...valoresIniciales,
+            // Con varias sedes se propone la principal, que es la que el
+            // backend elegiria de todos modos: asi el campo nunca sale vacio
+            // y lo que se ve es lo que se guarda.
+            local_id: hayVariasSedes ? (sedePrincipal?.id ?? null) : null,
+            ...preseleccion,
+          }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, cita, preseleccion, reset]);
+  }, [abierto, cita, preseleccion, reset, hayVariasSedes, sedePrincipal?.id]);
 
   const onSubmit = handleSubmit((valores) => {
     const payload: CitaPayload = {
@@ -330,6 +372,34 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
               />
             </Grid>
 
+            {hayVariasSedes ? (
+              <Grid size={12}>
+                <CustomFormLabel htmlFor="local_id">Sede</CustomFormLabel>
+                <Controller
+                  name="local_id"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomTextField
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e: any) => field.onChange(Number(e.target.value))}
+                      select
+                      id="local_id"
+                      fullWidth
+                      error={!!errors.local_id}
+                      helperText={errors.local_id?.message}
+                    >
+                      {locales.map((local) => (
+                        <MenuItem key={local.id} value={local.id}>
+                          {local.nombre}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  )}
+                />
+              </Grid>
+            ) : null}
+
             <Grid size={{ xs: 12, sm: 6 }}>
               <CustomFormLabel htmlFor="fecha">Fecha</CustomFormLabel>
               <Controller
@@ -398,6 +468,13 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
+                    /*
+                      El `id` va AQUI y no en el `renderInput`: el Autocomplete
+                      genera el suyo propio para el input y descarta el que se
+                      le pase dentro, asi que el `htmlFor` de la etiqueta se
+                      quedaba apuntando a nada y pulsarla no enfocaba el campo.
+                    */
+                    id="cliente_nombre"
                     freeSolo
                     options={clientes}
                     getOptionLabel={(opcion) =>
@@ -420,7 +497,6 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        id="cliente_nombre"
                         placeholder="Nombre del cliente"
                         error={!!errors.cliente_nombre}
                         helperText={errors.cliente_nombre?.message}
@@ -467,7 +543,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <CustomFormLabel htmlFor="monto">Monto</CustomFormLabel>
+              <CustomFormLabel htmlFor="monto">Monto del servicio</CustomFormLabel>
               <Controller
                 name="monto"
                 control={control}
@@ -478,7 +554,12 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     type="number"
                     fullWidth
                     error={!!errors.monto}
-                    helperText={errors.monto?.message}
+                    helperText={
+                      errors.monto?.message ??
+                      (importeProductos > 0
+                        ? `Con los productos se cobran ${formatMoneda(totalACobrar)}.`
+                        : undefined)
+                    }
                     slotProps={{
                       input: {
                         startAdornment: (

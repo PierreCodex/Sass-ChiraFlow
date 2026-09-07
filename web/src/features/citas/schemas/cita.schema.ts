@@ -34,10 +34,18 @@ export const citaSchema = yup.object({
     .required("El servicio es obligatorio"),
   fecha: yup.string().required("La fecha es obligatoria"),
   hora_inicio: yup.string().required("La hora es obligatoria"),
+  // Con una sola sede lo resuelve el backend, y por eso admite null.
+  local_id: yup.number().nullable().defined(),
   cliente_id: yup.number().nullable().defined(),
-  cliente_nombre: yup.string().trim().required("El cliente es obligatorio"),
-  cliente_telefono: textoOpcional,
-  cliente_email: textoOpcional.email("Escribe un correo válido"),
+  cliente_nombre: yup
+    .string()
+    .trim()
+    .max(150, "Máximo 150 caracteres")
+    .required("El cliente es obligatorio"),
+  cliente_telefono: textoOpcional.max(30, "Máximo 30 caracteres"),
+  cliente_email: textoOpcional
+    .email("Escribe un correo válido")
+    .max(150, "Máximo 150 caracteres"),
   monto: yup
     .number()
     .typeError("Escribe el monto")
@@ -48,11 +56,13 @@ export const citaSchema = yup.object({
     .oneOf([
       "pendiente",
       "confirmada",
+      "en_curso",
       "completada",
       "cancelada",
+      "no_asistio",
     ] as const)
     .required(),
-  notas: textoOpcional,
+  notas: textoOpcional.max(500, "Máximo 500 caracteres"),
   productos: yup.array().of(productoSchema).defined(),
 });
 
@@ -63,6 +73,7 @@ export const valoresIniciales: CitaFormValues = {
   servicio_id: 0,
   fecha: new Date().toISOString().slice(0, 10),
   hora_inicio: "09:00",
+  local_id: null,
   cliente_id: null,
   cliente_nombre: "",
   cliente_telefono: null,

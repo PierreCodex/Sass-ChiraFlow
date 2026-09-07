@@ -5,7 +5,7 @@ import { crearRecurso } from "@/lib/api/recurso";
 import { serviciosMock } from "@/features/servicios/mocks";
 import { profesionalesMock } from "@/features/profesionales/mocks";
 import { productosMock } from "@/features/inventario/mocks";
-import type { Cita, CitaPayload } from "../types";
+import type { Cita, CitaPayload, LineaServicio } from "../types";
 import { citasMock } from "../mocks";
 
 /** hora_inicio + duración -> hora_fin. Con el backend real lo calcula Laravel. */
@@ -21,21 +21,41 @@ const recurso = crearRecurso<Cita, CitaPayload>({
   path: "citas",
   mocks: citasMock,
   camposBusqueda: ["cliente_nombre", "cliente_telefono"],
+  // Con el backend real el filtro viaja como `?estado=`; aqui se resuelve
+  // igual para que la pantalla se comporte de la misma forma en las dos ramas.
+  filtrosMock: (cita, params) => !params.estado || cita.estado === params.estado,
   // El payload manda ids; la entidad expone objetos y campos calculados.
   alGuardarMock: (payload: CitaPayload) => {
     const servicio = serviciosMock.find((s) => s.id === payload.servicio_id);
     const empleado = profesionalesMock.find((e) => e.id === payload.empleado_id);
 
+    const linea: LineaServicio | null = servicio
+      ? {
+          id: servicio.id,
+          nombre: servicio.nombre,
+          duracion_min: servicio.duracion_min,
+          precio: servicio.precio,
+          cantidad: 1,
+          color: servicio.color,
+        }
+      : null;
+
+    const productos = (payload.productos ?? []).flatMap((fila) => {
+      const producto = productosMock.find((p) => p.id === fila.id);
+      if (!producto) return [];
+      return [
+        {
+          producto_id: producto.id,
+          nombre: producto.nombre,
+          cantidad: fila.cantidad,
+          precio_unitario: producto.precio_venta,
+        },
+      ];
+    });
+
     return {
-      servicio: servicio
-        ? {
-            id: servicio.id,
-            nombre: servicio.nombre,
-            duracion_min: servicio.duracion_min,
-            precio: servicio.precio,
-            color: servicio.color,
-          }
-        : undefined,
+      servicios: linea ? [linea] : [],
+      servicio: linea,
       empleado: empleado
         ? { id: empleado.id, nombre: empleado.nombre }
         : undefined,
@@ -43,18 +63,11 @@ const recurso = crearRecurso<Cita, CitaPayload>({
         payload.hora_inicio,
         servicio?.duracion_min ?? 30
       ),
-      productos: (payload.productos ?? []).flatMap((linea) => {
-        const producto = productosMock.find((p) => p.id === linea.id);
-        if (!producto) return [];
-        return [
-          {
-            producto_id: producto.id,
-            nombre: producto.nombre,
-            cantidad: linea.cantidad,
-            precio_unitario: producto.precio_venta,
-          },
-        ];
-      }),
+      productos,
+      // `monto` son solo los servicios; el total suma lo vendido.
+      monto_total:
+        payload.monto +
+        productos.reduce((suma, p) => suma + p.precio_unitario * p.cantidad, 0),
     };
   },
 });

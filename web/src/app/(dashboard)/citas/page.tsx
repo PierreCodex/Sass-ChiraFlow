@@ -75,7 +75,18 @@ export default function CitasPage() {
             ¿Seguro que quieres eliminar la cita de{" "}
             <strong>{citaAEliminar?.cliente_nombre}</strong> del{" "}
             {citaAEliminar ? formatFecha(citaAEliminar.fecha) : ""} a las{" "}
-            {citaAEliminar?.hora_inicio}? Esta acción no se puede deshacer.
+            {citaAEliminar?.hora_inicio}?
+            <br />
+            <br />
+            {/*
+              Eliminar y cancelar se parecen en la pantalla y no en la base:
+              esto borra la fila entera y no deja rastro de que la cita existio.
+              Quien solo quiere liberar el hueco busca el otro.
+            */}
+            Se borra del todo, y no queda registro de que existió. Si la cita
+            no se va a dar, ciérrala con el{" "}
+            <strong>estado «Cancelada»</strong> desde el formulario: así libera
+            el hueco y sigue contando en los reportes.
           </>
         }
         textoConfirmar="Eliminar"
