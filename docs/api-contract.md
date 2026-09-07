@@ -292,7 +292,7 @@ DELETE /{path}/{id}                                              → 204
 | Recurso | `path` | FormData | Busca por | Filtros | Notas |
 |---|---|---|---|---|---|
 | Clientes | `clientes` | no | nombre, apellido, teléfono, email | — | soft delete; el teléfono es único |
-| Citas | `citas` | no | cliente_nombre, cliente_telefono | `fecha` | |
+| Citas | `citas` | no | nombre, apellido o teléfono del cliente | `fecha`, `estado` | `DELETE` borra de verdad (no soft delete) |
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
@@ -505,24 +505,70 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | int | |
+| `codigo` | string | **público**: es el identificador que viaja por WhatsApp, y por el que gestiona su cita quien no tiene cuenta. Lo genera el backend al crear |
 | `fecha` | `YYYY-MM-DD` | |
 | `hora_inicio` `hora_fin` | `HH:MM` | **`hora_fin` lo calcula el backend** (inicio + duración) |
-| `estado` | `pendiente` \| `confirmada` \| `completada` \| `cancelada` | |
-| `monto` | number | editable, arranca del precio del servicio |
-| `notas` | string? | |
+| `estado` | los **seis** de abajo | |
+| `monto` | number | suma de las líneas de **servicio**. Editable: reescribe el precio congelado de la línea |
+| `monto_total` | number | servicios **+ productos**. Es «lo que se cobra» |
+| `notas` | string? | máx. 500 |
 | `cliente_id` | int? | informado solo si quedó vinculada a un cliente |
-| `cliente_nombre` | string | texto libre |
-| `cliente_telefono` `cliente_email` | string? | |
-| `servicio` | `{ id, nombre, duracion_min, precio, color }` | |
+| `cliente_nombre` | string | texto libre, máx. 150 |
+| `cliente_telefono` `cliente_email` | string? | máx. 30 y 150 |
+| `servicios` | `LineaServicio[]` | **la fuente de verdad** |
+| `servicio` | `LineaServicio?` | la primera línea, **como puente**. `null` si no hay ninguna |
 | `empleado` | `{ id, nombre }` | no nullable |
+| `local_id` | int? | la sede. Con una sola la pone el backend |
 | `productos` | `{ producto_id, nombre, cantidad, precio_unitario }[]` | vendidos en la cita |
 
-**Payload (JSON)**: `{ empleado_id, servicio_id, fecha, hora_inicio,
+`LineaServicio` es `{ id, nombre, duracion_min, precio, cantidad, color }`, y
+**`duracion_min` y `precio` salen de la pivote, no del servicio**: son los que
+tenía el día que se reservó. Cambiar la tarifa del catálogo no reescribe lo ya
+agendado.
+
+**Payload (JSON)**: `{ empleado_id, servicio_id, fecha, hora_inicio, local_id,
 cliente_id, cliente_nombre, cliente_telefono, cliente_email, monto, estado,
-notas, productos: [{ id, cantidad }] }`.
+notas, productos: [{ id, cantidad }] }`. **`hora_fin` no se acepta**: aceptarla
+dejaría reservar 20 minutos de un servicio de 60.
 
 > Ojo con la asimetría: el payload manda `productos[i].id`, la entidad devuelve
 > `productos[i].producto_id`.
+
+#### Los seis estados
+
+`pendiente` · `confirmada` · `en_curso` · `completada` · `cancelada` ·
+`no_asistio`. Son los del ENUM de la tabla y **el backend no los recorta**: el
+bloque de inasistencias de Reportes es imposible sin `no_asistio`. Etiquetas y
+colores los pone el frontend (`features/citas/constants.ts`).
+
+#### Por qué `servicios[]` y no `servicio_id`
+
+**No existe `citas.servicio_id`.** Los servicios de una cita viven en
+`cita_servicio`. El panel manda uno y el backend inserta una línea, pero la
+tienda pública encadenará varios en el Sprint 5. `servicio` sigue emitiéndose
+como puente; **lo que hay que leer es el array**, porque el día que una cita
+traiga tres el singular enseñará una cita a medias sin decirlo.
+
+#### `monto` no es el total
+
+`monto` son solo los servicios y `monto_total` incluye los productos. Es una
+distinción de escritura, no de estética: el campo editable del formulario
+reenvía `monto` al guardar, así que pintar ahí el total **subiría el precio del
+servicio con el importe de lo vendido**. Para mostrar, `monto_total`; para el
+campo editable, `monto`.
+
+#### `DELETE` borra de verdad
+
+`citas` no lleva soft delete y las líneas caen en cascada. **Cancelar es un
+estado**, y es lo que conserva el historial; borrar es para lo que nunca debió
+existir. Si estaba completada, su stock vuelve antes.
+
+#### `solo_propios` ya filtra
+
+Desde el Sprint 4. Quien lo tiene ve solo sus citas, y la de otro responde
+**404** —no 403—: para esa persona esa cita no existe, igual que una sede fuera
+de su alcance. Quien tiene `solo_propios` y **no tiene ficha de profesional no
+ve ninguna**: quien no atiende no tiene citas propias.
 
 ### Capacidades (`GET /capacidades`)
 
@@ -540,8 +586,9 @@ negocio y el login se resuelve entero en la central.
 
 - `permisos`: los 14 módulos siempre, `null` donde no hay acceso.
   `gestionar` incluye `ver`.
-- `solo_propios`: sobre **quién**, no sobre qué. Se emite pero todavía no
-  filtra nada — empieza con las citas del Sprint 4.
+- `solo_propios`: sobre **quién**, no sobre qué. **Ya filtra** (Sprint 4): el
+  listado de citas devuelve solo las suyas y la de otro responde 404. Quien lo
+  tiene y no tiene ficha de profesional no ve ninguna.
 - `locales`: `null` = todas las sedes; una lista de ids = solo esas. `null` y
   no la lista completa, para que una lista **vacía** signifique de verdad
   ninguna.
@@ -670,9 +717,28 @@ ids.
 y el que usa el formulario de citas), `stock`, `stock_minimo` (umbral de alerta,
 5 por defecto), `activo`.
 
-**Payload**: todo menos `activo`. **Movimiento**: `{ tipo: "entrada"|"salida",
-cantidad: int, motivo: string|null }` — el backend recalcula `stock` y devuelve
-el producto entero.
+**Payload**: todo menos `activo`. `stock_minimo` puede omitirse —ausente queda
+en 5—, y **`precio_compra` sale 0, nunca `null`**.
+
+**El `PUT` existe** desde el Sprint 3.B: se acabó el borrar-y-recrear. Acepta lo
+mismo que el `POST` **menos `stock`**, y mandarlo **no da 422**: la clave
+simplemente no llega. El stock se mueve con movimientos, que dejan quién y por
+qué; un `PUT` que lo reescribiera sería un cambio de inventario sin autor.
+
+**Movimiento**: `{ tipo: "entrada"|"salida", cantidad: int, motivo: string|null }`
+— el backend recalcula `stock` y devuelve el producto entero. `motivo` admite
+**150** caracteres, que es el ancho de la columna: un `max` más largo cambia un
+422 legible por un 500 de MySQL.
+
+**Una salida no puede dejar el stock en negativo → 422 en `cantidad`.** Cero
+justo sí pasa; lo que no puede es pasarse. Un stock negativo no es un dato, es
+un error de captura contado como inventario, y de ahí sale a la tienda pública
+y a los reportes.
+
+`search` filtra por nombre **y** descripción. Borrar es soft delete, y **recrear
+un producto con el nombre de uno borrado restaura la fila pero nace limpio** —
+activo, con el stock y los precios que se acaban de escribir. Misma decisión que
+en Servicios.
 
 ### Caja
 
@@ -883,6 +949,15 @@ Precedencia de la jornada de un profesional en una fecha:
 5. **Sin horario propio → rige el horario del negocio.** Un profesional recién
    creado atiende, no queda sin agenda.
 
+Dos matices que el backend cerró al implementarlo (2026-09-06):
+
+- **Solo `cancelada` libera su hueco.** `no_asistio` **no**: el profesional
+  estuvo esperando igual, y liberarlo reescribiría el pasado y los reportes que
+  salgan de él.
+- **Una excepción disponible no arrastra los breaks del día habitual.** Es un
+  turno distinto —medio turno, refuerzo, cubrir a un compañero— y sus descansos
+  habrían sido otros. El nivel 2 reemplaza entero.
+
 Sobre esa jornada se descuentan breaks y citas ya tomadas (excluyendo las
 `cancelada`), y se ofrecen los inicios donde **cabe entera** la duración
 pedida. Los candidatos son la rejilla del paso **más los bordes**: el instante
@@ -893,6 +968,12 @@ El paso lo decide `configuracion.agenda`:
 
 - `duracion_servicio` → el paso es la duración del servicio (agenda compacta).
 - `fijo` → rejilla cada `intervalo_min` minutos (más flexible, fragmenta).
+
+> ⚠️ **Esta regla está escrita dos veces**: aquí la calcula
+> `features/calendario/disponibilidad.ts` para pintar el selector, y en el
+> backend `App\Services\Disponibilidad` para validar el `POST`. Mientras las
+> dos existan tienen que dar lo mismo, o el selector ofrecerá horas que el
+> backend rechaza con un 422. **Tocar una obliga a avisar de la otra.**
 
 ---
 

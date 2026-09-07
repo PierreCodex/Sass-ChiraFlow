@@ -1,13 +1,13 @@
 # Citas
 
 **Ruta:** `/citas`
-**Estado:** ✅ Formulario validado contra la app actual · ⚠️ **columnas de la tabla aún supuestas**
+**Estado:** ✅ **Conectada al backend** (2026-09-06)
 **Archivos:**
 - `web/src/app/(dashboard)/citas/page.tsx`
 - `web/src/features/citas/`
 
-> Solo he visto el **formulario** de tu app, no el listado. Las columnas de la
-> tabla las elegí yo a partir de los campos del formulario.
+> Las columnas de la tabla las elegí a partir de los campos del formulario: del
+> listado de la app anterior nunca vi una captura.
 
 ---
 
@@ -84,7 +84,18 @@ termina cada cita y cada break. Sin eso, un servicio cuya duración no encaje
 con la rejilla deja huecos muertos — una cita de 50 min desde las 09:00
 termina a las 09:50 y la rejilla no volvería a ofrecer nada hasta las 10:00.
 
-Ejemplo real (Lic. Rosa Paredes, 09:00–18:00, break 13:00–14:00, con dos citas):
+### El caso dorado
+
+Este ejemplo es ahora un **test en los dos repos**, así que conviene que esté
+escrito entero. Lic. Rosa Paredes, jornada **09:00–18:00**, break
+**13:00–14:00**, y **dos citas ya tomadas**:
+
+| Cita | Franja |
+|---|---|
+| 1 | **10:00 – 10:15** |
+| 2 | **14:30 – 15:30** |
+
+Con eso, y el modo `duracion_servicio`:
 
 | Servicio | Huecos |
 |---|---|
@@ -93,6 +104,27 @@ Ejemplo real (Lic. Rosa Paredes, 09:00–18:00, break 13:00–14:00, con dos cit
 
 Las dos en negrita son bordes: **10:15** y **15:30** es justo cuando Rosa se
 libera de una cita. La rejilla por sí sola no las habría ofrecido.
+
+> **Las dos citas faltaban en esta ficha** hasta el 2026-09-06. El backend las
+> reconstruyó desde los dos listados —son las únicas que producen a la vez los
+> 27 y los 9— y se anotan aquí porque sin ellas el ejemplo no lo puede volver a
+> comprobar nadie.
+
+### La misma regla, escrita dos veces
+
+`disponibilidad.ts` calcula estos huecos para pintar el selector, y
+`App\Services\Disponibilidad` los recalcula en el backend para validar el
+`POST`. **Son dos copias de una regla.** Mientras las dos existan tienen que dar
+lo mismo, o el selector ofrecerá horas que el backend rechaza con un 422.
+
+**Tocar `disponibilidad.ts` obliga a avisar al backend**, y al revés.
+
+Dos matices que la especificación no cerraba y que cerró el backend:
+
+- **`no_asistio` no libera su hueco**; solo `cancelada`. El profesional estuvo
+  esperando igual, y liberarlo reescribiría el pasado.
+- **Una excepción disponible no arrastra los breaks del día habitual**: es un
+  turno distinto y sus descansos habrían sido otros.
 
 | Situación | Qué se muestra |
 |---|---|
@@ -136,30 +168,39 @@ Por eso el payload lleva `cliente_id`:
 
 ### `GET /api/citas`
 
-Parámetros: `page`, `per_page`, `search` (nombre y teléfono del cliente)
+Parámetros: `page`, `per_page`, `search` (nombre, **apellido** o teléfono del
+cliente), `fecha`, `estado`.
 
 ```json
 {
   "data": [
     {
       "id": 108,
+      "codigo": "C-108-4F2A",
       "fecha": "2026-08-10",
       "hora_inicio": "20:00",
       "hora_fin": "21:00",
       "estado": "pendiente",
-      "monto": 65,
+      "monto": 45,
+      "monto_total": 110,
       "notas": "quiero lo urgente",
       "cliente_id": 5,
       "cliente_nombre": "sandro david",
       "cliente_telefono": "902 743 580",
       "cliente_email": "englobor@gmail.com",
-      "servicio": {
-        "id": 2,
-        "nombre": "ATENCION DEL MEDICO",
-        "duracion_min": 60,
-        "precio": 45
-      },
+      "servicios": [
+        {
+          "id": 2,
+          "nombre": "ATENCION DEL MEDICO",
+          "duracion_min": 60,
+          "precio": 45,
+          "cantidad": 1,
+          "color": "#4f46e5"
+        }
+      ],
+      "servicio": { "…": "la primera línea de servicios, como puente" },
       "empleado": { "id": 3, "nombre": "Dr. Julio Mendoza" },
+      "local_id": 1,
       "productos": [
         {
           "producto_id": 6,
@@ -184,6 +225,7 @@ JSON normal (no sube archivos).
   "servicio_id": 2,
   "fecha": "2026-08-10",
   "hora_inicio": "20:00",
+  "local_id": 1,
   "cliente_id": 5,
   "cliente_nombre": "sandro david",
   "cliente_telefono": "902 743 580",
@@ -195,10 +237,33 @@ JSON normal (no sube archivos).
 }
 ```
 
-`hora_fin` no se envía: lo calcula el backend como
-`hora_inicio + servicio.duracion_min`.
+`hora_fin` **no se acepta**: la calcula el backend como
+`hora_inicio + servicio.duracion_min`. Aceptarla dejaría reservar 20 minutos de
+un servicio de 60.
+
+Se manda **un** `servicio_id` y el backend inserta una línea. El array
+`servicios[]` es de lectura: lo llenará la tienda pública en el Sprint 5.
+
+**`local_id` es opcional**: con una sola sede lo pone el backend (la principal).
+El formulario solo enseña el selector cuando hay más de una.
+
+#### El 422 de `hora_inicio` dice dos cosas distintas
+
+| Mensaje | Qué hacer |
+|---|---|
+| «esa hora ya no está disponible, libres: …» | elegir otra de la lista |
+| «ese profesional no tiene horas libres ese día» | **cambiar de día o de profesional** |
+
+El segundo no se arregla eligiendo otra hora, así que no se pintan igual.
 
 ### `DELETE /api/citas/{id}`
+
+**Borra de verdad**: `citas` no lleva soft delete y las líneas caen en cascada.
+**Cancelar es un estado** y es lo que conserva el historial. Por eso el diálogo
+de borrado lo dice, y ofrece cancelar como alternativa: son dos acciones
+distintas con el mismo aspecto de «quitar esto de en medio».
+
+Si la cita estaba completada, su stock vuelve antes de borrarla.
 
 ---
 
@@ -209,15 +274,19 @@ JSON normal (no sube archivos).
 | `fecha` | date `Y-m-d` | ✅ | |
 | `hora_inicio` | `HH:mm` | ✅ | |
 | `hora_fin` | `HH:mm` | ✅ | Calculado, solo lectura |
-| `estado` | enum | ✅ | Visto "Pendiente"; el resto siguen supuestos |
-| `monto` | decimal | ✅ | Editable, independiente del precio del servicio |
-| `notas` | string \| null | ✅ | |
-| `cliente_id` | int \| null | ⚠️ | Ver "El campo Cliente" |
-| `cliente_nombre` | string | ✅ | Texto libre |
-| `cliente_telefono` | string \| null | ✅ | |
-| `cliente_email` | string \| null | ✅ | |
-| `servicio` | objeto | ✅ | Con `duracion_min` y `precio` |
-| `empleado` | objeto | ✅ | **Obligatorio**: `citas.user_id` no es nullable |
+| `codigo` | string | ✅ | Público: es el que viaja por WhatsApp |
+| `estado` | enum | ✅ | Los **seis** de abajo |
+| `monto` | decimal | ✅ | Solo los **servicios**. Editable: reescribe el precio congelado de la línea |
+| `monto_total` | decimal | ✅ | Servicios + productos. **Es el que se muestra** |
+| `notas` | string \| null | ✅ | Máx. 500 |
+| `cliente_id` | int \| null | ✅ | Ver "El campo Cliente" |
+| `cliente_nombre` | string | ✅ | Texto libre, máx. 150 |
+| `cliente_telefono` | string \| null | ✅ | Máx. 30 |
+| `cliente_email` | string \| null | ✅ | Máx. 150 |
+| `servicios` | array | ✅ | **La fuente de verdad.** Precio y duración congelados de la pivote |
+| `servicio` | objeto \| null | ✅ | La primera línea, **como puente** |
+| `empleado` | objeto | ✅ | **Obligatorio**: `citas.profesional_id` no es nullable |
+| `local_id` | int \| null | ✅ | La sede |
 | `productos` | array | ✅ | Puede venir vacío |
 
 ### Estados de la cita
@@ -225,23 +294,38 @@ JSON normal (no sube archivos).
 `web/src/features/citas/constants.ts` — única fuente de verdad, también la usa
 el dashboard.
 
-Verificado contra el enum real de la tabla `citas`:
+Son **seis**, los del ENUM real de la tabla `citas`:
 
 | Valor | Etiqueta | Color |
 |---|---|---|
 | `pendiente` | Pendiente | warning |
 | `confirmada` | Confirmada | info |
+| `en_curso` | En curso | primary |
 | `completada` | Completada | success |
-| `cancelada` | Cancelada | error |
+| `cancelada` | Cancelada | default |
+| `no_asistio` | No asistió | error |
 
-Antes tenía `atendida` (es **`completada`**) y me había inventado
-**`no_asistio`**, que no existe.
+**Eran cuatro hasta el 2026-09-06.** El backend emite los seis y no los recorta;
+recortarlos habría sido mentir sobre el estado real de una cita, y el bloque de
+inasistencias de [Reportes](reportes.md) es imposible sin `no_asistio`.
+
+> Ironía anotada: en una revisión anterior di `no_asistio` por inventado mío y
+> lo quité. Existía en la tabla desde el principio.
+
+**El rojo es para `no_asistio`, no para `cancelada`.** Cancelar es un desenlace
+ordenado —alguien avisó— y se pinta en gris; la inasistencia es la que cuesta
+dinero y la que Reportes mide. Con las dos en rojo, el color dejaba de decir
+cuál de las dos hay que perseguir.
+
+`en_curso` se lleva el color del tema porque es el único estado que describe
+**ahora mismo**: en una lista del día es lo primero que se busca.
 
 ### Descartado respecto a la maqueta anterior
 
 - `precio` → ahora se llama **`monto`**, y es editable.
-- **`local`**: el formulario no tiene selector de sede. O es un solo local, o
-  se deduce del profesional. Pendiente.
+- **`local`**: resuelto. `local_id` viaja en la entidad y se acepta en el
+  payload; con una sola sede lo pone el backend, y el selector solo aparece
+  cuando hay más de una.
 - `cliente` como objeto anidado → ahora son campos planos, más `cliente_id`.
 
 ---
@@ -254,29 +338,44 @@ Antes tenía `atendida` (es **`completada`**) y me había inventado
 | Cliente | Nombre + teléfono |
 | Servicio | Nombre + "+N productos" si tiene |
 | Atiende | Empleado, o "Sin asignar" |
-| Monto | `S/ 0.00` |
+| Monto | `S/ 0.00` — **`monto_total`**, que es lo que se cobra |
 | Estado | Chip de color |
 | Acciones | Editar y eliminar |
 
-Filtro por estado arriba a la derecha. **Hoy filtra en cliente**; con el
-backend pasa a ser un query param.
+Filtro por estado arriba a la derecha, como **query param** `?estado=`.
 
 ---
+
+## Resueltos con el backend (2026-09-06)
+
+- **El cliente escrito a mano**: con teléfono se **reutiliza su ficha** (y se
+  restaura si estaba borrada); **sin teléfono se crea una nueva aunque el
+  nombre se repita**. Fusionar por nombre juntaría a dos «María» distintas, y
+  separar dos historiales mezclados es mucho peor que tener dos fichas.
+- **Los productos descuentan stock al COMPLETAR**, no al agendar: reservar dos
+  ceras para el jueves no las quita del estante hoy. Deshacer el completado las
+  devuelve, anotando una entrada de devolución en vez de borrar la venta.
+- **Esa venta no tiene el tope de stock** que sí tiene el movimiento manual, a
+  propósito: la venta ya ocurrió, y negarse a registrarla dejaría la cita sin
+  poder cerrarse por un dato de inventario que ya estaba mal.
+- **El monto no incluye los productos**: para eso está `monto_total`.
+- **Sí se valida la disponibilidad** en el backend, con la misma regla del
+  selector, y el 422 llega en `hora_inicio`.
+- **La cita se asigna a un local**: `local_id`.
+- **El intervalo tiene pantalla** desde el Sprint 2:
+  `/administracion/general/agenda`.
 
 ## Pendiente
 
 - [ ] **Ver el listado real de Citas** para confirmar columnas y filtros
-- [ ] **Lista completa de estados** del select
-- [ ] Maquetar el ajuste de intervalo en **Configuración** (hoy el valor existe
-      pero no tiene pantalla: se lee de `features/configuracion/mocks.ts`)
 - [ ] ¿Hace falta un **margen entre citas** (buffer) para limpiar o preparar?
 - [ ] ¿La duración puede variar por profesional? Hoy es del servicio y punto
 - [ ] Con "Sin asignar" no hay horario que consultar y no se ofrecen huecos.
       ¿Debería ser obligatorio elegir profesional?
-- [ ] **¿Qué hace el backend cuando el cliente se escribe a mano?**
-      ¿Crea uno nuevo? ¿Lo busca por teléfono? ¿Deja la cita sin vincular?
-      De esto depende que `total_citas` de Clientes cuadre.
-- [ ] ¿La cita se asigna a un local? (existe `citas.local_id` en el backend)
+- [ ] **Varios servicios por cita** en el panel. El array ya llega; el
+      formulario sigue mandando uno. Lo pide la tienda pública del Sprint 5.
+- [ ] **`codigo` no se muestra en ninguna vista**, y es el identificador con el
+      que un cliente sin cuenta pregunta por su cita.
 
 ### Verificado contra el backend
 
@@ -290,7 +389,19 @@ para la página pública de reservas.
 
 La columna `citas.fuente` (`web` · `panel` · `publica`) registra de dónde vino
 cada reserva. Todavía no se muestra en ninguna vista.
-- [ ] ¿Se valida que el profesional esté disponible según su horario? (ver
-      [profesionales.md](profesionales.md))
-- [ ] ¿Los productos descuentan stock al guardar la cita, o al cobrarla en Caja?
-- [ ] ¿El monto incluye los productos, o van aparte?
+
+**`cita_servicio` dejó de ser «para la página pública»**: es la única fuente de
+verdad de los servicios de una cita, también para el panel. No existe
+`citas.servicio_id`.
+
+---
+
+## Quién ve qué
+
+`solo_propios` **ya filtra** (Sprint 4). Quien lo tiene en su rol ve solo sus
+citas, y la de otro responde **404**, no 403: para esa persona esa cita no
+existe. Y quien tiene `solo_propios` **sin ficha de profesional no ve ninguna**
+— quien no atiende no tiene citas propias.
+
+El alcance por sedes se aplica además del anterior: son dos ejes distintos.
+**Dónde** manda vive en la cuenta; **sobre quién**, en el rol.
