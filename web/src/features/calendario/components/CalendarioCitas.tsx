@@ -10,7 +10,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 
-import type { Cita } from "@/features/citas/types";
+import {
+  colorDeCita,
+  nombreDeServicios,
+  type Cita,
+} from "@/features/citas/types";
 import type { Profesional } from "@/features/profesionales/types";
 import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
@@ -212,8 +216,8 @@ const CalendarioCitas = ({
           const cancelada = evento.cita.estado === "cancelada";
           return {
             style: {
-              backgroundColor: `${evento.cita.servicio.color}${cancelada ? "22" : "33"}`,
-              borderLeft: `3px solid ${evento.cita.servicio.color}`,
+              backgroundColor: `${colorDeCita(evento.cita)}${cancelada ? "22" : "33"}`,
+              borderLeft: `3px solid ${colorDeCita(evento.cita)}`,
               color: theme.palette.text.primary,
               opacity: cancelada ? 0.6 : 1,
               textDecoration: cancelada ? "line-through" : "none",
@@ -268,7 +272,7 @@ const CalendarioCitas = ({
                 {event.cita.cliente_nombre}
               </Typography>
               <Typography variant="caption" display="block" noWrap>
-                {event.cita.servicio.nombre}
+                {nombreDeServicios(event.cita)}
               </Typography>
               <Typography variant="caption" display="block" sx={{ opacity: 0.75 }}>
                 {event.cita.hora_inicio} - {event.cita.hora_fin}

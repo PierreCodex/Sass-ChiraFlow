@@ -2,6 +2,7 @@ import { usarMocksPara } from "@/lib/api/mocks";
 import { api } from "@/lib/api/client";
 import { delay, haceDias } from "@/lib/mock-utils";
 import { citasMock } from "@/features/citas/mocks";
+import { nombreDeServicios } from "@/features/citas/types";
 import { clientesMock } from "@/features/clientes/mocks";
 import type { ResumenDashboard } from "../types";
 
@@ -35,7 +36,7 @@ function resumenMock(): ResumenDashboard {
       id: cita.id,
       hora: cita.hora_inicio,
       cliente: cita.cliente_nombre,
-      servicio: cita.servicio.nombre,
+      servicio: nombreDeServicios(cita),
       empleado: cita.empleado?.nombre ?? null,
       estado: cita.estado,
     })),

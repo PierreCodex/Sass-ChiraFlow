@@ -7,7 +7,11 @@ import Typography from "@mui/material/Typography";
 
 import { formatMoneda } from "@/lib/format";
 import { ESTADOS_CITA } from "@/features/citas/constants";
-import type { Cita } from "@/features/citas/types";
+import {
+  colorDeCita,
+  nombreDeServicios,
+  type Cita,
+} from "@/features/citas/types";
 
 interface Props {
   citas: Cita[];
@@ -56,7 +60,7 @@ const CalendarioLista = ({ citas, onSeleccionarCita }: Props) => {
                 alignSelf: "stretch",
                 minHeight: 40,
                 borderRadius: 2,
-                bgcolor: cita.servicio.color,
+                bgcolor: colorDeCita(cita),
                 display: { xs: "none", sm: "block" },
               }}
             />
@@ -70,13 +74,13 @@ const CalendarioLista = ({ citas, onSeleccionarCita }: Props) => {
                 {cita.cliente_nombre}
               </Typography>
               <Typography variant="body2" color="textSecondary" noWrap>
-                {cita.servicio.nombre}
+                {nombreDeServicios(cita)}
                 {` · ${cita.empleado.nombre}`}
               </Typography>
             </Box>
 
             <Typography variant="subtitle2" fontWeight={600}>
-              {formatMoneda(cita.monto)}
+              {formatMoneda(cita.monto_total)}
             </Typography>
 
             <Chip size="small" label={estado.label} color={estado.color} />

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
@@ -14,7 +14,7 @@ import { usePaginacion } from "@/hooks/usePaginacion";
 import { formatFecha, formatMoneda } from "@/lib/format";
 import { ESTADOS_CITA } from "../constants";
 import { useCitas } from "../hooks/useCitas";
-import type { Cita, EstadoCita } from "../types";
+import { nombreDeServicios, type Cita, type EstadoCita } from "../types";
 
 interface Props {
   onEditar: (cita: Cita) => void;
@@ -24,14 +24,14 @@ interface Props {
 const CitasTable = ({ onEditar, onEliminar }: Props) => {
   const { page, perPage, setPage, setPerPage, params } = usePaginacion();
   const [estado, setEstado] = useState<EstadoCita | "">("");
-  const { data, isPending, error } = useCitas(params);
 
-  // El filtro por estado se aplica en cliente mientras usamos datos ficticios.
-  // Con el backend real pasa a ser un query param más de `params`.
-  const datosFiltrados =
-    data && estado
-      ? { ...data, data: data.data.filter((cita) => cita.estado === estado) }
-      : data;
+  // El filtro viaja como query param (`?estado=`), no se aplica en cliente:
+  // filtrar la página ya traída enseñaría «3 de 47» sin decir de dónde salen.
+  const consulta = useMemo(
+    () => ({ ...params, estado: estado || undefined }),
+    [params, estado]
+  );
+  const { data, isPending, error } = useCitas(consulta);
 
   const columnas: Columna<Cita>[] = [
     {
@@ -67,7 +67,7 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       label: "Servicio",
       render: (cita) => (
         <>
-          <Typography variant="body2">{cita.servicio.nombre}</Typography>
+          <Typography variant="body2">{nombreDeServicios(cita)}</Typography>
           {cita.productos.length ? (
             <Typography variant="body2" color="textSecondary">
               +{cita.productos.length} producto
@@ -90,9 +90,10 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       id: "monto",
       label: "Monto",
       align: "right",
+      // `monto_total`, no `monto`: lo que se cobra incluye los productos.
       render: (cita) => (
         <Typography variant="subtitle2" fontWeight={600} noWrap>
-          {formatMoneda(cita.monto)}
+          {formatMoneda(cita.monto_total)}
         </Typography>
       ),
     },
@@ -132,7 +133,10 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
           select
           size="small"
           value={estado}
-          onChange={(e: any) => setEstado(e.target.value as EstadoCita | "")}
+          onChange={(e: any) => {
+            setEstado(e.target.value as EstadoCita | "");
+            setPage(0); // el filtro cambia el total: la página 4 puede no existir
+          }}
           sx={{ minWidth: 200 }}
           slotProps={{ select: { displayEmpty: true } }}
         >
@@ -148,7 +152,7 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       <DataTable
         moduloEscritura="citas"
         columnas={columnas}
-        datos={datosFiltrados}
+        datos={data}
         cargando={isPending}
         error={error}
         page={page}
