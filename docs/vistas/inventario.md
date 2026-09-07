@@ -1,7 +1,7 @@
 # Inventario
 
 **Ruta:** `/inventario`
-**Estado:** ✅ Campos validados contra el código Laravel (`feat/planes-suscripcion`)
+**Estado:** ✅ **Conectada al backend** (2026-09-06)
 **Archivos:**
 - `web/src/app/(dashboard)/inventario/page.tsx`
 - `web/src/features/inventario/`
@@ -59,11 +59,11 @@ panel de alertas usen exactamente el mismo criterio.
 
 ### `GET /api/inventario`
 
-Parámetros: `page`, `per_page`, `search` (filtra por nombre).
+Parámetros: `page`, `per_page`, `search` — filtra por nombre **y
+descripción**.
 
-> ⚠️ En Laravel el parámetro se llama **`buscar`**, no `search`, y la
-> paginación está fija en **15**. Al conectar hay que unificarlo con el resto
-> de módulos (todos los demás usan `search` + `per_page`).
+> El Laravel anterior lo llamaba `buscar` y paginaba fijo de 15 en 15. El
+> backend nuevo usa `search` + `per_page`, como el resto de módulos.
 
 ```json
 {
@@ -121,17 +121,19 @@ Validación replicada tal cual del controlador:
 
 ### `PUT /api/inventario/{id}`
 
-⚠️ **Este endpoint todavía no existe en Laravel.** El controlador solo tiene
-`index`, `store`, `movimiento` y `destroy`: hoy un producto no se puede
-editar, hay que borrarlo y volver a crearlo.
+**Existe desde el Sprint 3.B** (2026-09-06). Se acabó el borrar-y-recrear que
+obligaba el Laravel anterior.
 
-El frontend ya asume que existirá y usa el mismo cuerpo que `POST`, **menos
-`stock`**: el stock solo se mueve por movimientos, nunca por edición directa
-(en el formulario de edición el campo aparece deshabilitado con la ayuda
-*"Se cambia con movimientos"*).
+Mismo cuerpo que el `POST`, **menos `stock`**: el stock solo se mueve por
+movimientos, nunca por edición directa. En el formulario de edición el campo
+aparece deshabilitado con la ayuda *"Se cambia con movimientos"*.
 
-Hay que añadir el método `update` al backend con las mismas reglas que
-`store`, ignorando `stock`.
+**Mandarlo igualmente no da 422**: la regla no está en el Form Request, así que
+la clave no llega a `validated()` y simplemente no cambia nada. Por eso el
+campo deshabilitado puede seguir enviándose.
+
+> Un `PUT` que reescribiera el stock sería un cambio de inventario **sin
+> autor**. Los movimientos dejan quién y por qué; la edición no.
 
 ### `POST /api/inventario/{id}/movimiento`
 
@@ -147,16 +149,30 @@ Hay que añadir el método `update` al backend con las mismas reglas que
 |---|---|
 | `tipo` | requerido, `entrada` \| `salida` |
 | `cantidad` | requerido, entero, ≥ 1 |
-| `motivo` | opcional, string, máx. 255 |
+| `motivo` | opcional, string, **máx. 150** — es el ancho de la columna |
 
 El backend crea la fila en `inventario_movimientos` (guardando `user_id`, o
-sea quién lo registró) y recalcula `producto.stock`. La respuesta debería
-devolver el **producto actualizado** para que la tabla se refresque sin pedir
-el listado entero.
+sea quién lo registró) y recalcula `producto.stock`. **Devuelve el producto
+actualizado**, así que la tabla se refresca sin pedir el listado entero.
+
+**Una salida no puede dejar el stock en negativo → 422 en `cantidad`.** Cero
+justo sí pasa; lo que no puede es pasarse.
+
+`cantidad` se guarda **siempre positiva**: el signo lo lleva `tipo`. Con signo,
+la columna significaría dos cosas según la fila y sumarla daría el saldo por
+accidente.
+
+> El **stock inicial también anota su movimiento** de entrada («Stock
+> inicial»). No cambia ninguna respuesta, pero sin él un producto que nace con
+> 24 unidades tiene un saldo que ninguna fila explica — y el historial que esta
+> ficha deja pendiente diría que aparecieron solas.
 
 ### `DELETE /api/inventario/{id}`
 
-Responde 204. Existe la ruta en Laravel aunque la vista Blade no tenga botón.
+Responde 204. Es **soft delete**, y **recrear un producto con el nombre de uno
+borrado restaura la fila pero nace limpio**: activo, con el stock y los precios
+que se acaban de escribir. Para el negocio eso es un alta — rellenó un
+formulario en blanco. Misma decisión que en [Servicios](servicios.md).
 
 ---
 
@@ -237,16 +253,24 @@ Debajo hay un Alert que se recalcula mientras escribes:
 
 Y si la salida se pasa del stock disponible:
 
-> ⚠️ La salida supera el stock disponible. Quedaría en 0.
+> ⚠️ No se puede: la salida supera el stock disponible (hay 12).
 
-**Diferencia con el backend:** Laravel hace la resta sin tope, así que un
-producto **puede quedarse con stock negativo**. La maqueta corta en 0 y avisa.
-Al conectar hay que decidir cuál gana:
+**Se decidió el 422**, que era la recomendación de esta ficha: un stock negativo
+no es un dato, es un error de captura contado como inventario, y de ahí sale a
+la tienda pública y a los reportes.
 
-- **Recomendado:** validar en el backend que una salida no supere el stock, y
-  devolver 422. La UI ya sabe pintar errores de validación por campo.
-- Si el negocio necesita permitir negativos (venta con stock desactualizado),
-  entonces quito el tope del mock y dejo el aviso solo como informativo.
+**El aviso se reescribió el 2026-09-06.** Decía *«Quedaría en 0»*, que era
+cierto contra el mock —recorta en 0 y guarda— y dejó de serlo contra el backend,
+que rechaza. Prometía que el movimiento se registraba.
+
+El botón **sigue habilitado** a propósito: el 422 se pinta bajo `cantidad`, que
+es donde el usuario está mirando, y así el aviso local y el del servidor dicen
+lo mismo en vez de competir.
+
+> La **venta de una cita no tiene este tope**, y es deliberado: esa venta ya
+> ocurrió —el producto salió del estante— y negarse a registrarla dejaría la
+> cita sin poder cerrarse por un dato de inventario que ya estaba mal. Ver
+> [citas.md](citas.md).
 
 > Detalle de implementación: el input numérico devuelve **string**, y yup solo
 > castea al enviar. La vista previa hace su propio `Number()` — sin eso el
@@ -294,10 +318,11 @@ la tabla difícil de leer.
 
 ## Pendiente
 
-- [ ] **Añadir `update` al `InventarioController`** — hoy no se puede editar
-- [ ] Unificar el parámetro de búsqueda: `buscar` → `search`, y `per_page`
-- [ ] Decidir si el stock puede quedar negativo (ver arriba)
-- [ ] Que `POST /movimiento` devuelva el producto actualizado
-- [ ] ¿Mostrar el historial de movimientos por producto?
+- [x] ~~Añadir `update` al `InventarioController`~~ — hecho (Sprint 3.B)
+- [x] ~~Unificar el parámetro de búsqueda: `buscar` → `search`, y `per_page`~~
+- [x] ~~Decidir si el stock puede quedar negativo~~ — no puede: 422
+- [x] ~~Que `POST /movimiento` devuelva el producto actualizado~~
+- [ ] ¿Mostrar el historial de movimientos por producto? Las filas ya están
+      todas, incluida la del stock inicial: falta el endpoint que las liste
 - [ ] ¿Qué pasa al borrar un producto que ya está en `cita_producto`?
 - [ ] ¿Llevar los productos con stock bajo al dashboard como alerta?
