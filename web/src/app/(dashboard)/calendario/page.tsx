@@ -23,8 +23,10 @@ import CalendarioLista from "@/features/calendario/components/CalendarioLista";
 import LeyendaCalendario from "@/features/calendario/components/LeyendaCalendario";
 import CitaFormDialog from "@/features/citas/components/CitaFormDialog";
 import { useCitasDelDia } from "@/features/citas/hooks/useCitas";
-import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
+import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
+import { saleEnAgenda } from "@/features/profesionales/types";
 import type { Cita } from "@/features/citas/types";
+import AvisoError from "@/components/shared/AvisoError";
 
 
 export default function CalendarioPage() {
@@ -41,11 +43,11 @@ export default function CalendarioPage() {
   } | null>(null);
 
   const { data: citas = [], isPending, error } = useCitasDelDia(fecha);
-  const { data: empleados = [] } = useTodosLosEmpleados();
+  const { data: todosLosProfesionales = [] } = useTodosLosProfesionales();
 
   const profesionales = useMemo(
-    () => empleados.filter((e) => e.rol === "profesional" && e.activo),
-    [empleados]
+    () => todosLosProfesionales.filter(saleEnAgenda),
+    [todosLosProfesionales]
   );
 
   const profesionalesVisibles = useMemo(
@@ -122,7 +124,7 @@ export default function CalendarioPage() {
         {isPending ? (
           <Skeleton variant="rounded" height={520} />
         ) : error ? (
-          <Alert severity="error">{toApiError(error).message}</Alert>
+          <AvisoError error={error} />
         ) : vista === "lista" ? (
           <CalendarioLista
             citas={citasVisibles}

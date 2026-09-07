@@ -2,7 +2,7 @@ import { serviciosMock } from "@/features/servicios/mocks";
 import { categoriasMock } from "@/features/categorias/mocks";
 import { localesMock } from "@/features/locales/mocks";
 import { localProfesionalMock } from "@/features/locales/mocks-recursos";
-import { empleadosMock } from "@/features/empleados/mocks";
+import { profesionalesMock } from "@/features/profesionales/mocks";
 import { haceDias } from "@/lib/mock-utils";
 import type {
   CategoriaPublica,
@@ -76,7 +76,7 @@ export function profesionalesDelLocal(localId: number): ProfesionalPublico[] {
   return asignados
     .filter((asignado) => asignado.habilitado)
     .flatMap((asignado) => {
-      const empleado = empleadosMock.find((item) => item.id === asignado.id);
+      const empleado = profesionalesMock.find((item) => item.id === asignado.id);
       if (!empleado?.activo) return [];
 
       return [

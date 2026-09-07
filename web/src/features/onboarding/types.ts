@@ -8,6 +8,8 @@
  * desaparecer.
  */
 
+import { rutaDeSeccion } from "@/features/administracion/nav";
+
 export type ClavePaso =
   | "nombre_negocio"
   | "horario_local"
@@ -42,12 +44,13 @@ export const DESCRIPCION_PASOS: Record<string, DescripcionPaso> = {
   horario_local: {
     etiqueta: "Configura el horario de tu local",
     descripcion: "Los días y horas en que atiendes",
-    href: "/configuracion",
+    href: rutaDeSeccion("general", "agenda"),
   },
   primer_profesional: {
     etiqueta: "Agrega tu primer profesional",
     descripcion: "El resto de tu equipo",
-    href: "/empleados",
+    // Sale de `nav.ts` y no a mano: la próxima mudanza se cambia en un sitio.
+    href: rutaDeSeccion("equipo", "profesionales"),
   },
   primer_servicio: {
     etiqueta: "Crea tu primer servicio",

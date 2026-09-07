@@ -116,7 +116,7 @@ que usa la plantilla.
 `web/src/features/calendario/disponibilidad.ts`
 
 El calendario **respeta el horario semanal de cada empleado** (ver
-[empleados.md](empleados.md)). No es un rango fijo igual para todos.
+[profesionales.md](profesionales.md)). No es un rango fijo igual para todos.
 
 **Rango visible.** Sale de las jornadas de los profesionales de ese día: la
 hora de inicio más temprana y la de fin más tardía, con media hora de aire.

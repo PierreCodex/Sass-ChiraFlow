@@ -14,6 +14,7 @@ import { toApiError } from "@/lib/api/client";
 import { formatHora } from "@/lib/format";
 import { ESTADOS_CITA } from "@/features/citas/constants";
 import { useResumenDashboard } from "../hooks/useDashboard";
+import AvisoError from "@/components/shared/AvisoError";
 
 const CitasDeHoy = () => {
   const { data, isPending, isError, error } = useResumenDashboard();
@@ -35,7 +36,7 @@ const CitasDeHoy = () => {
             ))}
           </Stack>
         ) : isError ? (
-          <Alert severity="error">{toApiError(error).message}</Alert>
+          <AvisoError error={error} />
         ) : data.citas_del_dia.length === 0 ? (
           <Typography color="textSecondary">No hay citas hoy.</Typography>
         ) : (

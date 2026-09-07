@@ -224,7 +224,7 @@ const LocalProfesionalDialog = ({
               <Alert severity="info" variant="outlined">
                 Este horario es informativo para la página pública. La
                 disponibilidad real de reservas sale del horario del
-                profesional, en <strong>Empleados</strong>.
+                profesional, en <strong>Profesionales</strong>.
               </Alert>
             </Grid>
 

@@ -18,8 +18,10 @@ export const configuracionMock: Configuracion = {
   horario_apertura: "09:00",
   horario_cierre: "20:00",
 
-  color_primario: "#7c3aed",
-  color_secundario: "#0ea5e9",
+  // Los de las columnas de `tenants`. Los que decia la ficha (#7c3aed /
+  // #0ea5e9) eran del Laravel anterior.
+  color_primario: "#4f46e5",
+  color_secundario: "#06b6d4",
   logo_url: null,
   cover_url: null,
 
@@ -34,3 +36,21 @@ export const configuracionMock: Configuracion = {
     intervalo_min: 15,
   },
 };
+
+/**
+ * Un puñado de zonas, no las 419 que manda el backend.
+ *
+ * Con mocks solo hace falta que el desplegable tenga varias regiones y se
+ * pueda buscar; la lista real llega con el `GET` y es la que manda.
+ */
+export const zonasHorariasMock: string[] = [
+  "America/Lima",
+  "America/Bogota",
+  "America/Mexico_City",
+  "America/Argentina/Buenos_Aires",
+  "America/Santiago",
+  "America/New_York",
+  "Europe/Madrid",
+  "Europe/London",
+  "UTC",
+];

@@ -12,6 +12,7 @@ import ServicioFormDialog from "@/features/servicios/components/ServicioFormDial
 import { useEliminarServicio } from "@/features/servicios/hooks/useServicios";
 import type { Servicio } from "@/features/servicios/types";
 import { toApiError } from "@/lib/api/client";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function ServiciosPage() {
@@ -44,13 +45,15 @@ export default function ServiciosPage() {
         titulo="Servicios"
         descripcion="Tu catálogo de atención"
         acciones={
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNuevo}
-        >
-          Nuevo servicio
-        </Button>
+        <SoloSiGestiona modulo="servicios">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNuevo}
+          >
+            Nuevo servicio
+          </Button>
+        </SoloSiGestiona>
         }
       />
       <DashboardCard>

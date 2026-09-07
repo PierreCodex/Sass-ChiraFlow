@@ -1,6 +1,6 @@
 import { crearRecurso } from "@/lib/api/recurso";
 import { categoriasMock } from "@/features/categorias/mocks";
-import { empleadosMock } from "@/features/empleados/mocks";
+import { profesionalesMock } from "@/features/profesionales/mocks";
 import type { ImagenGaleria, Servicio, ServicioPayload } from "../types";
 import { serviciosMock } from "../mocks";
 
@@ -47,7 +47,7 @@ export const serviciosApi = crearRecurso<Servicio, ServicioPayload>({
     }
 
     if ("empleado_ids" in payload) {
-      parcial.empleados = empleadosMock
+      parcial.empleados = profesionalesMock
         .filter((e) => payload.empleado_ids?.includes(e.id))
         .map((e) => ({ id: e.id, nombre: e.nombre }));
     }

@@ -1,11 +1,11 @@
 # Locales
 
-**Ruta:** `/locales`
-**Estado:** ✅ Las 4 pestañas validadas contra el código Laravel
-(`feat/planes-suscripcion`)
+**Ruta:** `/administracion/locales/{sedes,profesionales,grupos}`
+(`/locales` redirige a la primera)
+**Estado:** ✅ **Conectada al backend** (2026-09-05). Las 4 pestañas pasaron a
+**3 secciones** — ver abajo
 **Archivos:**
-- `web/src/app/(dashboard)/locales/page.tsx`
-- `web/src/features/locales/`
+- `web/src/features/locales/` — se monta desde `features/administracion/paneles.ts`
 
 **Fuente en la app actual:**
 - `app/Http/Controllers/Admin/RecursoController.php` (la pantalla completa)
@@ -38,12 +38,22 @@ En la app actual esta sección se titula **"Recursos"** y vive en
 
 Cuatro pestañas, las mismas de `admin/recursos/index.blade.php`:
 
-| Pestaña | Qué hace | Estado |
+| Sección | URL | Estado |
 |---|---|---|
-| Locales | CRUD de sedes | ✅ |
-| Profesionales por local | Quién atiende en cada sede | ✅ |
-| Servicios | Catálogo, solo lectura | ✅ |
-| Grupos | CRUD de agrupaciones | ✅ |
+| Sedes | `locales/sedes` | ✅ conectada |
+| Quién atiende en cada sede | `locales/profesionales` | ✅ conectada |
+| Grupos | `locales/grupos` | ✅ conectada, **con aviso: no las consulta nadie** |
+
+**De cuatro pestañas a tres secciones** (2026-09-05). Las dos que faltan:
+
+- **«Horarios de las sedes» no existía.** `nav.ts` la declaraba, pero el
+  horario del local es un par de campos DENTRO de su formulario: la sección
+  prometía una pantalla que nunca hubo.
+- **La pestaña «Servicios» era un espejo del catálogo**, de solo lectura y sin
+  filtrar por local. Lo suyo sería «qué servicios se ofrecen en cada sede»,
+  pero no hay tabla `local_servicio` que lo represente (ver más abajo), así que
+  se quitó en vez de duplicar el módulo Servicios dentro de una pantalla que va
+  de locales.
 
 ### Pestaña Locales
 
@@ -123,7 +133,18 @@ con `_method=PUT`**, igual que en Servicios y Empleados.
 | `logo` | File | Solo si eligió uno nuevo |
 | `_method` | `"PUT"` | Solo al editar |
 
-`es_principal` no se envía: lo decide el backend.
+**`es_principal` no se envía**: lo decide el backend, que hace principal al
+primer local que se crea. Si lo eligiera el formulario, un negocio podría
+quedarse sin ninguno en dos peticiones — y el principal es del que cuelga la
+tienda pública. Sale resuelto en la respuesta solo para pintar el chip y
+esconder el botón de borrar; el **422 salta igual** si se intenta.
+
+**El cierre tiene que ser posterior a la apertura** (422 desde el Sprint 3).
+La ficha señalaba un local real con «21:00 – 16:07»; de ahí saldrían huecos
+imposibles al calcular disponibilidad.
+
+**Para quitar el banner o el logo**: `banner_eliminar=1` / `logo_eliminar=1`.
+No mandar el archivo significa «déjalo como está».
 
 ### `DELETE /api/locales/{id}`
 
@@ -264,7 +285,17 @@ Laravel.
 
 Es un `syncWithoutDetaching`, así que **el mismo endpoint sirve para asignar
 por primera vez y para editar**. No hay endpoint de "desasignar": para quitar
-a alguien de un local se apaga `habilitado`.
+a alguien de un local se apaga `habilitado` — borrar la fila se llevaría su
+nombre público y su perfil de esa sede, que el negocio escribió a mano.
+
+**El `PUT` solo toca lo que llega**, y aquí importa más que en ningún otro
+sitio: el interruptor guarda al momento y manda `{"habilitado": true}` **a
+secas**. Si el resto se interpretara como vacío, encender a alguien le borraría
+lo que tenía escrito.
+
+⚠️ **Divergencia**: el listado filtra también por `activo`, no solo por
+`atiende` como decía esta ficha. Una tabla de «quién atiende en esta sede» no
+debería ofrecer a alguien dado de baja.
 
 ### El horario del local NO controla la disponibilidad
 

@@ -30,13 +30,30 @@ export const api = axios.create({
 export interface LaravelValidationError {
   message: string;
   errors: Record<string, string[]>;
+  codigo: string;
 }
+
+/**
+ * Los dos 403 que el panel tiene que saber distinguir.
+ *
+ * Son cosas distintas y llevan avisos distintos: `sin_permiso` es «tu rol no
+ * llega aquí» y no lo arregla quien lo ve; `suscripcion_vencida` es «renueva
+ * el plan» y sí tiene un botón detrás. Sin el `codigo` habría que adivinar por
+ * el texto del mensaje, que es exactamente lo que se rompe al traducirlo.
+ *
+ * El backend garantiza que la pared de cobro gana: en un negocio suspendido
+ * sale `suscripcion_vencida` aunque además falte el permiso, porque es el
+ * error sobre el que alguien puede actuar.
+ */
+export type CodigoError = "sin_permiso" | "suscripcion_vencida";
 
 export interface ApiError {
   status: number;
   message: string;
   /** Errores por campo, listos para pasar a react-hook-form. */
   errors?: Record<string, string[]>;
+  /** Discriminante de los 403. Ausente en el resto. */
+  codigo?: CodigoError | string;
 }
 
 /** Normaliza cualquier error de axios a una forma predecible. */
@@ -49,6 +66,7 @@ export function toApiError(error: unknown): ApiError {
       message:
         axiosError.response.data?.message ?? "Ocurrió un error inesperado.",
       errors: axiosError.response.data?.errors,
+      codigo: axiosError.response.data?.codigo,
     };
   }
 

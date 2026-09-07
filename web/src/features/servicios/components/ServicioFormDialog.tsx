@@ -27,7 +27,7 @@ import CampoImagenes from "@/components/shared/CampoImagenes";
 import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useTodasLasCategorias } from "@/features/categorias/hooks/useCategorias";
-import { useTodosLosEmpleados } from "@/features/empleados/hooks/useEmpleados";
+import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
 import { TIPOS_CON_SESIONES, TIPOS_SERVICIO } from "../constants";
 import { useActualizarServicio, useCrearServicio } from "../hooks/useServicios";
 import {
@@ -53,7 +53,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
   const mutacion = esEdicion ? actualizar : crear;
 
   const { data: categorias = [] } = useTodasLasCategorias();
-  const { data: empleados = [] } = useTodosLosEmpleados();
+  const { data: empleados = [] } = useTodosLosProfesionales();
 
   const {
     control,

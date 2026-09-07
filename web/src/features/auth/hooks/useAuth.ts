@@ -48,6 +48,14 @@ export function useResetPassword() {
 }
 
 /**
+ * Gemelo del anterior y aun así distinto: pega a `/invitacion/aceptar`, que
+ * tiene su propio broker y sus 7 días. Ver `authApi.aceptarInvitacion`.
+ */
+export function useAceptarInvitacion() {
+  return useMutation({ mutationFn: authApi.aceptarInvitacion });
+}
+
+/**
  * Usuario autenticado. Devuelve `undefined` mientras carga y lanza error si
  * no hay sesión (el interceptor de axios ya redirige al login en un 401).
  */

@@ -13,6 +13,7 @@ import StatCard, { type StatCardProps } from "@/components/shared/StatCard";
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { useResumenDashboard } from "../hooks/useDashboard";
+import AvisoError from "@/components/shared/AvisoError";
 
 const StatsCards = () => {
   const { data, isPending, isError, error } = useResumenDashboard();
@@ -30,7 +31,7 @@ const StatsCards = () => {
   }
 
   if (isError) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
+    return <AvisoError error={error} />;
   }
 
   const tarjetas: StatCardProps[] = [

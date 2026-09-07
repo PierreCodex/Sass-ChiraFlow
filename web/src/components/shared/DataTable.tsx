@@ -12,8 +12,10 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 
-import { toApiError } from "@/lib/api/client";
 import type { Paginated } from "@/lib/api/types";
+import { usePermisos } from "@/features/capacidades/hooks/useCapacidades";
+import type { Modulo } from "@/features/capacidades/types";
+import AvisoError from "@/components/shared/AvisoError";
 
 export interface Columna<T> {
   /** Identificador único de la columna. */
@@ -36,6 +38,18 @@ interface Props<T> {
   onPerPageChange: (perPage: number) => void;
   mensajeVacio?: string;
   minWidth?: number;
+  /**
+   * Módulo del que depende la columna de acciones.
+   *
+   * Si se pasa y quien mira solo tiene `ver`, la columna **entera** desaparece:
+   * editar y borrar son escrituras, y ofrecer sus iconos a quien va a recibir
+   * un 403 es peor que no ofrecerlos. La columna se reconoce por `id:
+   * "acciones"`, que es como la llaman todas las tablas del panel.
+   *
+   * Sin este prop la tabla se comporta como siempre — hay listados sin
+   * acciones y otros donde la fila entera es de lectura.
+   */
+  moduloEscritura?: Modulo;
 }
 
 /**
@@ -53,7 +67,14 @@ export default function DataTable<T extends { id: number }>({
   onPerPageChange,
   mensajeVacio = "No hay registros todavía.",
   minWidth = 650,
+  moduloEscritura,
 }: Props<T>) {
+  const { puedeGestionar } = usePermisos(moduloEscritura ?? "dashboard");
+
+  const columnasVisibles =
+    moduloEscritura && !puedeGestionar
+      ? columnas.filter((columna) => columna.id !== "acciones")
+      : columnas;
   if (cargando) {
     return (
       <Stack spacing={1}>
@@ -65,7 +86,7 @@ export default function DataTable<T extends { id: number }>({
   }
 
   if (error) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
+    return <AvisoError error={error} />;
   }
 
   if (!datos || datos.data.length === 0) {
@@ -82,7 +103,7 @@ export default function DataTable<T extends { id: number }>({
         <Table sx={{ minWidth }}>
           <TableHead>
             <TableRow>
-              {columnas.map((columna) => (
+              {columnasVisibles.map((columna) => (
                 <TableCell key={columna.id} align={columna.align ?? "left"}>
                   <Typography variant="subtitle2" fontWeight={600}>
                     {columna.label}
@@ -94,7 +115,7 @@ export default function DataTable<T extends { id: number }>({
           <TableBody>
             {datos.data.map((fila) => (
               <TableRow key={fila.id}>
-                {columnas.map((columna) => (
+                {columnasVisibles.map((columna) => (
                   <TableCell key={columna.id} align={columna.align ?? "left"}>
                     {columna.render(fila)}
                   </TableCell>

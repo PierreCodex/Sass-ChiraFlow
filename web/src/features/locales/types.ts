@@ -45,12 +45,24 @@ export interface LocalProfesional {
   horario_cierre: string | null; // "18:00"
 }
 
+/**
+ * Lo que viaja al `PUT` del pivote. **Es un parche**: llega lo que llega y se
+ * toca solo eso.
+ *
+ * Aquí importa más que en ningún otro sitio del panel: el interruptor de
+ * «habilitado» guarda al momento y manda su campo casi solo. Si el resto se
+ * interpretara como vacío, encender a alguien le borraría el nombre público y
+ * el perfil que el negocio escribió a mano.
+ *
+ * Por eso los campos son opcionales y no nullables a secas: `undefined` es «no
+ * lo toques» y `null` es «bórralo», y son cosas distintas.
+ */
 export interface LocalProfesionalPayload {
-  habilitado: boolean;
-  nombre_publico: string | null;
-  perfil: string | null;
-  horario_apertura: string | null;
-  horario_cierre: string | null;
+  habilitado?: boolean;
+  nombre_publico?: string | null;
+  perfil?: string | null;
+  horario_apertura?: string | null;
+  horario_cierre?: string | null;
 }
 
 /** Agrupación libre de locales, profesionales y servicios. */
@@ -82,4 +94,19 @@ export interface LocalPayload {
   horario_hasta: string | null;
   banner: File | null;
   logo: File | null;
+  /**
+   * No mandar el archivo significa «déjalo como está», así que quitarlo
+   * necesita bandera propia. Misma convención que categorías, servicios y la
+   * configuración del negocio.
+   */
+  banner_eliminar?: boolean;
+  logo_eliminar?: boolean;
 }
+
+/*
+ * `es_principal` NO está en el payload, y es a propósito: lo decide el
+ * backend, que hace principal al primer local que se crea. Si lo eligiera el
+ * formulario, un negocio podría quedarse sin ninguno en dos peticiones — y el
+ * principal es del que cuelga la tienda pública y el único que no se borra.
+ * Sale resuelto en la respuesta solo para pintar el chip y esconder el botón.
+ */

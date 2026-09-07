@@ -74,6 +74,7 @@ const ClientesTable = () => {
       </Stack>
 
       <DataTable
+        moduloEscritura="clientes"
         columnas={columnas}
         datos={data}
         cargando={isPending}

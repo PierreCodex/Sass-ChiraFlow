@@ -15,14 +15,14 @@ import {
 } from "@tabler/icons-react";
 
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import type { Empleado } from "@/features/empleados/types";
+import type { Profesional } from "@/features/profesionales/types";
 
 export type VistaCalendario = "calendario" | "lista";
 
 interface Props {
   fecha: string;
   onCambiarFecha: (fecha: string) => void;
-  profesionales: Empleado[];
+  profesionales: Profesional[];
   profesionalId: number | "";
   onCambiarProfesional: (id: number | "") => void;
   vista: VistaCalendario;

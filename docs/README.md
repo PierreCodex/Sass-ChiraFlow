@@ -1,6 +1,10 @@
 # Documentación de vistas
 
-Una ficha por pantalla en [`vistas/`](vistas/). Cada ficha declara qué muestra la
+Una ficha por pantalla en [`vistas/`](vistas/).
+
+> `empleados.md` ya no existe: el 2026-09-04 el backend partió ese módulo en
+> dos, y la ficha con él — [Usuarios](vistas/usuarios.md) es quién entra al
+> panel y [Profesionales](vistas/profesionales.md) quién presta los servicios. Cada ficha declara qué muestra la
 vista, qué endpoints consume y el **JSON exacto** que espera recibir de Laravel.
 
 Sirve para dos cosas: como especificación para construir el backend, y como
@@ -17,18 +21,20 @@ checklist para validar cada maqueta contra la app actual.
 | [Citas](vistas/citas.md) | `/citas` | ✅ Validado contra el backend · ⚠️ tabla supuesta |
 | [Servicios](vistas/servicios.md) | `/servicios` | ✅ **Conectada al backend** |
 | [Categorías](vistas/categorias.md) | `/categorias` | ✅ **Conectada al backend** |
-| [Empleados](vistas/empleados.md) | `/empleados` | ✅ Validado contra la app actual |
-| [Locales](vistas/locales.md) | `/locales` | ✅ Las 4 pestañas validadas contra el código Laravel |
+| [Usuarios](vistas/usuarios.md) | `/administracion/equipo/usuarios` | ✅ **Conectada al backend** |
+| [Profesionales](vistas/profesionales.md) | `/administracion/equipo/profesionales` | ✅ **Conectada al backend** |
+| [Roles](vistas/roles.md) | `/administracion/equipo/roles` | ✅ **Conectada al backend** |
+| [Locales](vistas/locales.md) | `/administracion/locales/*` | ✅ **Conectada al backend** — 3 secciones |
 | [Calendario](vistas/calendario.md) | `/calendario` | ✅ Validado contra la app actual |
 | [Caja](vistas/caja.md) | `/caja` | ✅ Validado contra el código Laravel · ⚠️ propone cambios de esquema |
 | [Inventario](vistas/inventario.md) | `/inventario` | ✅ Validado contra el código Laravel · ⚠️ falta `update` en backend |
 | [Reportes](vistas/reportes.md) | `/reportes` | ✅ Validado contra el código Laravel · ⚠️ una gráfica cambia de forma |
 | [Mi Plan](vistas/mi-plan.md) | `/mi-plan` | ✅ Validado contra el código Laravel · ⚠️ no hay pasarela de pago |
 | [WhatsApp](vistas/whatsapp.md) | `/whatsapp` | ✅ Validado contra el código Laravel |
-| [Configuración](vistas/configuracion.md) | `/configuracion` | ✅ Validado contra el código Laravel |
+| [Configuración](vistas/configuracion.md) | `/administracion/general/*` | ✅ **Conectada al backend** — 4 secciones |
 | [Mi perfil](vistas/perfil.md) | `/configuracion/perfil` | ✅ Maquetado y leyendo del backend · ⚠️ la escritura espera `PUT /user` |
 | [Soporte](vistas/soporte.md) | `/soporte` | ✅ Validado contra el código Laravel |
-| [Administración](vistas/administracion.md) | `/administracion` | 🚧 Solo el índice; los formularios por maquetar |
+| [Administración](vistas/administracion.md) | `/administracion` | ✅ Panel propio en 10 de 12 secciones |
 
 > **Documentos de conjunto**
 > - [api-contract.md](api-contract.md) — inventario de endpoints, formas de

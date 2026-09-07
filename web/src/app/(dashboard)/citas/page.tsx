@@ -13,6 +13,7 @@ import { useEliminarCita } from "@/features/citas/hooks/useCitas";
 import type { Cita } from "@/features/citas/types";
 import { formatFecha } from "@/lib/format";
 import { toApiError } from "@/lib/api/client";
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
 export default function CitasPage() {
@@ -45,13 +46,15 @@ export default function CitasPage() {
         titulo="Citas"
         descripcion="Todas las citas agendadas"
         acciones={
-        <Button
-          variant="contained"
-          startIcon={<IconPlus size={18} />}
-          onClick={abrirNueva}
-        >
-          Nueva cita
-        </Button>
+        <SoloSiGestiona modulo="citas">
+          <Button
+            variant="contained"
+            startIcon={<IconPlus size={18} />}
+            onClick={abrirNueva}
+          >
+            Nueva cita
+          </Button>
+        </SoloSiGestiona>
         }
       />
       <DashboardCard>

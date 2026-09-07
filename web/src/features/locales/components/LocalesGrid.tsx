@@ -9,6 +9,7 @@ import { toApiError } from "@/lib/api/client";
 import { useTodosLosLocales } from "../hooks/useLocales";
 import type { Local } from "../types";
 import LocalCard from "./LocalCard";
+import AvisoError from "@/components/shared/AvisoError";
 
 interface Props {
   onEditar: (local: Local) => void;
@@ -31,7 +32,7 @@ const LocalesGrid = ({ onEditar, onEliminar }: Props) => {
   }
 
   if (error) {
-    return <Alert severity="error">{toApiError(error).message}</Alert>;
+    return <AvisoError error={error} />;
   }
 
   if (locales.length === 0) {

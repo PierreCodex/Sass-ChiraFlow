@@ -136,7 +136,7 @@ enlace (`POST /email/reenviar`, con su cooldown).
 ### Subida de archivos
 
 Cuatro recursos se envían como `multipart/form-data` en vez de JSON
-(`enviarComoFormData: true`): **categorías, servicios, empleados y locales**.
+(`enviarComoFormData: true`): **categorías, servicios, profesionales, locales y configuración**.
 
 Reglas de serialización (`lib/api/form-data.ts`), pensadas para Laravel:
 
@@ -295,8 +295,10 @@ DELETE /{path}/{id}                                              → 204
 | Citas | `citas` | no | cliente_nombre, cliente_telefono | `fecha` | |
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
-| Empleados | `empleados` | **sí** | nombre, usuario, cargo | — | |
-| Locales | `locales` | **sí** | nombre, dirección | — | |
+| Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` |
+| Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
+| Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
 | Inventario | `inventario` | no | nombre, descripción | — | |
 | Tickets | `soporte/tickets` | no | asunto, mensaje | `estado` | solo `index` + `store` |
@@ -316,16 +318,19 @@ duplicarla.
 |---|---|---|---|---|
 | GET | `/dashboard` | — | `{ data: ResumenDashboard }` | Dashboard (una sola request para los 4 widgets) |
 | GET | `/citas` | `?fecha=YYYY-MM-DD&per_page=200` | `{ data: Cita[] }` | Calendario y selector de huecos |
-| GET | `/empleados/resumen` | — | `{ data: ResumenPlanEmpleados }` | tarjeta "Profesionales activos en tu plan" |
-| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | Locales › pestaña 2 |
-| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: sirve para asignar y para editar |
+| GET | `/capacidades` | — | `{ data: Capacidades }` | **el menú y los botones**: lo que puede hacer quien mira, ya resuelto |
+| GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
+| POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
+| POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
+| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación |
+| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
 | POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
 | POST | `/caja/cerrar` | `{ monto_final }` | `{ data: CajaSesion }` | |
 | POST | `/caja/movimientos` | `{ tipo, monto, concepto }` | `{ data: MovimientoCaja }` | acumula en `ingresos`/`egresos` del día |
 | GET | `/configuracion` | — | `{ data: Configuracion }` | |
-| PUT | `/configuracion` | `Configuracion` completa (JSON) | `{ data: Configuracion }` | |
+| PUT | `/configuracion` | **parche** de `Configuracion` (multipart si hay logo/cover) | `{ data: Configuracion }` | una petición por sección |
 | GET | `/reportes` | `?desde&hasta` | `{ data: Reporte }` | todo el informe en una respuesta |
 | GET | `/reportes/exportar` | `?desde&hasta` | **CSV** (`responseType: blob`) | con BOM, para que Excel lea los acentos |
 | GET | `/suscripcion` | — | `{ data: Suscripcion }` | banner de prueba + Mi Plan |
@@ -366,7 +371,7 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | `telefono` | string? | |
 | `documento` | string? | DNI del titular. Opcional |
 | `avatar_url` | string? | |
-| `rol` | string? | |
+| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
 | `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |
 
 `negocio.nombre` y `negocio.slug` son **`null` hasta que el onboarding fije el
@@ -403,7 +408,7 @@ declarado: el backend manda claves). Quién marca cada paso:
 |---|---|
 | `nombre_negocio` | `POST /onboarding/nombre` |
 | `horario_local` | `PUT /configuracion` con horario informado |
-| `primer_profesional` | `POST /empleados` con `rol=profesional` |
+| `primer_profesional` | `POST /profesionales` |
 | `primer_servicio` | `POST /servicios` |
 | `reserva_prueba` | `POST /citas` (o una reserva pública) |
 | `sitio_publico` | el cliente, con `PUT /onboarding/pasos/sitio_publico` |
@@ -519,17 +524,84 @@ notas, productos: [{ id, cantidad }] }`.
 > Ojo con la asimetría: el payload manda `productos[i].id`, la entidad devuelve
 > `productos[i].producto_id`.
 
-### Empleado / profesional
+### Capacidades (`GET /capacidades`)
+
+```json
+{ "data": {
+    "permisos": { "citas": "gestionar", "caja": null, "…": "los 14 siempre" },
+    "solo_propios": true,
+    "locales": null
+} }
+```
+
+Lo que puede hacer quien está mirando, **ya resuelto**. Va aparte del
+`Usuario` de `/login` por arquitectura: los permisos viven en la base del
+negocio y el login se resuelve entero en la central.
+
+- `permisos`: los 14 módulos siempre, `null` donde no hay acceso.
+  `gestionar` incluye `ver`.
+- `solo_propios`: sobre **quién**, no sobre qué. Se emite pero todavía no
+  filtra nada — empieza con las citas del Sprint 4.
+- `locales`: `null` = todas las sedes; una lista de ids = solo esas. `null` y
+  no la lista completa, para que una lista **vacía** signifique de verdad
+  ninguna.
+
+**Cualquier endpoint de un módulo sin acceso responde `403` con
+`codigo: "sin_permiso"`.** Es 403 y no 404 a propósito: el recurso existe y
+es de su negocio, lo que falta es permiso; el 404 se reserva para lo de otro
+tenant. La pared de cobro gana: en un negocio suspendido sale
+`suscripcion_vencida` aunque además falte el permiso.
+
+> ⚠️ Los candados de `/usuarios` y `/roles` son un guardia aparte, no una
+> capacidad de la matriz, y responden **403 sin `codigo`**. El panel trata
+> cualquier 403 como falta de permiso por eso.
+
+**Esconder una opción del menú NO es autorización.** El backend responde 403
+igual; el menú sirve para no enseñar puertas cerradas.
+
+### Usuario del negocio (una cuenta del panel)
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` `nombre` | int, string | |
-| `foto_url` | string? | si falta se pintan iniciales |
-| `usuario` | string | con el que inicia sesión |
-| `rol` | `superadmin` \| `dueno` \| `admin` \| `profesional` \| `cliente` | solo `profesional` consume cupo del plan |
-| `cargo` | string? | texto libre |
-| `email` `telefono` | string? | |
+| `id` | int | el de `usuarios` (tenant), **no** el del `users` central |
+| `nombre` `apellido` | string, string? | |
+| `email` | string | único **global** en toda la plataforma |
+| `telefono` | string? | `+51` + 9 dígitos |
 | `activo` | bool | |
+| `rol_id` `rol` | int, `{id, nombre, clave}` | `clave` es `null` en los roles propios |
+| `profesional` | `{id, nombre, atiende}`? | **`null`** en quien no presta servicios |
+
+**Payload (JSON)**: `nombre`, `apellido`, `email`, `telefono`, `rol_id`,
+`activo`. **Sin contraseña**, ni al crear ni al editar: la elige la persona
+desde la invitación.
+
+### Rol del negocio
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` `nombre` | int, string | nombre único por negocio |
+| `clave` | `admin_general` \| `admin_local` \| `profesional` ? | `null` en los que cree el negocio |
+| `sistema` | bool | |
+| `permisos` | `{ [modulo]: "ver"\|"gestionar"\|null }` | **los 14 siempre** |
+| `solo_propios` | bool | |
+| `editable` `borrable` `duplicable` | bool | **vienen resueltos**: no se deducen |
+| `usuarios_count` | int? | solo en el listado. Cuenta cuentas, no fichas |
+
+El listado adjunta **`modulos`** fuera de `data`: la lista completa y ordenada
+para las filas de la matriz. Duplicar no es un endpoint — es leer y hacer
+`POST` con otro nombre.
+
+### Profesional
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` `nombre` | int, string | el `id` es el de `profesionales`: el que usan las citas y los pivotes |
+| `foto_url` | string? | si falta se pintan iniciales |
+| `usuario` | `{id, email, activo, rol_id, rol}`? | su cuenta del panel. **`null` en quien no entra al sistema** |
+| `cargo` | string? | texto libre |
+| `telefono` | string? | `+51` + 9 dígitos |
+| `activo` | bool | **lo que consume cupo del plan**: una fila activa es una plaza |
+| `atiende` | bool | si sale en la tienda pública. **Y solo eso** |
 | `tipo_pago` | `comision` \| `sueldo` \| `ambos` | |
 | `comision_porcentaje` | number | |
 | `monto_sueldo` | number? | solo si el tipo incluye sueldo |
@@ -548,12 +620,15 @@ notas, productos: [{ id, cantidad }] }`.
 ```
 
 **Payload (multipart)**: igual que la entidad, cambiando `foto_url` por
-`foto: File|null` y añadiendo `password` (obligatoria al crear; **vacía al
-editar significa "no cambiar"**). `horario` y `excepciones` viajan indexados:
+`foto: File|null` (+ `foto_eliminar`). **Sin email, sin rol y sin contraseña**;
+para dar acceso al panel va un objeto opcional
+`usuario: { email, rol_id }`, que solo sirve para **crear** la cuenta de quien
+no la tiene. `horario` y `excepciones` viajan indexados:
 `horario[0][dia]`, `horario[0][breaks][0][desde]`…
 
-**`GET /empleados/resumen`**: `{ profesionales_activos: int,
-limite_profesionales: int }`.
+**`GET /profesionales/resumen`**: `{ profesionales_activos: int,
+limite_profesionales: int }`. El listado lo adjunta además en `resumen`, junto
+a `data` y `meta`.
 
 ### Local y su pivote
 
@@ -694,7 +769,26 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
 - **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min }`
   — ⚠️ **no existe en el backend anterior**, hay que crearlo
 
-El `PUT` envía el objeto completo, no un parche.
+El `PUT` es un **parche**: llega lo que llega y se toca solo eso. El objeto
+completo sigue funcionando porque es un caso particular.
+
+La distinción que importa al mandar: **clave ausente** significa «no lo
+toques»; **clave presente con valor vacío** sí escribe. Por eso
+`sitio_publico_activo: false` se guarda y `email: ""` vacía el campo.
+
+Cambió el 2026-09-04, cuando la pantalla se partió en cuatro secciones y
+mandar el objeto entero dejó de ser posible.
+
+**`zona_horaria` es una zona IANA de verdad** (`America/Lima` sí, `Lima` o
+`GMT-5` dan 422). La lista viaja con el `GET` en **`zonas_horarias`, fuera de
+`data`** — 419 sin etiquetas: los rótulos los pone el frontend y el desfase lo
+calcula `Intl`.
+
+**`agenda.intervalo_min`** es obligatorio solo con `modo_intervalo: "fijo"`
+(entero 5–120), y los dos campos de `agenda` **viajan juntos**.
+
+Los colores por defecto son **`#4f46e5`** y **`#06b6d4`**, los de las columnas
+de `tenants`.
 
 ### Ticket de soporte
 
@@ -857,7 +951,7 @@ GET /suscripcion      (banner de prueba, en el layout)
 
 ```
 tabla        GET /citas?page&per_page&search
-abrir form   GET /clientes?per_page=200 · /servicios · /empleados · /inventario
+abrir form   GET /clientes?per_page=200 · /servicios · /profesionales · /inventario
              GET /configuracion            (paso de la rejilla)
              GET /citas?fecha=…            (huecos ocupados de ese día)
 guardar      POST /citas  |  PUT /citas/{id}          ↻ citas
@@ -871,7 +965,7 @@ fuera de horario deja de ser algo que validar después.
 
 ```
 GET /citas?fecha=YYYY-MM-DD&per_page=200      ← al cambiar de día
-GET /empleados?per_page=200                    ← columnas del día
+GET /profesionales?per_page=200                ← columnas del día
 clic en hueco libre → mismo formulario de Citas, con fecha/hora/profesional ya puestos
 ```
 
@@ -888,22 +982,32 @@ POST /{recurso}   |  PUT /{recurso}/{id}   |  DELETE /{recurso}/{id}   ↻ {recu
 ```
 
 Con dos particularidades: **Servicios** además pide `/categorias-servicios` y
-`/empleados` para sus selects, e **Inventario** añade
+`/profesionales` para sus selects, e **Inventario** añade
 `POST /inventario/{id}/movimiento` para entradas y salidas de stock.
 
-### Empleados (`/empleados`)
+### Equipo (`/administracion/equipo/*`)
 
 ```
-GET /empleados?page&per_page&search
-GET /empleados/resumen        (tarjeta "Profesionales activos · 3 de 5")
-POST/PUT multipart con foto, horario[] y excepciones[]      ↻ empleados
+al entrar    GET /capacidades              ← el menu y los botones, una vez
+
+usuarios     GET /usuarios?page&per_page&search      (solo el admin general)
+             POST/PUT/DELETE /usuarios               JSON, sin contrasena
+             POST /usuarios/{id}/invitacion          reenviar
+
+profesionales GET /profesionales?page&per_page&search
+             GET /profesionales/resumen    (tarjeta "activos . 3 de 5")
+             POST/PUT multipart con foto, horario[] y excepciones[]
+             + `usuario:{email,rol_id}` opcional     ↻ profesionales, usuarios
+
+roles        GET /roles                    (+ `modulos` fuera de `data`)
+             POST/PUT/DELETE /roles        (solo el admin general)
 ```
 
-### Locales (`/locales`) — cuatro pestañas
+### Locales (`/administracion/locales/*`) — tres secciones
 
-| Pestaña | Endpoints |
+| Sección | Endpoints |
 |---|---|
-| Locales | `GET/POST/PUT/DELETE /locales` (multipart: banner y logo) |
+| Sedes | `GET/POST/PUT/DELETE /locales` (multipart: banner y logo) |
 | Profesionales por local | `GET /locales/{id}/profesionales` · `PUT /locales/{id}/profesionales/{profId}` — el interruptor de la tabla y el modal llaman al mismo endpoint |
 | Servicios | reutiliza `GET /servicios` |
 | Grupos | `GET/POST/PUT/DELETE /grupos` |
