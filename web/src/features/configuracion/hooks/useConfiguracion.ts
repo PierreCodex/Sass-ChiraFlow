@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAvisos } from "@/context/avisos";
+import { authKeys } from "@/features/auth/hooks/useAuth";
+import { onboardingKeys } from "@/features/onboarding/hooks/useOnboarding";
 import { configuracionApi } from "../services/configuracion.api";
 import type { ConfiguracionPayload } from "../types";
 
@@ -53,6 +55,23 @@ export function useGuardarConfiguracion() {
       configuracionApi.guardar(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: configuracionKeys.all });
+
+      /*
+        Guardar el nombre aquí hace dos cosas más en el backend: si el negocio
+        todavía no tenía `slug`, lo deriva, y marca solo el paso 1 del
+        onboarding. Sin releer las dos, el checklist se queda pidiendo un paso
+        ya hecho y el enlace de la tienda sigue diciendo que no existe.
+
+        Se invalida siempre y no solo cuando viaja `nombre`: el payload puede
+        ser `FormData` --multipart cuando hay logo--, y mirar dentro para
+        ahorrarse dos GET diminutos es la clase de optimización que se rompe
+        callada el día que cambie la forma del payload.
+      */
+      queryClient.invalidateQueries({ queryKey: onboardingKeys.estado });
+      // El nombre del negocio vive en `usuario.negocio`, que es de donde lo
+      // lee la cabecera del panel.
+      queryClient.invalidateQueries({ queryKey: authKeys.usuario });
+
       avisar("Cambios guardados correctamente");
     },
   });

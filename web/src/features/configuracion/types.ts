@@ -39,11 +39,16 @@ export interface Configuracion {
   /**
    * Identificador del negocio en la URL: `clinica-el-rosal`.
    *
-   * Es lo que forma su subdominio y su enlace público de reservas. Se genera
-   * al registrarse a partir del nombre y **no se edita aquí**: cambiarlo
-   * rompería todos los enlaces que el negocio ya repartió.
+   * Es lo que forma su subdominio y su enlace público de reservas. **No se
+   * edita aquí**: cambiarlo rompería todos los enlaces que el negocio ya
+   * repartió.
+   *
+   * Es `null` mientras el negocio no tenga nombre. El registro lo deja sin
+   * poner y nace la primera vez que se guarda uno, venga del onboarding o de
+   * Configuración. Hasta entonces no hay enlace que repartir, y construirlo
+   * igualmente daba `https://null.midominio.com`.
    */
-  slug: string;
+  slug: string | null;
   descripcion: string | null;
   email: string | null;
   telefono: string | null;
