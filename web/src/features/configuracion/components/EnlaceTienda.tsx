@@ -33,7 +33,8 @@ export function urlTienda(slug: string) {
 }
 
 interface Props {
-  slug: string;
+  /** `null` mientras el negocio no tenga nombre: todavía no hay enlace. */
+  slug: string | null;
   nombreNegocio: string;
   /** `compacto` para incrustarlo dentro de otra tarjeta. */
   variante?: "tarjeta" | "compacto";
@@ -42,9 +43,16 @@ interface Props {
 const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
   const compacto = variante === "compacto";
   const [copiado, setCopiado] = useState(false);
-  const url = urlTienda(slug);
+  /*
+    Sin slug no hay enlace, y el que se armaba era `https://null.midominio.com`:
+    un enlace roto que se puede copiar y repartir por WhatsApp es peor que
+    ninguno, porque el negocio no se entera hasta que un cliente le dice que no
+    entra.
+  */
+  const url = slug ? urlTienda(slug) : null;
 
   const copiar = async () => {
+    if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
       setCopiado(true);
@@ -53,6 +61,16 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
       // igual y se puede seleccionar a mano.
     }
   };
+
+  /*
+    Sin `url` no se pasan `href`/`target`: el Button de MUI cambia de tipo
+    segun lleve href o no --anchor o button--, y un `href={undefined}` no le
+    vale a ninguna de las dos sobrecargas.
+  */
+  const comoEnlace = (destino: string | null) =>
+    destino
+      ? { href: destino, target: "_blank", rel: "noopener noreferrer" }
+      : {};
 
   // Mensaje listo para pegar en WhatsApp, que es por donde se comparte aquí.
   const mensajeWhatsapp = encodeURIComponent(
@@ -77,30 +95,43 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
           <Typography variant="subtitle1" fontWeight={600}>
             Tu sitio de reservas
           </Typography>
-          <Typography
-            component="a"
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="body2"
-            color="primary"
-            sx={{ wordBreak: "break-all", textDecoration: "none" }}
-          >
-            {url}
-          </Typography>
-          <Typography variant="caption" color="textSecondary" display="block">
-            Compártelo con tus clientes para que reserven solos.
-          </Typography>
+          {url ? (
+            <>
+              <Typography
+                component="a"
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body2"
+                color="primary"
+                sx={{ wordBreak: "break-all", textDecoration: "none" }}
+              >
+                {url}
+              </Typography>
+              <Typography variant="caption" color="textSecondary" display="block">
+                Compártelo con tus clientes para que reserven solos.
+              </Typography>
+            </>
+          ) : (
+            <Typography variant="body2" color="textSecondary">
+              Todavía no tienes dirección. Se crea sola en cuanto le pongas
+              nombre a tu negocio, en <strong>Datos del negocio</strong>.
+            </Typography>
+          )}
         </Box>
       </Stack>
 
       <Stack direction="row" spacing={1} flexShrink={0} flexWrap="wrap" useFlexGap>
+        {/*
+          Sin enlace los tres botones se apagan en vez de esconderse: así se ve
+          que el sitio existe y qué falta para encenderlo, en vez de parecer que
+          esta pantalla no lleva nada.
+        */}
         <Button
           variant="contained"
           startIcon={<IconExternalLink size={18} />}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...comoEnlace(url)}
+          disabled={!url}
           sx={{ whiteSpace: "nowrap" }}
         >
           Ver mi sitio
@@ -109,6 +140,7 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
           variant="outlined"
           startIcon={<IconCopy size={18} />}
           onClick={copiar}
+          disabled={!url}
           sx={{ whiteSpace: "nowrap" }}
         >
           Copiar
@@ -117,9 +149,8 @@ const EnlaceTienda = ({ slug, nombreNegocio, variante = "tarjeta" }: Props) => {
           variant="outlined"
           color="success"
           startIcon={<IconBrandWhatsapp size={18} />}
-          href={`https://wa.me/?text=${mensajeWhatsapp}`}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...comoEnlace(url ? `https://wa.me/?text=${mensajeWhatsapp}` : null)}
+          disabled={!url}
           sx={{ whiteSpace: "nowrap" }}
         >
           Compartir
