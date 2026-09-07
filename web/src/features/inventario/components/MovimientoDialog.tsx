@@ -37,7 +37,9 @@ const movimientoSchema = yup.object({
     .string()
     .trim()
     .transform((valor) => (valor === "" ? null : valor))
-    .max(255, "Máximo 255 caracteres")
+    // 150 es el ancho de la columna: un max mas largo cambia un 422
+    // legible por un 500 de MySQL.
+    .max(150, "Máximo 150 caracteres")
     .nullable()
     .defined(),
 });
@@ -188,7 +190,7 @@ const MovimientoDialog = ({ producto, onCerrar }: Props) => {
             <Grid size={12}>
               <Alert severity={dejaNegativo ? "warning" : "info"} variant="outlined">
                 {dejaNegativo
-                  ? `La salida supera el stock disponible. Quedaría en 0.`
+                  ? `No se puede: la salida supera el stock disponible (hay ${producto?.stock ?? 0}).`
                   : `El stock quedará en ${stockResultante}.`}
               </Alert>
             </Grid>
