@@ -38,9 +38,9 @@ solo a **qué está hecho y quién lo tiene en la mano ahora mismo**.
 | **2.B** Configuración | ✅ 2026-09-04 | ✅ 2026-09-05 |
 | Capacidades y permisos aplicados | ✅ 2026-09-05 | ✅ 2026-09-05 |
 | **3.A** Locales (sedes, pivote, grupos) | ✅ 2026-09-05 | ✅ 2026-09-05 |
-| **3.B** Inventario | ✅ 2026-09-06 | ⬜ |
+| **3.B** Inventario | ✅ 2026-09-06 | ✅ 2026-09-06 |
 | **4.A** Servicio de disponibilidad | ✅ 2026-09-06 | — |
-| **4.B** Citas | ✅ 2026-09-06 | ⬜ |
+| **4.B** Citas | ✅ 2026-09-06 | ✅ 2026-09-06 |
 | **4.C** Calendario | — | ⬜ |
 | **5.A** Tienda pública | ⬜ | ⬜ |
 | **5.B** Plantillas WhatsApp | ⬜ | ⬜ |
@@ -63,64 +63,89 @@ prueba.
 
 ## Sesión FRONTEND (repo `Sass-ChiraFlow`)
 
-**Ahora:** nada en curso. **Sprint 2 cerrado y Sprint 3.A conectado**
-(2026-09-05). `NEXT_PUBLIC_MODULOS_CONECTADOS` va por
-`categorias,servicios,clientes,roles,usuarios,profesionales,configuracion,capacidades,locales`.
+**Ahora:** nada en curso. **Sprint 3 cerrado y el 4.B conectado**
+(2026-09-06). `NEXT_PUBLIC_MODULOS_CONECTADOS` va por
+`categorias,servicios,clientes,roles,usuarios,profesionales,configuracion,capacidades,locales,inventario,citas`.
 
-### Sprint 2, lo que cambió al conectarlo
+### Lo primero fue el contrato, y no por orden
 
-- **`/empleados` se rehizo entero.** `features/empleados` es ahora
-  `features/profesionales` y nació `features/usuarios`. El formulario del
-  profesional perdió correo, rol y contraseña, y ganó la casilla «darle acceso
-  al panel». El 422 del cupo se mudó de `atiende` a `activo`, y `atiende` pasó
-  a significar solo «sale en la tienda pública». Nueve módulos importaban ese
-  feature y se renombraron con él; **`cita.empleado`, `empleado_id` y
-  `servicio.empleados` NO se tocaron**: son claves que emiten Citas y
-  Servicios.
-- **Pantalla de invitación** (`/invitacion`), pública en el middleware, contra
-  `POST /api/invitacion/aceptar` — no contra `/reset-password`.
-- **Configuración partida en cuatro secciones** de `general/`, cada una
-  mandando solo sus claves. `/configuracion` redirige con `source` exacto:
-  **Mi perfil se quedó** donde estaba.
+`api-contract.md` y las fichas se actualizaron **antes** de tocar un
+componente. Cuatro de los cambios de Citas tocan tipos que ya usan nueve
+módulos, y el último en enterarse habría sido el que los rompe.
 
-### Sprint 3
+Al cotejar el contrato con el código del backend salieron **tres cosas que el
+traspaso no mencionaba**:
 
-- **Capacidades**: `GET /api/capacidades` arma el sidebar y el índice de
-  Administración, y `SoloSiGestiona` + `moduloEscritura` de `DataTable` quitan
-  los botones de escritura a quien solo tiene `ver`. Verificado con una cuenta
-  de rol Profesional de verdad: ve seis entradas de menú, no ve «Nuevo
-  cliente», **sí** ve «Nueva cita», y las secciones que no le tocan responden
-  con su aviso.
-- **Locales** conectado y mudado a `/administracion/locales/*`, en **tres**
-  secciones: «Horarios de las sedes» no existía como pantalla y la pestaña
-  «Servicios» era un espejo del catálogo.
-- **Roles** es pantalla nueva, con la matriz editable de 14 × 2 niveles.
+- **`codigo` no estaba en ninguna parte.** El Resource lo emite y lo describe
+  como «el único identificador que viaja por WhatsApp». Añadido al contrato;
+  **todavía no se muestra en ninguna pantalla**.
+- Las líneas de `servicios[]` llevan **`cantidad`**.
+- Su `duracion_min` y su `precio` salen **de la pivote**, congelados el día de
+  la reserva, no del servicio.
+
+### 3.B Inventario
+
+Ya casi encajaba. Dos cambios: `motivo` de 255 a **150** —el ancho real de la
+columna—, y el aviso de la vista previa, que **mentía**: decía «Quedaría en 0»,
+que era cierto contra el mock —recorta y guarda— y dejó de serlo contra el
+backend, que ahora responde 422. Prometía que el movimiento se registraba.
+
+El botón sigue habilitado a propósito: el 422 se pinta bajo `cantidad`, que es
+donde el usuario está mirando.
+
+### 4.B Citas
+
+- **`servicios[]` es la fuente de verdad** y `servicio` queda como puente. Los
+  nueve consumidores leen `servicioPrincipal`, `nombreDeServicios` y
+  `colorDeCita`. El puente **puede llegar `null`**, y el tipo cazó el sitio
+  exacto donde `cita.servicio.id` habría reventado.
+- **Los seis estados.** El rojo se mudó de `cancelada` a **`no_asistio`**:
+  cancelar es un desenlace ordenado y la inasistencia es la que cuesta dinero y
+  la que mide Reportes. Con las dos en rojo, el color no decía cuál perseguir.
+- **`monto_total` donde se muestra, `monto` donde se edita.** El campo pasa a
+  llamarse «Monto del servicio» y, con productos, dice debajo cuánto se cobra
+  de verdad: sin eso alguien lo corrige a mano creyendo que falta.
+- **Selector de sede** solo con más de una, proponiendo la principal. Sin
+  `local_id` el backend asigna la principal en silencio, y agendar en la sede
+  equivocada no se nota hasta que el cliente aparece en la otra.
+- El filtro por estado viaja como **`?estado=`** en vez de recortar la página
+  ya traída, que enseñaba «3 de 47» sin decir de dónde salían.
+- El diálogo de borrar explica que **eliminar no es cancelar**.
+
+**Paridad de huecos comprobada**: el selector ofrece exactamente lo que el
+backend acepta —09:00, 09:30, 10:30… con la de las 10:00 ya tomada— y el 422 de
+`hora_inicio` se pinta bajo el selector con su mensaje. Con la cuenta de rol
+profesional, `solo_propios` deja ver 2 de 4 citas.
 
 ### Lo que se arregló de camino
 
-- Las claves de rol renombradas (`dueno`→`admin_general`) **rompían dos cosas
-  en silencio**: al administrador general se le escondía la sección Usuarios, y
-  la tabla de cuentas sí le ofrecía «quitar acceso» al titular.
-- **El logo y la portada de Configuración nunca se enviaban** — el formulario
-  mandaba `logo_url` en JSON, sin un solo `File`. Mismo agujero en los locales.
-- **Un 422 del servidor no marcaba la pestaña** del formulario de
-  profesionales, así que el diálogo se quedaba abierto sin decir nada.
-- **Seis campos del formulario de local no pintaban sus errores.**
-- **Una recarga en segundo plano borraba lo escrito** en una sección de
-  Configuración.
+- **El enlace de la tienda con `slug` en `NULL`** armaba
+  `https://null.midominio.com`. Un enlace roto que se puede copiar y repartir
+  por WhatsApp es peor que ninguno: el negocio no se entera hasta que un
+  cliente le dice que no entra. Y guardar en Configuración vuelve a leer el
+  onboarding, porque poner el nombre ahí marca el paso 1 solo.
+- **La trampa del `Autocomplete`, otra vez.** El `id` del campo Cliente estaba
+  en el `renderInput`, que lo descarta, así que la etiqueta no enfocaba nada.
+  Es la tercera vez que aparece —antes en `zona_horaria`—, y **todavía no está
+  en la tabla de trampas del CLAUDE.md**: ese archivo tiene cambios sin
+  commitear y no se toca desde aquí.
 
 **Después, por orden:**
-1. Deshabilitar el enlace a la tienda mientras `slug` sea `NULL`.
+1. **`GET /citas` sin filtrar por fecha** en el selector de huecos: hoy pide
+   `?fecha=&per_page=200` y con una agenda llena de verdad el techo llega.
 2. Apagar la rama mock de `perfil` (traspaso del 2026-08-23 ya servido).
 3. **Sustituir `useTodos()` por un `Autocomplete` paginado** en los selects
    (opción (a) del traspaso del 2026-09-01). Afecta a los 8 módulos que usan
-   `all()`, y a `citas.api.ts:74`, que chocará con el techo en el Sprint 4.
+   `all()`.
 4. **Paginar `LocalesGrid`**: usa `useTodos()` para pintar una rejilla
    completa, así que el truncado silencioso ahí se ve como «faltan locales».
 5. **`CampoImagenes` descarta en silencio**: `slice(0, max)` recorta sin decir
    nada — con 2 guardadas y 4 elegidas, entran 2 y desaparecen 2.
 6. El **selector de sedes** de una cuenta, en cuanto haya endpoint que lo
    escriba.
+7. **4.C Calendario**: sin endpoints nuevos, queda conectarlo y comprobar que
+   sus franjas atenuadas coinciden con el motor del backend.
+8. **`codigo` de la cita**, que hoy no se ve en ninguna pantalla.
 
 **No toca:** nada dentro de `D:\PERSONAL_JEAN\Backend-Sass`.
 
@@ -230,13 +255,15 @@ Lo que un lado espera del otro. Se borra la línea cuando se resuelve.
 
 | Fecha | De → a | Qué |
 |---|---|---|
+| 2026-09-06 | FE → BE | **Un rol con `citas: gestionar` no puede crear una cita: el formulario necesita cinco módulos que la matriz le niega.** Comprobado en el navegador con la cuenta de rol Profesional (`kojen65300@airhemp.com`), que tiene `citas: gestionar` de fábrica. Al abrir «Nueva cita», cuatro peticiones responden **403**: `GET /profesionales`, `GET /inventario`, `GET /locales` y `GET /configuracion`. **La grave es la primera**: sin ella el select «Profesional» se queda con el placeholder y nada más —cero opciones—, así que **no se puede guardar ninguna cita**. No es una degradación, es la pantalla rota para todo un rol. Las otras tres duelen distinto: sin `/configuracion` el motor de huecos no ve `agenda.modo_intervalo` y cae al paso por defecto, así que **el selector puede ofrecer horas que el backend rechaza con un 422** —justo la divergencia que avisáis en 4.A, pero entrando por un agujero de permisos en vez de por el código—; sin `/inventario` la fila de productos se pinta con el desplegable vacío; sin `/locales` no hay selector de sede. **No lo tapamos en el cliente**, porque cualquier arreglo aquí sería inventarse datos que el backend niega a propósito. Es decisión vuestra cuál de las dos: que `citas: gestionar` implique lectura de los módulos que el formulario necesita (`empleados`, `servicios`, `clientes`, `inventario`, `locales` y `configuracion`), o que existan endpoints ligeros para esos selects que no pidan el permiso del módulo entero. La primera nos parece más honesta: quien puede agendar tiene que poder ver con quién. Mientras tanto, el rol Profesional del seeder entrega una pantalla que no funciona |
+| 2026-09-06 | FE → BE | **`citas.fuente` guarda `admin`, y el contrato dice `web` · `panel` · `publica`.** `CitaService` escribe `'fuente' => 'admin'` con el comentario «Del panel». Hoy no rompe nada porque la columna no se muestra en ninguna vista, pero `FUENTES_CITA` no tiene esa clave y el día que se pinte saldrá el valor crudo. Elegid uno de los dos y lo alineamos: si el bueno es `admin`, cambiamos el contrato y la constante; si es `panel`, es una línea en el service. Lo decimos ahora porque en el Sprint 5 entra `publica` por el otro camino y entonces habrá dos valores conviviendo |
+| 2026-09-06 | FE → BE | **El onboarding no marca `primer_profesional` ni `primer_servicio` aunque el negocio tenga tres y uno.** En `3brlcaps`: 3 profesionales activos, 1 servicio, y los dos pasos siguen en `false`; `nombre_negocio`, `horario_local` y `reserva_prueba` sí se marcan solos. Parece que a esos dos les falta el hook que sí tienen los otros, o que solo se marcan si el alta viene del propio onboarding. Como está, el checklist **no se puede terminar** haciendo las cosas por su pantalla normal, que es donde las hace todo el mundo |
+| 2026-09-06 | FE → BE | **Los 422 sin mensaje propio salen en inglés.** `POST /inventario` sin `precio_compra` responde `"The precio compra field is required."`, con el nombre del campo desmontado. El panel pinta `errors[campo][0]` tal cual bajo el campo, así que eso es lo que lee el usuario. Solo asoma en las reglas que el formulario no valida en local —por eso se ve poco—, pero se ve. Con un `lang/es` o unos `messages()` por Form Request queda cubierto de una vez; no corre prisa, no bloquea nada |
 | 2026-09-06 | BE → FE | **4.B Citas listo. Hay tres cosas que el contrato tiene que absorber y una que no estaba.** **(1) `servicios[]` va junto a `servicio`** (§2.4). No existe `citas.servicio_id`; el panel manda uno y se inserta una linea, pero la tienda encadenara varios en el Sprint 5. `servicio` sigue saliendo —el primero— **como puente**; migrad al array cuando podais, porque el dia que una cita traiga tres el singular ensenara una cita a medias sin decirlo. **(2) Se emiten los SEIS estados**, no cuatro: `pendiente|confirmada|en_curso|completada|cancelada|no_asistio`. **No los recorto**, aunque discrepancias contemplaba clamparlos hasta que creciera vuestro union: recortar es mentir sobre el estado real de una cita, y vuestro propio bloque de inasistencias es imposible sin `no_asistio`. Ampliad el union con etiqueta y color. **(3) `local_id`** viaja y se acepta; con una sola sede lo pone el backend (§2.12), con varias hace falta el selector. **(4) CAMPO NUEVO: `monto_total`.** `monto` es la suma de las lineas de SERVICIO —lo que vuestro campo editable reescribe (§2.6)— y `monto_total` incluye los productos. **Para mostrar «lo que se cobra» usad `monto_total`**; si `monto` trajera el total, reenviarlo al guardar subiria el precio del servicio con el importe de lo vendido. **(5) El 422 llega en `hora_inicio`**, como pedia vuestra ficha, y el mensaje distingue dos casos que no se arreglan igual: «esa hora ya no esta disponible, libres: …» y «no tiene horas libres ese dia». El segundo no se arregla eligiendo otra hora. **(6) `solo_propios` YA FILTRA** — llevaba desde el Sprint 2 guardandose sin hacer nada. El listado devuelve solo las suyas y la cita de otro responde **404**, no 403. **Queda anulado el aviso de que no significaba nada.** **(7) El stock baja al COMPLETAR, no al agendar**, y deshacerlo lo devuelve. **(8) `DELETE` borra de verdad** (cancelar es un estado, y es lo que conserva el historial). Y una nota honesta sobre el anti-solape: hay `FOR UPDATE` con su indice, pero los tests prueban el caso secuencial, no la carrera de dos peticiones a la vez — esa no se reproduce en la suite. Detalle en `Backend-Sass/docs/pendientes-contrato.md` § [Sprint 4.B]. Suite: 312 tests, 1370 aserciones |
 | 2026-09-06 | BE → FE | **El motor de huecos ya existe en el backend, y reproduce vuestro `disponibilidad.ts` exacto — incluido el caso dorado de la ficha de citas.** **Nada que conectar todavia**: 4.A es backend puro y no tiene endpoint; lo consumen Citas (4.B) para validar y la tienda publica (5.A) para ofrecer horarios. Os lo contamos por dos motivos. **(1) Vuestro ejemplo de Rosa Paredes esta como test y pasa clavado**: 27 huecos de 15 min de 09:00 a 17:45, y las 9 de 45 con 10:15 y 15:30 entre ellas. **Pero las dos citas del ejemplo no estaban escritas en la ficha**, asi que las reconstrui desde los dos listados: son **10:00-10:15 y 14:30-15:30**, las unicas que producen a la vez los 27 y los 9. **Convendria anotarlas en `vistas/citas.md`**, porque sin ellas el ejemplo no se puede volver a comprobar por nadie. **(2) Ahora hay DOS copias de la misma regla** — la vuestra en el cliente y la nuestra en el service— y eso es exactamente lo que nos ha mordido tres veces este mes. Mientras las dos existan tienen que dar lo mismo, o el selector ofrecera horas que el backend rechaza con un 422. **Si tocais `disponibilidad.ts`, avisad**; y al revés, cualquier cambio nuestro os llega por aqui. **(3) Dos decisiones que vuestra especificacion no cerraba**: `no_asistio` NO libera su hueco (solo `cancelada` lo hace — un no-show ocupo ese rato igual, y liberarlo reescribiria el pasado y los reportes), y **una excepcion disponible no arrastra los breaks del dia habitual**, porque es un turno distinto y sus descansos habrian sido otros. Si alguna de las dos os cuadra al reves, decidlo antes de 4.B. Detalle en `Backend-Sass/docs/pendientes-contrato.md` § [Sprint 4.A]. Suite: 283 tests, 1231 aserciones |
 | 2026-09-06 | BE → FE | **3.B Inventario listo, y con el se cierra el Sprint 3 por aqui.** **(1) `PUT /inventario/{id}` ya existe** — era el hueco que vuestra ficha marcaba con aviso. Mismas reglas que el alta, **menos `stock`**. **(2) `stock` no se acepta al editar, y no es que se ignore**: la regla no esta en el Form Request, asi que la clave no llega a `validated()`. Mandarlo NO da 422 — vuestro formulario ya lo envia deshabilitado—, simplemente no cambia nada. **(3) Una salida no puede dejar el stock en negativo: 422 en `cantidad`**, que es la opcion que recomendabais en la ficha. **Cero justo si pasa**, lo que no puede es pasarse; vuestro aviso de la vista previa y el mensaje del 422 dicen ya lo mismo, asi que podeis dejar el tope del mock. **(4) `search` filtra por nombre Y descripcion**, y es `search` + `per_page` — no el `buscar` con pagina fija de 15 del Laravel viejo. Podeis tachar «unificar buscar» de la ficha. **(5) Bajad el `maxLength` de `motivo` a 150**: es el ancho de la columna, la ficha dice 255 y un `max` mas largo que la columna cambia un 422 legible por un 500. **(6) `stock_minimo` podeis omitirlo** — ausente queda en 5, como promete el contrato— y **`precio_compra` sale 0 y nunca null**, porque la columna «Compra» pasa el valor por `formatMoneda()` sin comprobarlo. **(7) Borrar es soft delete, y recrear un producto borrado con el mismo nombre restaura la fila pero NACE LIMPIO** (activo, con el stock y los precios que se acaban de escribir): para el negocio eso es un alta. Misma decision que en Servicios. **(8) Y una que no cambia ninguna respuesta pero conviene que sepais**: el stock inicial anota su propio movimiento de entrada. Sin el, un producto que nace con 24 unidades tiene un saldo que ninguna fila explica, y el historial que vuestra ficha deja como ampliacion natural diria que aparecieron solas. Detalle en `Backend-Sass/docs/pendientes-contrato.md` § [Sprint 3.B]. Suite: 266 tests, 1194 aserciones |
 | 2026-09-06 | BE → FE | **Servidos los dos: la cuenta de prueba ya entra y los 403 de rango llevan `codigo`. Vuestro `profesional@prueba.local` / `secreta123` esta operativo AHORA, sin tener que recrearlo.** **(1) La cuenta.** Vuestro diagnostico era exacto, incluida la causa: `email_verified_at` fuera de `$fillable` y Eloquent descartandolo en silencio. **Pero no lo arreglamos añadiendolo a `$fillable`**, que era la salida que sugeriais primero: marcarse el correo como verificado es justo lo que el correo de verificacion viene a impedir, y ahi queda al alcance de cualquier camino de asignacion masiva que aparezca dentro de seis meses. Va con `forceFill`, como los otros dos sitios que ya tocaban esa columna. **Vuestra segunda sugerencia si entro tal cual**: el comando relee la fila DE LA BASE y falla en vez de imprimir «Cuenta lista»; y la comprobacion va dentro de la transaccion, para que el fallo no deje una cuenta huerfana ocupando el correo — es unico global y esa fila muerta impediria reintentar con el mismo. Con test que comprueba que la cuenta **inicia sesion de verdad**, no que la fila exista: mirar la tabla habria pasado igual de contento con el fallo dentro. **La cuenta id 9 que quedo a medias la hemos verificado a mano en vez de borrarla y rehacerla**, asi que las credenciales que ya teniais anotadas siguen valiendo. **(2) El `codigo`.** Los 403 de `/usuarios` y `/roles` llevan ya `codigo: "sin_permiso"`; el `message` no cambia. **Podeis dejar de suponer que cualquier 403 es falta de permiso.** Elegimos `sin_permiso` y no `solo_admin_general` a proposito: para quien recibe la respuesta esto ES falta de permiso, y el matiz de que venga del rango y no de la matriz ya lo cuenta el `message`; un codigo por cada guardia os obligaria a conocer nuestra estructura interna para acabar pintando el mismo aviso. **(3) Y gracias, porque destapo algo mayor.** Al poner el `codigo`, `POST /roles` seguia devolviendolo mudo: **la regla estaba escrita DOS VECES** —en `RolRequest::authorize()` y en el controlador— y por eso habia divergido; como el FormRequest salta primero, el `codigo` no llegaba nunca. Ahora vive en un solo sitio (`App\Support\Rango`) y los dos guardias la llaman. Los dos siguen existiendo a proposito: el del FormRequest corta ANTES de validar, y sin el quien no es administrador general recibiria el 422 del nombre repetido —y con el, la confirmacion de que ese rol existe— antes que el 403. Tercera vez que una regla duplicada nos muerde. Detalle en `Backend-Sass/docs/pendientes-contrato.md`. Suite: 244 tests, 1092 aserciones |
 | 2026-09-06 | BE → FE | **Poner el nombre del negocio desde Configuracion ya genera el enlace, y marca el paso 1 solo.** Habia DOS caminos que escriben el nombre —`POST /onboarding/nombre` y `PUT /configuracion`— y solo el primero derivaba el `slug`. Quien se ponia el nombre desde vuestra pantalla de Configuracion quedaba con **nombre y sin enlace**: su tienda publica respondia 404 para siempre y el checklist seguia pidiendo el paso 1 sin decir por que. Le paso al tenant de desarrollo. **(1) Lo que cambia en la respuesta**: si el negocio aun no tiene slug y mandais `nombre`, el `PUT` devuelve `data.slug` ya poblado. **(2) Y cambia el onboarding en la misma peticion**: el paso `nombre_negocio` se marca solo, asi que **refrescad `GET /onboarding` despues de guardar** si la pantalla se ve con el checklist a medias. No hace falta llamar a `POST /onboarding/nombre` desde ahi. **(3) Renombrar despues NO mueve el slug**: cambia solo `data.nombre`. Es a proposito y no va a cambiar — el slug forma el enlace que el negocio ya repartio por WhatsApp, y moverlo lo deja muerto. Si algun dia hace falta cambiarlo sera un endpoint aparte, con su aviso. **(4) Los subdominios reservados y el sufijo por colision funcionan igual por los dos caminos**, porque comparten el derivador. Detalle en `Backend-Sass/docs/pendientes-contrato.md` § [Configuracion]. Suite: 240 tests, 1078 aserciones |
-| 2026-09-05 | FE → BE | **Los 403 de `/usuarios` y `/roles` no traen `codigo`.** El resto del panel responde `403 {codigo: "sin_permiso"}` y eso nos deja distinguirlo de `suscripcion_vencida`, que lleva otro aviso y un botón. Pero los candados de esas dos rutas son un guardia aparte —rango, no capacidad de la matriz— y devuelven un 403 pelado: `{"message":"Solo el administrador general puede hacer esto."}`. El mensaje es bueno y se aprovecha; lo que falta es la clave. **Lo cubrimos tratando cualquier 403 del panel como falta de permiso**, que es cierto hoy, pero es una suposición nuestra sobre vuestra API y se rompe el día que aparezca un tercer 403 con otro significado. Si le añadís `codigo: "sin_permiso"` —o uno propio, `solo_admin_general`— dejamos de suponer. Comprobado el 2026-09-05 con la cuenta de rol Profesional en `3brlcaps` |
-| 2026-09-05 | FE → BE | **`tenant:cuenta-de-prueba` entrega cuentas que no pueden entrar: `email_verified_at` no está en `$fillable`.** El comando lo pide —`User::create([... 'email_verified_at' => now()])`, y el comentario dice «Verificada de entrada: aquí no hay invitación que aceptar»— pero `User::$fillable` no lo incluye, así que Eloquent lo **descarta en silencio**. La fila queda con `NULL`, el comando imprime «Cuenta lista» con las credenciales, y el login responde «Verifica tu correo antes de iniciar sesión». Comprobado en `saas_central.users`: `profesional@prueba.local` (id 9) tiene `email_verified_at NULL`. El flujo de invitación no lo sufre porque `InvitacionController` usa `forceFill`, que se salta `$fillable` — por eso el mismo campo se escribe bien por un camino y no por el otro. **Nos vuelve a bloquear el extremo a extremo con cuenta restringida**, que es justo lo que el comando venía a resolver. Basta añadir el campo a `$fillable` o usar `forceFill` también aquí; y de paso, que el comando falle en vez de imprimir «Cuenta lista» si la fila no quedó verificada |
 | 2026-09-05 | BE → FE | **La escalada esta cerrada, vuestro tenant limpio, y ahi va el comando que pedisteis.** El diagnostico era exacto, incluido el sitio: el candado vivia solo en `UsuarioController` y `ProfesionalService::cuentaSiSePide()` entraba por debajo. **(1) Arreglado donde sugeristeis**, y teniais razon en el sitio: el invariante vive ahora en `UsuarioService`, que es por donde pasan los dos caminos — `crear()` rechaza `admin_general` siempre y `actualizar()` protege el «ni se le quita a quien lo tiene ni se le da a quien no». De paso quitamos las comprobaciones duplicadas del controlador: dos copias de una regla de seguridad no son el doble de seguras, son dos sitios que divergen. `POST /profesionales` con el `rol_id` del general responde **422 en `usuario.rol_id`** y no queda nada creado. Tres tests, incluido el escenario completo con un administrador local. **(2) La cuenta escalada, borrada.** Mire primero que era: `usuario 2`, `barbero.1788555284122@elrosal.pe`, sin ficha de profesional ligada y sin tokens. En `3brlcaps` hay ahora exactamente UN administrador general. **(3) Lo de las cuentas huerfanas NO lo dejamos como estaba** — vuestro razonamiento nos convencio: si la invitacion falla, se deshace el alta entera. Con el 500 el dueño cree que no se creo, reintenta y se come un «correo ya registrado» por una fila que no ve. Ahora el fallo es atomico y el reintento funciona; el boton de reenviar sigue cubriendo el caso comun, que es que el correo salga y no llegue. **(4) El comando**: `php artisan tenant:cuenta-de-prueba 3brlcaps --rol=profesional` deja una cuenta con contraseña conocida (`secreta123`). **Ya os deje una creada**: `profesional@prueba.local` / `secreta123`. Solo corre en `local` y se niega a crear un administrador general — un atajo de desarrollo que se salta una regla de seguridad es como se cuelan. Suite: 237 tests, 1068 aserciones |
 | 2026-09-05 | FE → BE | **Escalada de privilegios: `POST /profesionales` fabrica un segundo administrador general y esquiva el candado.** El objeto opcional `usuario: {email, rol_id}` acepta **cualquier** `rol_id`, incluido el del administrador general. La comprobación «Ya hay un administrador general en este negocio» vive solo en `UsuarioController::store` y en `protegerAlDueno`; `ProfesionalService::cuentaSiSePide` llama a `UsuarioService::crear` directamente, y ese service **no la repite**. **Lo que lo hace grave es quién puede llamarlo**: `/usuarios` es solo del administrador general, pero `POST /profesionales` va detrás de `puede:empleados,gestionar`, que el preset de **Administrador local** tiene. Es decir: un administrador local se da de alta a sí mismo como profesional con `rol_id` del general y se queda con facturación y con la capacidad de repartir roles. Dos peticiones. Es exactamente el escenario que vuestra propia documentación nombra al explicar por qué roles y cuentas son solo del general. **Y la cuenta resultante no se puede borrar**: `destroy` se niega sobre un administrador general, así que ni siquiera se deshace desde el panel. **Reproducido sin querer** el 2026-09-05 en el tenant `3brlcaps`, con una prueba nuestra: la cuenta `barbero.1788555284122@elrosal.pe` quedó con rol `admin_general` y `roles[1].usuarios_count` marca **2**. Esa fila os la dejamos ahí sin tocar como evidencia; necesitamos que la quitéis vosotros, porque desde el panel no hay forma. **Lo nuestro ya no lo ofrece** —el formulario de profesionales asigna siempre el rol de sistema `profesional` y no enseña desplegable—, pero eso es interfaz, no autorización: la API sigue abierta a quien la llame directamente, que es justo la distinción que hacéis vosotros con el menú. **Aparte, y menor**: cuando el alta de la cuenta falla después de crearla —nos pasó con `invitacion_tokens`— la fila de `usuarios` **se queda**. Nos dejó seis cuentas huérfanas que no habían recibido invitación y con el correo ya ocupado globalmente, así que reintentar el alta daba «correo ya registrado». El botón de reenviar lo salva, pero conviene decidir si esa escritura debería revertirse |
 | 2026-09-05 | BE → FE | **Los permisos ya se aplican de verdad, y hay `GET /api/capacidades`.** Hasta hoy `roles.permisos` se guardaba y no lo leia nadie: un profesional cuyo rol decia «clientes: ver» podia crear y borrar clientes igual que el titular. **(1) `GET /api/capacidades`** devuelve lo que puede hacer quien mira, YA RESUELTO: `permisos` (los 14 modulos, `null` donde no hay acceso), `solo_propios` y `locales` (`null` = todas las sedes; una lista de ids = solo esas). Pedidlo una vez para armar el menu. Va aparte del `Usuario` de `/login` por arquitectura: los permisos viven en la base del negocio y `/login` se resuelve en la central. **Usad esta matriz, no deduzcais la vuestra** — si el menu decide por su cuenta acaban habiendo dos y la que manda es esta. **(2) Cualquier endpoint de un modulo sin acceso responde `403` con `codigo: "sin_permiso"`.** Es 403 y no 404 a proposito: el recurso existe y es de su negocio, lo que falta es permiso; el 404 se reserva para lo de otro tenant, y mezclarlos os dejaria sin poder distinguir «no tienes acceso» de «no existe». **(3) La pared de cobro gana**: en un negocio suspendido sale `suscripcion_vencida` aunque ademas falte el permiso, porque es el error sobre el que alguien puede actuar. **(4) Esconder una opcion del menu NO es autorizacion** — el backend responde 403 igual. Sirve para no enseñar puertas cerradas, no para cerrarlas. **(5) El alcance por sedes ya filtra**: `GET /locales` devuelve solo las asignadas y una fuera de alcance da **404**, no 403 — para esa persona esa sede no existe. **Queda ANULADO el aviso de ayer de no ofrecer el selector de sedes**: lo que se guarda ahora se cumple. **(6) Lo que todavia NO hace**: `solo_propios` se emite pero no filtra nada, porque hoy no hay nada suyo que filtrar — sus citas llegan en el Sprint 4 y es ahi donde empieza a significar algo. Detalle en `Backend-Sass/docs/pendientes-contrato.md` § [Sprint 3] Los permisos ya se aplican |
