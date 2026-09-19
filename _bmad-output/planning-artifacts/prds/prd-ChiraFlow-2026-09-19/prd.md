@@ -385,9 +385,13 @@ repetidos solo rellenan campos vacíos. Diseño cerrado en
 
 ### 4.6 Sedes y grupos — ✅ (con 🟡)
 
-#### FR-19: Sedes — ✅
-Crear, editar y borrar sedes con dirección, contacto, color, banner, logo,
-coordenadas y horario. La primera es la principal y no se borra.
+#### FR-19: Sedes — ✅ (su identidad visual cambia con FR-77 y FR-82)
+Crear, editar y borrar sedes con dirección, contacto, coordenadas y horario.
+La primera es la principal y no se borra. **Desde el lanzamiento, la sede no
+tiene identidad visual propia**: hereda logo, color y portada del negocio
+(FR-77) y conserva sus datos operativos (dirección, horarios, servicios,
+profesionales, WhatsApp propio si lo tiene). Los campos actuales de color,
+banner y logo por sede se trasladan según FR-82.
 
 #### FR-20: Quién atiende en cada sede — ✅
 Por sede, cada profesional puede estar habilitado o no, con nombre público,
@@ -530,11 +534,19 @@ Sin sesión. Realiza UJ-4.
 
 #### FR-36: Resolución de la tienda — ⬜
 Visitar el enlace de un negocio muestra sus sedes, o salta directo a la única.
-Responde 404 si el negocio no existe, no fijó su nombre, desactivó la tienda o
-está suspendido.
+Responde 404 si el negocio no existe, no fijó su nombre o desactivó la tienda;
+si está suspendido, muestra la pantalla de FR-43.
+- Direcciones: `{negocio}.site.<marca>` (tienda) y
+  `{negocio}.site.<marca>/{sede}` (una sede, FR-81). Equivalente sin
+  subdominio: `/reservar/{negocio}/{sede}`, p. ej.
+  `/reservar/rosa-estilistas/balta`.
+- **Desde el enlace de una sede**, esa sede llega **preseleccionada y
+  visible**, y el cliente puede cambiarla. Si ya eligió servicios, se le avisa
+  antes de reiniciar la selección.
+- Con varias sedes reservables, la sede se elige **antes** que el servicio.
 
 #### FR-37: Catálogo público de una sede — ⬜
-Muestra la marca de la sede, el catálogo agrupado por categoría (solo
+Muestra la identidad del negocio (FR-77) con los datos de la sede, el catálogo agrupado por categoría (solo
 servicios activos y visibles) y los profesionales activos y habilitados en esa
 sede con su nombre público. Nunca expone costes, comisiones, correos del
 equipo ni estados internos.
@@ -547,8 +559,9 @@ el panel.
 El cliente reserva uno o varios servicios, en una sola cita encadenada (mismo
 profesional, duración sumada) o en citas separadas. Deja nombre, teléfono y
 correo obligatorios, y apellido y documento opcionales. La cita entra
-pendiente (o confirmada si el negocio auto-confirma las reservas sin pago),
-con canal `tienda`, en esa sede. El cliente se reconoce por teléfono
+**pendiente** con canal `tienda`, en esa sede: pendiente de pago si paga con
+Yape, o **pendiente de su confirmación por correo** si no paga en línea
+(FR-84). El cliente se reconoce por teléfono
 **normalizado igual que en el panel** (D-13). Recibe un comprobante con código
 y total, y el correo C-1 con su enlace de gestión.
 - Solo se ofrecen combinaciones reservables (FR-67).
@@ -579,9 +592,33 @@ con tres acciones: **ver**, **reprogramar** y **cancelar**. Realiza UJ-8.
 
 #### FR-70: Política de cambios del negocio — ⬜ (A-4)
 El negocio define cuántas horas antes de la cita el cliente puede reprogramar
-o cancelar por su cuenta (por defecto 24 h, [POR DEFINIR] F-2) y si confirma
-automáticamente las reservas sin pago. Fuera de plazo, el enlace solo permite
-ver la cita y contactar al negocio.
+o cancelar por su cuenta (por defecto 24 h, [POR DEFINIR] F-2). Fuera de
+plazo, el enlace solo permite ver la cita y contactar al negocio. (La opción
+«confirmar automáticamente las reservas sin pago» se retiró el 2026-09-19:
+ver FR-84.)
+
+#### FR-84: Confirmación por correo de las reservas sin pago en línea — ⬜ (decisión 2026-09-19)
+Toda reserva de la tienda que **no se paga con Yape** («pagar en el local», o
+negocio que no pide pago) debe **confirmarla el cliente desde su correo**. Es
+el único modo: frena reservas falsas sin trabajo para el negocio. Realiza
+UJ-4.
+- Al terminar, la tienda muestra: «Revisa tu correo para confirmar tu
+  reserva», el correo enmascarado, el plazo con hora exacta y que el horario
+  está reservado; botones **Reenviar correo** (con espera entre envíos) y
+  **Corregir correo** (una vez) [PROPUESTA].
+- El correo lleva **«Confirmar mi reserva»**, que abre la página de la cita;
+  la confirmación exige pulsar el botón en la página (abrir el enlace no
+  cambia nada, FR-69).
+- **Plazo configurable por el negocio** (Configuración → Reservas): por
+  defecto 30 minutos, **nunca menos de 15** (15 a 120). Cuenta desde la reserva y
+  nunca termina después de 15 minutos antes de la cita. La tienda no ofrece horarios que
+  empiecen antes de que termine el plazo más ese margen (con 30 minutos:
+  nada antes de 45 minutos desde ahora) [PROPUESTA].
+- **Confirma a tiempo:** la cita pasa a **confirmada** («pagas en el local» si
+  corresponde). **No confirma:** pasa a **cancelada** («reserva no
+  confirmada»), el horario se libera y se le avisa. Mismo mecanismo que la
+  caducidad del pago (agenda de tareas y mismo bloqueo; AD-7, AD-9).
+- Las citas creadas desde el panel no necesitan esta confirmación.
 
 #### FR-40: Protección de la superficie pública — ⬜
 Todas las rutas públicas tienen límite de peticiones propio.
@@ -613,9 +650,13 @@ devuelto` tras una cancelación de una cita pagada.
 
 #### FR-44: Configurar cobro por QR — ⬜
 El administrador general activa el cobro por QR con imagen e instrucciones y
-elige si el pago es **no pedido, opcional u obligatorio**, y el plazo para
-subir la evidencia (por defecto 60 min, entre 15 y 240). [POR DEFINIR] (F-1)
-si en v1 cada sede puede tener su propio QR.
+elige si el pago es **no pedido, opcional u obligatorio**, el plazo para
+subir la evidencia (**por defecto 15 min, entre 15 y 60**) y el plazo para
+corregir un comprobante rechazado (por defecto 30 min, entre 15 y 120).
+Los plazos los fija el negocio, **pero nunca por debajo de 15 minutos**: con
+menos, alguien podría pagar y perder su cita, y eso se le achaca al producto.
+- **Lanzamiento: un único QR del negocio** para todas las sedes. El QR por
+  sede y los adelantos son **posteriores**.
 
 #### FR-45: Subir la evidencia — ⬜
 Con el `codigo` de su cita (desde la confirmación de la reserva o su enlace de
@@ -630,10 +671,18 @@ volver a subir.
 #### FR-46: Verificar o rechazar — ⬜
 Desde la tabla y la ficha de citas (sin pantalla nueva), quien tiene `pagos:
 gestionar` en esa sede filtra «pagos por verificar», ve la evidencia y
-**aprueba** (la cita pasa a confirmada) o **rechaza con motivo** (se reabre un
-plazo corto para volver a subir).
-- **v1: pago total** del monto de la cita. El adelanto está [POR DEFINIR]
-  (F-1); el modelo ya lo admite.
+**aprueba** (la cita pasa a confirmada) o, con motivo obligatorio, elige
+entre dos salidas:
+- **«Pedir otra captura»** (corregible: captura ilegible, monto incompleto,
+  imagen equivocada). La cita sigue **pendiente de pago**, con el horario
+  **retenido**, y se abre un plazo de corrección (FR-71). Máximo 3 capturas
+  por cita [SUPUESTO].
+- **«Rechazar y cancelar la cita»** (definitivo: el pago no aparece en su
+  Yape, o el comprobante es falso o está duplicado). La cita pasa a
+  **cancelada**, el horario se libera y el cliente recibe el motivo.
+- **Lanzamiento: se cobra solo el total** del monto de la cita cuando el
+  negocio exige pago. Los **adelantos son posteriores** (el modelo de datos ya
+  los admite).
 - **Caja**: mientras Caja no esté lanzada, verificar **no** crea movimientos
   de caja (si no, la primera caja que se abriera adoptaría meses de pagos de
   golpe). Cuando Caja exista, el pago verificado genera su ingreso con método
@@ -645,9 +694,28 @@ dentro del plazo, la cita pasa a **cancelada** (motivo «pago no recibido»), el
 hueco se libera y se avisa al cliente y al negocio. Con la evidencia subida,
 la cita **ya no caduca**: la espera es del negocio. Con pago opcional, nunca
 caduca.
+- **Desde cuándo:** el plazo inicial cuenta desde que se crea la reserva; el
+  de corrección, desde que el negocio pulsa «Pedir otra captura». El horario
+  queda **retenido** durante los dos.
+- **Plazo de corrección:** el configurado por el negocio (por defecto 30
+  minutos, mínimo 15), sin pasar del límite siguiente.
+- **Nunca más allá del inicio de la cita:** todo plazo termina, como tarde,
+  **15 minutos antes de la hora de la cita** [SUPUESTO]. Si al abrirse quedan
+  menos de 15 minutos, **no se cancela sola**: la cita queda pendiente de pago,
+  se avisa al negocio y este decide en el mostrador, para no cancelar a
+  alguien que ya está llegando.
+- Con pago obligatorio, la tienda **no ofrece horarios que empiecen antes de
+  que termine el plazo inicial más esos 15 minutos**, para que siempre haya
+  tiempo real de pagar [PROPUESTA].
 - La caducidad se ejecuta con el mismo bloqueo que una reserva nueva, así que
   no puede chocar con alguien que reserve ese hueco en el mismo instante.
 - Si pasan 2 h con una evidencia sin revisar, se avisa al negocio (P-3).
+- **Rescate de un pago tardío:** si la evidencia llega **después** de vencido
+  el plazo y el horario **sigue libre**, la reserva se **reactiva** y queda en
+  revisión. Si otra persona ya lo tomó, la página lo dice y ofrece horarios
+  cercanos o que el negocio devuelva el dinero; el pago queda registrado como
+  devolución pendiente. Se resuelve con el mismo bloqueo que una reserva
+  nueva (AD-7).
 
 #### FR-72: Cancelaciones, reprogramaciones y devoluciones — ⬜ (A-3)
 - **Reprogramar** conserva el pago: es la misma cita.
@@ -655,7 +723,10 @@ caduca.
   plazo o el negocio) deja el pago en **devolución pendiente** y avisa al
   negocio. El negocio devuelve el dinero **fuera del sistema** y lo marca como
   devuelto. La plataforma no devuelve dinero que no tocó; solo lo registra.
-- Cada estado del pago avisa al cliente por correo (P-1 a P-7).
+- **El rechazo definitivo** (FR-46) cancela la cita y libera el horario; si
+  el negocio sí había recibido parte del dinero, lo registra como devolución
+  pendiente.
+- Cada estado del pago avisa al cliente por correo (P-1 a P-8).
 
 ### 4.14 Plantillas de WhatsApp — ⬜ · después del lanzamiento
 
@@ -783,6 +854,79 @@ y `pagos`; no hay acceso, rutas ni pantallas. Realiza UJ-7.
   temporal y auditado a los datos de un negocio, y conciliación con la
   pasarela.
 
+### 4.21b Identidad del negocio en su página de reservas — ⬜ (UX 2026-09-19)
+
+**Descripción**: el cliente debe sentir que está en la página del negocio.
+Nombre, logo e identidad visual del negocio mandan; ChiraFlow aparece solo en
+el pie. Diseño y comportamiento en
+`../../ux-designs/ux-ChiraFlow-2026-09-19/` (DESIGN.md y EXPERIENCE.md).
+
+#### FR-77: Identidad del negocio en la tienda — ⬜
+Logo, color principal y portada del negocio en la tienda, la página de la cita
+y los correos de cita, **en todos los planes**. Tres estilos de portada:
+**color sólido**, **degradado prediseñado** y **fotografía con capa de
+color**. Sin foto subida, la portada es sólida (o el degradado elegido).
+Todas las sedes heredan la identidad del negocio.
+- El texto sobre el color del negocio se calcula para cumplir contraste AA
+  (blanco o azul marino); un color sin contraste posible se rechaza.
+- Los fondos decorativos solo van en la portada: servicios, calendario y
+  formularios usan superficies limpias.
+- **El negocio no tiene color secundario** (ver FR-82).
+
+#### FR-78: Editor básico de apariencia — ⬜
+El administrador general, en Configuración → Apariencia, cambia logo, color,
+estilo de portada, degradado y fotografía con **punto de enfoque**, con
+**vista previa en vivo en móvil y escritorio**.
+- **«Publicar cambios»** los aplica al instante para los clientes.
+- **«Descartar cambios»** vuelve a la **última apariencia publicada**; hasta
+  publicar, los cambios solo existen en esa pantalla.
+- Posteriores: borrador guardado, restaurar el diseño inicial, historial,
+  programar la publicación, más estilos y fuentes, ocultar la marca del pie y
+  dominio propio.
+
+#### FR-79: Imágenes de marca procesadas y limitadas — ⬜
+- Logo: PNG, JPG o WebP (**sin SVG ni GIF**), hasta 1 MB, mínimo 256 × 256 px;
+  se guarda en WebP de 512 px.
+- Portada: JPG, PNG o WebP, hasta 5 MB, mínimo 1600 × 600 px; se guarda en
+  WebP en 2400, 1600 y 800 px de ancho, sin metadatos.
+- Se validan el tipo real y las dimensiones; al reemplazar se borran las
+  versiones anteriores. La tienda sirve el tamaño adecuado a cada pantalla.
+
+#### FR-80: Portada propia por sede — ⬜ · **posterior al lanzamiento**
+Función de plan `portada_por_sede` (AD-5), para los planes con varias sedes:
+la sede puede tener su foto de portada y, sin ella, hereda la del negocio.
+Logo y color siguen siendo del negocio.
+
+#### FR-81: Dirección pública de cada sede — ⬜
+Cada sede tiene un **slug único dentro de su negocio** (`balta`), derivado de
+su nombre al crearla (con sufijo si se repite) y sin palabras reservadas
+(`cita`, `reservar`, `publico`…). Dos negocios pueden tener cada uno su sede
+«centro» sin conflicto, porque el slug vive dentro del negocio.
+- **Si el slug de la sede cambia**, el anterior queda guardado y **redirige
+  para siempre** al nuevo; ninguna otra sede del negocio puede reutilizarlo.
+- **Los enlaces existentes** con el id numérico
+  (`/reservar/{negocio}/sucursal/{id}`) **redirigen** a la dirección con slug
+  durante la transición, y después se retiran.
+- El slug del negocio sigue siendo inmutable (decisión vigente).
+
+#### FR-82: Traslado de la identidad de las sedes al negocio — ⬜
+Una migración de datos, sin perder nada:
+- **Logo:** si el negocio no tiene logo y su sede principal sí, pasa al
+  negocio.
+- **Color:** si el color del negocio sigue siendo el predeterminado y la sede
+  principal tiene uno, se adopta el de la sede principal; si no, se mantiene
+  el del negocio.
+- **Portada:** si el negocio no tiene portada y la sede principal tiene
+  banner, este pasa a ser la foto del negocio.
+- **Sedes con logo o color distintos:** los valores **no se borran** (quedan
+  guardados para cuando llegue FR-80) y el editor muestra una vez el aviso
+  «Tus sedes tenían colores o logos distintos; ahora todas usan los del
+  negocio», con la opción de adoptar los de otra sede.
+- **Color secundario:** se retira de la pantalla y de la API; la columna queda
+  sin uso hasta eliminarla en una limpieza posterior.
+- Un color trasladado que no cumple el contraste no se rechaza: se marca en el
+  editor para que el negocio lo corrija.
+
 ### 4.21 Adquisición — ⬜
 
 #### FR-61: Landing del SaaS — ⬜
@@ -823,16 +967,19 @@ lanzamiento.
   verificación no usa la plantilla común ni tiene versión de texto, y el
   remitente es un dominio ajeno al producto.
 
-#### FR-74: Eventos y destinatarios — ⬜
+#### FR-74: Eventos y destinatarios — ⬜ (matriz actualizada el 2026-09-19)
 Los eventos, sus destinatarios, el momento, dónde se configuran, si se pueden
 desactivar y en qué plan están en la matriz aprobada de
 `../../propuesta-decisiones-2026-09-19.md` §4.3. Grupos:
-- **Citas** (C-1 a C-10): reserva recibida, confirmada, creada desde el
-  panel, reprogramada, cancelada, cambio de profesional, recordatorios y
-  agenda del día.
-- **Pagos de cita** (P-1 a P-7): pendiente de pago, evidencia recibida, por
-  verificar (al negocio), aprobado, rechazado, plazo vencido y devolución
-  pendiente.
+- **Citas** (C-1 a C-12): reserva recibida pendiente de pago,
+  **«Confirma tu reserva»** (C-11, con el botón y el plazo), **reserva no
+  confirmada y cancelada** (C-12), confirmada (con tres textos según el pago:
+  verificado, **«pagas en el local»** o sin pago), creada desde el panel, reprogramada,
+  cancelada, cambio de profesional, recordatorios y agenda del día.
+- **Pagos de cita** (P-1 a P-8): pendiente de pago, **comprobante recibido, en
+  revisión**, por verificar (al negocio), aprobado, **se pide otra captura**
+  (corregible), plazo vencido, devolución pendiente y **pago rechazado con
+  cita cancelada** (definitivo, P-8).
 - **Equipo** (E-1 a E-3), **suscripción** (S-1 a S-4), **cuenta y
   seguridad** (K-1 a K-4) y **plataforma** (X-1 a X-3).
 
@@ -847,7 +994,8 @@ Reglas:
   el teléfono del cliente si su rol no lo permite (F-3).
 - Plantillas con negocio, cliente, servicio, sede, profesional, fecha, hora,
   zona horaria y estado; en una columna, legibles en móvil, con versión de
-  texto; logo y color del negocio según el plan.
+  texto; logo, nombre y un uso moderado del color del negocio **en todos los
+  planes** (sin fondos fotográficos de la portada).
 
 #### FR-75: Configuración y preferencias — ⬜
 - **Negocio** (sección «Notificaciones» de Configuración, administrador
@@ -870,6 +1018,26 @@ Reglas:
 - **Operativo frente a promocional**: en el lanzamiento solo hay correos
   operativos; el consentimiento promocional se recoge (FR-39) y se guarda para
   el futuro.
+
+#### FR-83: Avisos por WhatsApp al personal del negocio — ⬜ (decisión 2026-09-19)
+El sistema avisa por WhatsApp, desde **un único número emisor de ChiraFlow**,
+a los **números internos** que cada negocio configura (recepción,
+verificación de pagos). **Nunca** escribe a clientes finales ni usa el número
+del negocio.
+- Avisos: **comprobante por verificar** (P-3) y **reserva nueva** (C-2), según
+  lo que elija cada número.
+- **Consentimiento verificado:** al añadir un número, la persona envía desde
+  él un mensaje con un código («ACTIVAR 482913») al número de ChiraFlow; hasta
+  entonces no recibe nada.
+- **Uso responsable:** límite por minuto y por destinatario, avisos
+  agrupados («3 comprobantes por verificar»), textos cortos sin enlaces
+  acortados, horario del negocio y calentamiento del número nuevo.
+- **Canal secundario:** el correo y el contador del panel se envían siempre;
+  si WhatsApp falla o el número cae, no se pierde ningún aviso, solo llega
+  más lento. La plataforma recibe una alerta si la sesión se desconecta (X-2).
+- **Proveedor del lanzamiento:** Evolution API (conexión no oficial) alojado en
+  Railway. El riesgo de bloqueo lo asume la plataforma. Cuando Meta verifique
+  la empresa, se cambia a la API oficial (Kapso) sin tocar la lógica.
 
 #### FR-76: Cuota de correos — ⬜
 Cada plan incluye una cuota mensual de correos (propuesta en §6). Al
@@ -934,8 +1102,11 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
   §3): **Independiente** S/39 (1 profesional, 1 sede), **Equipo** S/89 (hasta
   5, 1 sede), **Negocio** S/189 (hasta 15, hasta 3 sedes); anual con 2 meses
   gratis; complementos de profesional (S/12), sede (S/39, solo Negocio) y 5 000
-  correos (S/15). Usuarios del panel ilimitados en todos. **Pago QR y botones
-  de gestión de la cita incluidos en todos los planes.**
+  correos (S/15). Usuarios del panel ilimitados en todos. **Pago QR, botones
+  de gestión de la cita, e identidad del negocio (logo, color y los tres
+  estilos de portada) incluidos en todos los planes.** La portada propia por
+  sede (FR-80, posterior) será la función de plan `portada_por_sede`, activada
+  en los planes con varias sedes, nunca por el nombre del plan.
 - **Cómo se cuentan los límites**: profesionales y sedes **activos**; los
   desactivados no cuentan. Correos: los aceptados por el proveedor en el mes,
   sin contar los de seguridad y suscripción.
@@ -958,7 +1129,9 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
   plataforma solo registra la evidencia y su verificación.
 - No cobra la suscripción con pasarela en el lanzamiento (activación manual;
   Mercado Pago después).
-- No envía WhatsApp, SMS ni campañas promocionales en el lanzamiento.
+- No envía WhatsApp a clientes, SMS ni campañas promocionales en el
+  lanzamiento. El único WhatsApp es el aviso al personal de cada negocio
+  (FR-83).
 - No es multi-idioma ni multi-moneda.
 - No tiene tiempo real (websockets).
 - Una persona pertenece a **un solo negocio**; varios negocios por persona es
@@ -981,11 +1154,13 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
    FR-66).
 3. Servicios por sede y reservabilidad única (FR-21, FR-67).
 4. Calendario conectado (FR-35); reprogramar y cancelar desde el panel.
-5. Tienda pública completa (FR-36 a FR-40, FR-43) y gestión de la cita por
-   enlace (FR-69, FR-70).
+5. Tienda pública completa (FR-36 a FR-40, FR-43) con dirección de sede por
+   slug (FR-81), identidad del negocio y editor básico de apariencia (FR-77 a
+   FR-79), traslado de la identidad de las sedes (FR-82) y gestión de la cita
+   por enlace (FR-69, FR-70).
 6. Pago de la cita con QR de Yape (FR-44 a FR-46, FR-71, FR-72).
 7. Notificaciones por correo (FR-73 a FR-76) con los eventos esenciales y un
-   recordatorio.
+   recordatorio, y avisos por WhatsApp al personal (FR-83).
 8. Suscripción: estado, Mi Plan con «contáctanos», ciclo de vida mínimo
    (vencer → avisar → suspender) y planes nuevos (FR-55 a FR-58).
 9. Panel de plataforma (FR-60).
@@ -996,7 +1171,8 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
     pruebas, dominio y remitente verificados, copias de seguridad probadas.
 12. [PROPUESTA] Piloto cerrado con 2–3 negocios antes de abrir el registro.
 
-**Después del lanzamiento** (siguen en el alcance general): Caja, Reportes,
+**Después del lanzamiento** (siguen en el alcance general): portada propia por
+sede (FR-80), QR por sede, funciones avanzadas del editor, Caja, Reportes,
 Soporte con tickets, plantillas y envío de WhatsApp, recordatorios 2 y 3,
 reglas por sede, registro de entregas visible al negocio, pasarela de
 suscripciones, adelantos, precio y duración por sede, varios negocios por
@@ -1017,6 +1193,8 @@ Ninguna fuente define metas. Propongo medir, con metas [POR DEFINIR]:
 - **SM-5 Pago QR**: % de reservas con pago obligatorio que caducan sin
   evidencia, tiempo medio de verificación del negocio, y tasa de inasistencia
   con pago frente a sin pago. Valida FR-44–FR-46 y FR-71.
+- **SM-8 Reservas confirmadas por correo**: % de reservas sin pago en línea
+  que el cliente confirma a tiempo, y cuántas caducan. Valida FR-84.
 - **SM-6 Autogestión**: % de reprogramaciones y cancelaciones hechas por el
   cliente desde su enlace. Valida FR-69.
 - **SM-7 Entrega de correos**: % entregados y % rebotados por negocio. Valida
@@ -1035,7 +1213,8 @@ Aprobadas y ya incorporadas: **A-1 a A-7** (2026-09-19). Quedan
 | # | Pregunta | Bloquea |
 |---|---|---|
 | Q-04 | Confirmar el alcance del lanzamiento de §8 | Plan de épicas |
-| F-1 | Pago QR: ¿adelanto en v1? ¿QR propio por sede en v1? | FR-44, FR-46 |
+| ~~F-1~~ | **Resuelta 2026-09-19:** solo el total en el lanzamiento; adelantos y QR por sede, posteriores | — |
+| F-9 | Plazo de corrección tras «pedir otra captura» (propuesta 30 min), margen antes de la cita (15 min) y máximo de capturas (3) | FR-46, FR-71 |
 | F-2 | Horas mínimas para que el cliente cambie su cita (propuesta 24 h) | FR-70 |
 | F-3 | ¿El profesional ve el teléfono del cliente? | FR-62, FR-74 |
 | F-4 | Correo para avisos en la ficha del profesional sin cuenta | FR-75 |
@@ -1046,7 +1225,7 @@ Aprobadas y ya incorporadas: **A-1 a A-7** (2026-09-19). Quedan
 | Q-03 / L-4 | Tu disponibilidad semanal y el piloto → fecha | Lanzamiento |
 | L-1 | **Nombre comercial y dominio** (remitente, enlaces, subdominios) | FR-73, lanzamiento |
 | L-2 | Dominio de las tiendas (comodín) | Lanzamiento |
-| L-3 | Opción de despliegue A o B | Lanzamiento |
+| ~~L-3~~ | **Resuelta 2026-09-19:** Contabo + Forge, Vercel Pro, Cloudflare (arquitectura AD-20) | — |
 | L-5 | Textos legales | Lanzamiento |
 | L-6 | RUC y comprobantes por la suscripción | FR-57 |
 | Q-07 | SEO de la tienda | Posterior |
@@ -1057,6 +1236,10 @@ Aprobadas y ya incorporadas: **A-1 a A-7** (2026-09-19). Quedan
 - §7 — El marketplace no es parte de v1 (existe el flag, sin pantalla).
 - §7 — No se emiten comprobantes electrónicos del negocio a sus clientes.
 - §6 — Tipo de cambio ≈ S/3,7 por USD para estimar costos.
+- FR-46, FR-71 — 30 min para corregir, 15 min de margen antes de la cita y
+  3 capturas como máximo (F-9).
+- FR-77 — 8 colores sugeridos y 8 degradados prediseñados; valores por fijar
+  en la historia de diseño.
 - §8 — Ritmo de desarrollo igual al medido en git (≈ 1,3 días activos por
   módulo y lado).
 - Nombre comercial «ChiraFlow» tomado del nombre del repositorio.

@@ -248,7 +248,7 @@ cuenta como recibido cuando una persona del negocio verifica la evidencia.
 
 ```
 Cliente reserva en la tienda
-  └─ el negocio exige pago previo ─┬─ NO → cita «pendiente» (o «confirmada» si el negocio auto-confirma), sin pago
+  └─ el negocio exige pago previo ─┬─ NO → cita «pendiente de tu confirmación» hasta que el cliente confirme por correo (FR-84, 2026-09-19), sin pago
                                    └─ SÍ → cita «pendiente» + pago «pendiente» + plazo para subir evidencia
         pantalla de confirmación: QR + instrucciones + monto + código + botón «Subir comprobante»
         correo: «Reserva recibida — pendiente de pago» con el mismo botón
@@ -552,13 +552,13 @@ compite en igualdad de precio con un producto más completo y conocido.
 | Sedes | 1 | 1 | hasta 3 |
 | Usuarios del panel | ilimitados (decisión vigente) | ilimitados | ilimitados |
 | Agenda, calendario, tienda pública, clientes, servicios | ✅ | ✅ | ✅ |
-| **Pago QR Yape** | ✅ | ✅ | ✅ + QR por sede |
+| **Pago QR Yape** | ✅ | ✅ | ✅ (QR por sede: posterior, 2026-09-19) |
 | Roles | presets | presets + personalizados | presets + personalizados + alcance por sedes |
 | Inventario | — | ✅ | ✅ |
 | Caja y reportes *(cuando salgan)* | reportes básicos | ✅ | ✅ por sede |
 | Correos esenciales + botones de gestión | ✅ | ✅ | ✅ |
 | Recordatorios | 1 (24 h antes, fijo) | hasta 2, horario configurable | hasta 3, reglas por sede |
-| Correos con logo y color del negocio | — | ✅ | ✅ |
+| Correos con logo y color del negocio | ✅ | ✅ | ✅ (identidad básica en todos los planes, decisión 2026-09-19) |
 | Registro de entregas y rebotes | — | — | ✅ |
 | Correos incluidos/mes (esenciales + recordatorios) | 1 000 | 5 000 | 15 000 |
 
@@ -708,7 +708,7 @@ Webhook de Resend (firmado)
 - **«Aceptado» no es «entregado».** El panel muestra «enviado» solo cuando hay
   confirmación de entrega; si no, «enviado al proveedor».
 - **Plantillas:** la plantilla común (ampliada con logo y color del negocio
-  según el plan) + **versión de texto** en todos los correos + contenido
+  en todos los planes, decisión 2026-09-19) + **versión de texto** en todos los correos + contenido
   mínimo por destinatario (el profesional no recibe el teléfono del cliente si
   su rol no lo ve).
 
@@ -722,9 +722,11 @@ desactivar (aunque sigue haciendo falta un correo válido).
 | # | Evento | Para | Cuándo | Se configura en | ¿Desactivable? | Plan |
 |---|---|---|---|---|---|---|
 | **Citas y agenda** | | | | | | |
-| C-1 | Reserva recibida (pendiente de confirmar o de pago) | C | al instante | Notificaciones del negocio | No (esencial) | todos |
-| C-2 | Nueva reserva de la tienda | Pr, A | al instante o en resumen diario | preferencias de cada uno | Sí | todos |
-| C-3 | Cita confirmada | C | al confirmar | Notificaciones del negocio | No | todos |
+| C-1 | Reserva recibida — **pendiente de pago** (con QR, monto y plazo con hora exacta) | C | al instante | Notificaciones del negocio | No (esencial) | todos |
+| C-11 | **Confirma tu reserva** (reservas de la tienda sin pago en línea, FR-84): botón «Confirmar mi reserva», plazo con hora exacta, «tu horario está reservado hasta entonces» | C | al instante; reenviable a pedido del cliente | — | No (esencial) | todos |
+| C-12 | **Reserva no confirmada y cancelada**: «no recibimos tu confirmación; el horario se liberó», enlace para reservar de nuevo | C | al vencer el plazo | — | No | todos |
+| C-2 | Nueva reserva de la tienda | Pr, A (+ WhatsApp a los números internos que lo elijan, FR-83) | al instante o en resumen diario | preferencias de cada uno | Sí | todos |
+| C-3 | Cita confirmada, con **tres textos según el pago**: «Pago verificado» (tras P-4) · **«Pagas en el local»** (con el monto a pagar; nunca dice «pagada») · sin mención de pago si el servicio no lo requiere | C | al confirmar (automática o manual) | Notificaciones del negocio | No | todos |
 | C-4 | Cita creada desde el panel | C | al instante | Notificaciones del negocio | Sí (el negocio puede no avisar de lo que agenda por teléfono) | todos |
 | C-5 | Reprogramada (por el negocio o por el cliente) | C, Pr (+ A si la hizo el cliente) | al instante | — | No para C | todos |
 | C-6 | Cancelada (con motivo; si hay pago, «devolución pendiente») | C, Pr (+ A si la hizo el cliente) | al instante | — | No para C | todos |
@@ -734,12 +736,13 @@ desactivar (aunque sigue haciendo falta un correo válido).
 | C-10 | Agenda del día | Pr | a las 7:00 del negocio | preferencias del profesional | Sí | Equipo, Negocio |
 | **Pagos de citas** | | | | | | |
 | P-1 | Pendiente de pago (QR, monto, plazo, botón «Subir comprobante») | C | al reservar | — | No | todos |
-| P-2 | Comprobante recibido, en verificación | C | al subir | — | No | todos |
-| P-3 | Hay un comprobante por verificar | A (con `pagos`) | al subir; recordatorio si pasan 2 h | preferencias | Sí (el aviso; el filtro en Citas sigue) | todos |
+| P-2 | **Comprobante recibido, en revisión**: «el salón lo revisará; tu horario sigue reservado; te avisaremos» | C | al subir | — | No | todos |
+| P-3 | Hay un comprobante por verificar | A (con `pagos`) por correo + **WhatsApp a los números internos del negocio** (FR-83), agrupado | al subir; recordatorio si pasan 2 h | preferencias y Configuración → Notificaciones | Sí (el aviso; el filtro en Citas sigue) | todos |
 | P-4 | Pago aprobado → cita confirmada | C | al verificar | — | No | todos |
-| P-5 | Pago rechazado (motivo + plazo para re-subir) | C | al rechazar | — | No | todos |
+| P-5 | **Se pide otra captura** (corregible): motivo + plazo de corrección con hora exacta; horario retenido | C | al pulsar «Pedir otra captura» | — | No | todos |
 | P-6 | Plazo vencido → cita cancelada | C, A | al vencer | — | No | todos |
 | P-7 | Devolución pendiente | T, A | al cancelar una cita pagada | — | No | todos |
+| P-8 | **Pago rechazado y cita cancelada** (definitivo): motivo, horario liberado, enlace para reservar de nuevo y contacto del negocio | C (+ A) | al pulsar «Rechazar y cancelar la cita» | — | No | todos |
 | **Equipo** | | | | | | |
 | E-1 | Invitación al panel | invitado | al invitar | — | No | todos (existe ✅) |
 | E-2 | Te asignaron a una sede o un servicio | Pr | al cambiar | preferencias | Sí | todos |
@@ -759,9 +762,12 @@ desactivar (aunque sigue haciendo falta un correo válido).
 | X-2 | Trabajos fallidos o cola atascada | Pl | cada 15 min | — | No | — |
 | X-3 | Negocio que alcanzó su cuota de correos | T, Pl | al alcanzarla | — | No | — |
 
-**Pendiente ≠ confirmada.** C-1 dice «recibimos tu reserva» y, si hay pago
-por verificar, **«tu cita no está confirmada hasta que verifiquemos el
-pago»**. Solo C-3 y P-4 dicen «confirmada».
+**Pendiente ≠ confirmada.** C-1, C-11, P-2 y P-5 dicen qué pasó, **si el
+horario sigue reservado y hasta cuándo**, y qué debe hacer ahora el cliente.
+Solo C-3 y P-4 dicen «confirmada», y C-3 **nunca afirma que la cita está
+pagada** cuando se paga en el local. Actualizada el 2026-09-19 con las
+decisiones de UX; los textos modelo están en
+`ux-designs/ux-ChiraFlow-2026-09-19/EXPERIENCE.md` (State Patterns).
 
 ### 4.4 Configuración y preferencias
 
@@ -771,9 +777,9 @@ administrador general):
 - recordatorios: cuántos y cuándo (dentro de lo que da el plan);
 - nombre del remitente, correo de respuesta y contacto que aparece en los
   correos;
-- logo y color en los correos (según el plan);
+- logo y color en los correos (todos los planes: salen de la apariencia del negocio);
 - **política de la cita**: horas mínimas para que el cliente reprograme o
-  cancele por su cuenta, y si confirma automáticamente las reservas sin pago;
+  cancele por su cuenta (las reservas sin pago en línea las confirma siempre el cliente por correo, FR-84);
 - pago QR: no pedir / opcional / obligatorio, y el plazo (Q-05).
 
 **Por sede** (plan Negocio; el administrador de sede, para la suya): correo
@@ -842,7 +848,7 @@ en conversaciones).
 - **Profesionales y personal:** sus correos enlazan al **panel** con sesión y
   permisos normales. Nunca llevan tokens de cliente.
 - **Diseño:** una columna, botones grandes, legible en móvil; color y logo del
-  negocio según el plan; versión de texto con las URLs completas; sin datos
+  negocio en todos los planes; versión de texto con las URLs completas; sin datos
   que el destinatario no necesite.
 
 ### 4.6 Consumo, límites y bajada de plan
@@ -910,7 +916,7 @@ SEO de la tienda; dominios personalizados; campañas promocionales.
 | **A-5** | ✅ **APROBADA 2026-09-19** — Aprobar la salida de correo con registro, webhook e índices centrales (§4.2) | **Arquitectura** |
 | **A-6** | ✅ **APROBADA 2026-09-19** — `suscripcion_cambios`, `modo_cobro` y el panel de plataforma en el repo de Next (Q-11). Incorporada al PRD como FR-60 y UJ-7 | Arquitectura |
 | **A-7** | ✅ **APROBADA 2026-09-19** — Aprobar `local_servicio` (sin precio ni duración por sede en v1) y que un servicio sin profesionales no se pueda reservar (Q-06) | **Arquitectura** |
-| F-1 | Pago QR: ¿solo total en v1 o también adelanto? ¿QR por sede en v1? | Funcionalidad (pagos) |
+| ~~F-1~~ | **Resuelta 2026-09-19:** solo el total en el lanzamiento; adelantos y QR por sede, posteriores | — |
 | F-2 | Política por defecto: horas mínimas para que el cliente cancele o reprograme (propuesta: 24 h) | Funcionalidad (gestión por enlace) |
 | F-3 | ¿El profesional ve el teléfono del cliente? | Funcionalidad (permisos) |
 | F-4 | Correo opcional de avisos en la ficha del profesional sin cuenta | Funcionalidad (notificaciones) |

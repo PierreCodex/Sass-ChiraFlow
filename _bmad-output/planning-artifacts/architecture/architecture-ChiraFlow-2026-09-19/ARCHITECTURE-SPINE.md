@@ -8,7 +8,8 @@ scope: 'Sistema completo: Backend-Sass (Laravel), Sass-ChiraFlow/web (Next + BFF
 status: final
 created: '2026-09-19'
 updated: '2026-09-19'
-binds: ['PRD FR-1..FR-76', 'NFR-1..NFR-12', 'A-1..A-7']
+revision: 'r2 — decisiones de UX (identidad del negocio, slug de sede, plazos de pago)'
+binds: ['PRD FR-1..FR-82', 'NFR-1..NFR-12', 'A-1..A-7']
 sources:
   - '../../prds/prd-ChiraFlow-2026-09-19/prd.md'
   - '../../propuesta-decisiones-2026-09-19.md'
@@ -108,7 +109,7 @@ Laravel directamente.
 
 - **Binds:** planes, Mi Plan, menú · FR-55..FR-58, FR-76
 - **Prevents:** comprobar el nombre del plan en el código, o dos listas de funciones divergentes.
-- **Rule:** catálogo único de claves de función en el código (junto a `RolesSistema::MODULOS`); los valores por plan (booleano o número) viven en `planes.features` (JSON) y los límites numéricos en sus columnas. Una sola comprobación (paso 3 de AD-4). `GET /capacidades` devuelve permisos, alcance **y** funciones del plan, y el frontend arma el menú solo con eso. El plan nunca concede permisos a una persona.
+- **Rule:** catálogo único de claves de función en el código (junto a `RolesSistema::MODULOS`); los valores por plan (booleano o número) viven en `planes.features` (JSON) y los límites numéricos en sus columnas. Una sola comprobación (paso 3 de AD-4). `GET /capacidades` devuelve permisos, alcance **y** funciones del plan, y el frontend arma el menú solo con eso. El plan nunca concede permisos a una persona. La identidad del negocio (logo, color, los tres estilos de portada) **no** es una función de plan: está en todos. La primera función de plan de identidad será `portada_por_sede` (FR-80, posterior).
 
 ### AD-6 — Disponibilidad y reservabilidad en un solo cálculo [ADOPTED + A-7]
 
@@ -118,9 +119,9 @@ Laravel directamente.
 
 ### AD-7 — Toda ocupación o liberación de un hueco pasa por el mismo camino con bloqueo [ADOPTED]
 
-- **Binds:** crear, editar, reprogramar, cancelar, reserva pública, caducidad del pago · FR-28, FR-39, FR-69, FR-71
+- **Binds:** crear, editar, reprogramar, cancelar, reserva pública, caducidad del pago y de la confirmación por correo · FR-28, FR-39, FR-69, FR-71, FR-84
 - **Prevents:** solapes o carreras entre una reserva y una caducidad o una reprogramación simultáneas.
-- **Rule:** cualquier escritura que ocupe o libere tiempo de un profesional se hace en el service de citas, en una transacción con `SELECT … FOR UPDATE` sobre las citas de ese profesional en la ventana afectada, revalidando disponibilidad y reservabilidad dentro del bloqueo. Nadie escribe `citas.starts_at`, `ends_at`, `estado` o `profesional_id` fuera de ese service. `estado_pago` y `cita_pagos` los escribe solo el service de pagos; cuando un pago cambia el estado de la cita (verificar → `confirmada`, caducar → `cancelada`), el service de pagos **llama** al de citas, nunca escribe `citas.estado` por su cuenta.
+- **Rule:** cualquier escritura que ocupe o libere tiempo de un profesional se hace en el service de citas, en una transacción con `SELECT … FOR UPDATE` sobre las citas de ese profesional en la ventana afectada, revalidando disponibilidad y reservabilidad dentro del bloqueo. Nadie escribe `citas.starts_at`, `ends_at`, `estado` o `profesional_id` fuera de ese service. `estado_pago` y `cita_pagos` los escribe solo el service de pagos; cuando un pago cambia el estado de la cita (verificar → `confirmada`, caducar o **rechazo definitivo** → `cancelada`), el service de pagos **llama** al de citas, nunca escribe `citas.estado` por su cuenta. Los plazos de pago (inicial desde la creación, de corrección desde «pedir otra captura») **nunca terminan después de 15 minutos antes de la cita**; si quedaría menos, no se programa caducidad y se avisa al negocio (FR-71).
 
 ### AD-8 — Historial de dominio y un único notificador
 
@@ -128,9 +129,15 @@ Laravel directamente.
 - **Prevents:** correos de operaciones que se deshicieron, avisos duplicados y reglas de aviso repartidas por los services.
 - **Rule:** los services **solo registran** lo que pasó como evento tipado **dentro de su transacción**, en **una sola tabla de eventos por base**: `eventos_dominio` en cada base de negocio (citas, pagos, equipo) y en la base central (suscripción, cuenta, plataforma), con tipo, entidad, id, actor (`usuario | cliente | plataforma | sistema` + id), datos y versión de la entidad. El historial de una cita (FR-68) es la consulta de sus eventos. Un único `Notificador` traduce cada tipo de evento en envíos según la matriz de la propuesta §4.3, crea filas en `notificacion_envios` **en la misma base que el evento**, con clave de idempotencia **evento + entidad + destinatario + versión**, y los encola **después del commit**. El trabajo de envío relee el estado y omite lo que ya no aplica. Los estados (`aceptado` ≠ `entregado`, rebote, queja) llegan por el webhook firmado de Resend y se resuelven por un índice central id del proveedor → negocio. Ningún service llama a `Mail` ni a `Notification` directamente, salvo los correos de cuenta, que pasan al mismo mecanismo al migrarse.
 
+### AD-22 — WhatsApp de la plataforma como canal secundario del notificador
+
+- **Binds:** avisos al personal · FR-83
+- **Prevents:** que un bloqueo del número o una caída del proveedor haga perder avisos, que se escriba a clientes o al número del negocio, o que el proveedor quede atado a la lógica.
+- **Rule:** el `Notificador` (AD-8) envía WhatsApp **solo** a números internos del negocio con consentimiento verificado (mensaje entrante con código), a través de una **interfaz de canal** cuyo proveedor es configuración (lanzamiento: Evolution API en Railway; después: API oficial vía Kapso). Todo aviso que va por WhatsApp sale **también** por correo y en el panel. Envíos con límite por minuto y por destinatario, agrupados y dentro del horario del negocio. Los webhooks entrantes del proveedor llegan a una ruta propia con clave compartida y se resuelven al negocio por el número verificado. Una sesión caída genera la alerta X-2. Ningún otro código llama al proveedor directamente.
+
 ### AD-9 — Agenda central de tareas con hora
 
-- **Binds:** recordatorios, caducidad de pagos, aviso de pago sin revisar, agenda del día · FR-71, FR-73, FR-74
+- **Binds:** recordatorios, caducidad de pagos, caducidad de la confirmación por correo, aviso de pago sin revisar, agenda del día · FR-71, FR-73, FR-74, FR-84
 - **Prevents:** recorrer todas las bases cada minuto, o trabajos diferidos imposibles de cancelar.
 - **Rule:** las tareas con hora se guardan en la tabla central `tareas_programadas` (negocio, tipo, referencia, `ejecutar_en` en UTC, estado), **sin datos personales**. Un comando por minuto encola un trabajo por tarea vencida; el trabajo inicializa el negocio y **vuelve a comprobar** que la tarea sigue aplicando (versión de la cita) antes de actuar. Como la agenda es central y los eventos viven en la base del negocio, **no hay transacción común**: las tareas se crean o cancelan **después del commit**, desde un trabajo encolado con reintentos, y **nadie confía en que una tarea vieja esté cancelada**: la re-comprobación por versión es la que manda. El ciclo de vida diario (vencer, avisar, suspender) recorre la tabla central `tenants` y no usa esta agenda.
 
@@ -144,7 +151,7 @@ Laravel directamente.
 
 - **Binds:** zona pública · FR-36..FR-45, FR-69, FR-70
 - **Prevents:** exposición de datos internos, enumeración de citas y abuso automatizado.
-- **Rule:** la tienda resuelve el negocio por **slug** (404 si no existe, no fijó nombre, desactivó la tienda o está suspendido), y aplica el estado de la suscripción y las funciones del plan con **el mismo comprobador** que el panel (AD-5), p. ej. una sede por encima del límite tras la gracia deja de aceptar reservas; la página del cliente, por un **token de cita** aleatorio del que solo se guarda el hash (`cita_accesos`), que identifica negocio y cita, caduca 7 días después de la cita y es revocable. **Ningún id numérico en URLs públicas.** Los GET no cambian nada: toda acción se confirma con un POST. Los Resources públicos son propios y nunca exponen costes, comisiones, correos del equipo ni estados internos. Cada ruta pública tiene un límite de peticiones **con nombre**, y los formularios de login, registro, recuperación, reserva y subida de comprobante exigen **Cloudflare Turnstile**, verificado en Laravel antes de procesar. La subida de comprobantes cumple la regla 7 del backend (autorización por `codigo`, tipo real, re-codificado, UUID, disco privado, enlace firmado, límites por IP y por código).
+- **Rule:** la tienda resuelve el negocio por **slug** y la sede por un **slug único dentro de su negocio** (`/{negocio}/{sede}`; FR-81). El slug de sede puede cambiar, pero los anteriores quedan en un historial que **redirige para siempre** y no se reutiliza dentro del negocio; las rutas antiguas con id numérico redirigen durante la transición. La tienda responde 404 si el negocio no existe, no fijó nombre, desactivó la tienda o está suspendido, y aplica el estado de la suscripción y las funciones del plan con **el mismo comprobador** que el panel (AD-5), p. ej. una sede por encima del límite tras la gracia deja de aceptar reservas; la página del cliente, por un **token de cita** aleatorio del que solo se guarda el hash (`cita_accesos`), que identifica negocio y cita, caduca 7 días después de la cita y es revocable. **Ningún id numérico en URLs públicas.** Los GET no cambian nada: toda acción se confirma con un POST. **Identidad visual solo del negocio**: los Resources públicos emiten `negocio.apariencia` (logo, color, estilo, degradado, foto con variantes y punto de enfoque) y ninguna sede emite color ni logo propios (FR-77, FR-82). El texto sobre el color del negocio se calcula en una sola función de `app/Support` (contraste AA), con su copia en el frontend verificada por un caso compartido, igual que el motor de huecos (AD-19). Los Resources públicos son propios y nunca exponen costes, comisiones, correos del equipo ni estados internos. Cada ruta pública tiene un límite de peticiones **con nombre**, y los formularios de login, registro, recuperación, reserva y subida de comprobante exigen **Cloudflare Turnstile**, verificado en Laravel antes de procesar. La subida de comprobantes cumple la regla 7 del backend (autorización por `codigo`, tipo real, re-codificado, UUID, disco privado, enlace firmado, límites por IP y por código).
 
 ### AD-12 — Panel de plataforma separado y sin acceso a los negocios
 
@@ -245,6 +252,7 @@ Laravel directamente.
 | Hosting backend | Contabo Cloud VPS 6 (6 vCPU, 12 GB, 200 GB), región EE. UU., con Laravel Forge |
 | Hosting frontend | Vercel Pro, funciones en `iad1` |
 | Correo | Resend Pro |
+| WhatsApp (avisos al personal) | Evolution API v2 en Railway (con PostgreSQL, Redis y volumen persistente), número emisor dedicado de ChiraFlow |
 | DNS y copias | Cloudflare (DNS gratuito, R2) |
 
 ## Structural Seed
@@ -319,7 +327,8 @@ migraciones de cada historia.
 | FR-15..FR-26 catálogo, clientes, sedes, configuración, inventario | Services de cada módulo | AD-2, AD-4, AD-14 |
 | FR-21, FR-27, FR-67 servicios por sede, huecos, reservabilidad | `Disponibilidad` + service de reservabilidad | AD-6, AD-19 |
 | FR-28..FR-35, FR-68 citas, calendario, historial | `CitaService`, `cita_eventos` | AD-4, AD-6, AD-7, AD-8 |
-| FR-36..FR-43 tienda | Zona pública, Resources públicos | AD-3, AD-11, AD-15 |
+| FR-36..FR-43, FR-81 tienda y dirección de sede | Zona pública, Resources públicos, `locales.slug` + historial | AD-3, AD-11, AD-14, AD-15 |
+| FR-77..FR-79, FR-82 identidad del negocio y editor | `ConfiguracionService`, `ImagenService` (variantes), función de contraste en `app/Support` | AD-2, AD-11, AD-14, AD-19 |
 | FR-44..FR-46, FR-71, FR-72 pago QR | Service de pagos, disco privado | AD-7, AD-9, AD-11 |
 | FR-69, FR-70 gestión por enlace | Zona pública, `cita_accesos` | AD-7, AD-11 |
 | FR-73..FR-76 notificaciones | `Notificador`, `notificacion_envios`, webhook | AD-8, AD-9, AD-16 |
@@ -339,9 +348,13 @@ migraciones de cada historia.
 | Varios negocios por persona | Hoy `users.tenant_id` es único y el email global; cambiarlo toca login y tokens | Cuando un cliente real lo pida |
 | Dominio propio por negocio | Se sirve igual por Vercel; AD-15 ya separa sesión y tiendas | Plan que lo incluya |
 | Acceso temporal de soporte a un negocio | Requiere permiso motivado, visible y auditado | Con el módulo Soporte |
-| WhatsApp, SMS, campañas | Fuera del lanzamiento; el `Notificador` admite canales nuevos | Tras el lanzamiento |
+| WhatsApp a clientes, SMS, campañas | Fuera del lanzamiento; el `Notificador` admite canales nuevos | Tras el lanzamiento |
+| Pasar el canal WhatsApp a la API oficial (Kapso) | Requiere la verificación de la empresa en Meta | Cuando Meta verifique la empresa (relacionado con L-6: RUC) |
 | Caja, Reportes, Soporte con tickets | Fuera del lanzamiento; heredan AD-4 (alcance por sede) | Tras el lanzamiento |
 | Base de datos en servidor propio o gestionada; archivos en R2/S3 | El volumen inicial cabe en un VPS | Rendimiento sostenido bajo o disco > 60 % |
 | SEO de la tienda (Server Components con metadatos) | No bloquea reservas | Si el piloto lo pide |
 | Servicio de rastreo de errores (p. ej. Sentry) | Logs rotados y alertas X-1/X-2 bastan para el piloto | Antes de abrir el registro al público |
 | Retención y borrado de comprobantes y datos de clientes | La purga del negocio ya borra su base; falta una política por dato | Con los textos legales (L-5) |
+| Portada propia por sede (función `portada_por_sede`) y QR por sede | Decisión del usuario: en el lanzamiento todas las sedes heredan | Tras el lanzamiento, en planes con varias sedes |
+| Adelantos de pago | Decisión del usuario: en el lanzamiento se cobra solo el total; `cita_pagos.monto` ya admite parciales | Tras el lanzamiento |
+| Eliminar las columnas sin uso (`tenants.color_secundario`, `locales.color`, `locales.logo`) | Se conservan tras el traslado (FR-82) para no perder datos | Limpieza posterior al lanzamiento |
