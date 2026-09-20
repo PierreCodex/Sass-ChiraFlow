@@ -1,3 +1,25 @@
+> # ⛔ DOCUMENTO SUSTITUIDO — 2026-09-20
+>
+> **Este tablero ya no se actualiza.** Lo sustituye
+> `_bmad-output/implementation-artifacts/sprint-status.yaml`, generado desde
+> `_bmad-output/planning-artifacts/epics.md` (62 historias, 10 épicas).
+>
+> - **Qué está hecho** → bloque `verificado` del nuevo archivo (los 14 módulos
+>   de esta página, con sus fechas, están migrados ahí).
+> - **Qué se puede empezar, qué espera una decisión y qué está bloqueado** →
+>   bloque `preparacion`.
+> - **Lo que quedaba en la cola del frontend y los Traspasos sin servir** →
+>   bloque `migrado_desde_estado_md`, cada apunte con la historia que lo recoge.
+>
+> **Las reglas de las dos columnas y de Traspasos quedan derogadas**: las dos
+> sesiones escriben en el mismo `sprint-status.yaml`, cada una en la historia
+> que tiene en la mano, y lo que una necesita de la otra es una dependencia
+> entre historias, no un recado.
+>
+> Se conserva como **historial de solo lectura**: el porqué de muchas
+> decisiones de agosto y septiembre de 2026 está contado aquí y en ningún otro
+> sitio.
+
 # Estado — quién va por dónde
 
 **Tablero único de las dos sesiones.** Vive aquí, en el repo del frontend,
