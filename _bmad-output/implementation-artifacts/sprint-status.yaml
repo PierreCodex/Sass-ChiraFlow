@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 10-05-2026 12:00
+last_updated: 10-05-2026 14:30
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
@@ -161,8 +161,8 @@ preparacion:
       - {id: "1.3", agente: claude, archivo_compartido: CitaService, orden: "despues
           de 1.2"}
       - {id: "1.4", agente: claude}
-      - {id: "1.5", agente: sandro, asignada: "2026-10-05", nota: "antes de empezar, resolver
-          la decision de pagos de Recepcion (ver pendiente_de_decision)"}
+      - {id: "1.5", agente: sandro, asignada: "2026-10-05", nota: "Recepcion trae pagos: gestionar en sus sedes
+          (decidido 2026-10-05, matriz A-1 y PRD FR-64)"}
       - {id: "1.6", agente: sandro, asignada: "2026-10-05", orden: "con o despues de 1.5
           (comparten la siembra de roles de sistema)"}
       - {id: "1.7", agente: claude, nota: "contrato primero (AD-13)"}
@@ -200,10 +200,6 @@ preparacion:
       - {id: "9.4", agente: codex, nota: "el contenido del tutorial sigue por definir"}
 
   pendiente_de_decision:
-    - historia: "1.5"
-      falta: "Recepcion y el modulo pagos: la historia 1.5 dice 'ver' y la matriz A-1 y
-        el PRD dicen 'gestionar'"
-      salida_por_defecto: "ninguna; decide el humano antes de implementar 1.5 y 1.6"
     - historia: "3.2"
       falta: "Q-19: arrastrar citas y rango visible del calendario"
       salida_por_defecto: "se implementa sin arrastrar; no bloquea"
