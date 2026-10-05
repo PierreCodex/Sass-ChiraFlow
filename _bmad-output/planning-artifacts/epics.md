@@ -464,7 +464,7 @@ So that no tener que inventar permisos el primer día ni darle de más por comod
 
 **Given** el rol recepción
 **When** se consultan sus permisos
-**Then** trae citas: gestionar, clientes: gestionar, pagos: ver (según la matriz de la propuesta §3) y ninguno de configuración ni facturación.
+**Then** trae citas: gestionar, clientes: gestionar, pagos: gestionar en sus sedes (matriz A-1 de la propuesta §2.3 y PRD FR-64; decidido el 2026-10-05, antes decía «ver» por error) y ninguno de configuración ni facturación.
 
 **Given** un negocio ya existente
 **When** corre la migración
