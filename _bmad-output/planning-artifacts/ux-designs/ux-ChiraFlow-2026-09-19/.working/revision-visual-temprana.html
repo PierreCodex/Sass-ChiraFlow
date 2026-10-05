@@ -1,0 +1,633 @@
+<title>Revisión visual ChiraFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Gobierna: EXPERIENCE.md Key Flows (reserva, activación de plan, correo), DESIGN.md Components (portada, botones, tarjetas).
+     Maquetas ilustrativas: los spines mandan si hay conflicto. */
+  :root {
+    --page: #F4F6F9;
+    --panel: #FFFFFF;
+    --ink: #0B2A45;
+    --ink-soft: #52667B;
+    --line: #DCE3EC;
+    --note-bg: #FFF6E5;
+    --note-ink: #7A4E00;
+    --chip-bg: #E7F2FA;
+    --chip-ink: #005A91;
+    --font: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+
+    /* Marca de la plataforma (panel): AQUA_THEME real */
+    --aqua: #0074BA;
+    --aqua-light: #EFF9FF;
+    --teal: #47D7BC;
+    --m-text: #2A3547;
+    --m-muted: #5A6A85;
+    --m-line: #E5EAEF;
+    --m-bg: #F2F6FA;
+
+    /* Negocio de ejemplo: Rosa Estilistas */
+    --neg: #9B2C5A;
+    --neg-dark: #7A1F45;
+    --neg-soft: #F8E9EF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #10161D;
+      --panel: #18212B;
+      --ink: #E4ECF4;
+      --ink-soft: #9FB0C2;
+      --line: #2A3643;
+      --note-bg: #33270E;
+      --note-ink: #F0C46B;
+      --chip-bg: #10324A;
+      --chip-ink: #8CC8F0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #10161D;
+    --panel: #18212B;
+    --ink: #E4ECF4;
+    --ink-soft: #9FB0C2;
+    --line: #2A3643;
+    --note-bg: #33270E;
+    --note-ink: #F0C46B;
+    --chip-bg: #10324A;
+    --chip-ink: #8CC8F0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-inline: 16px;
+    padding-block: 28px 64px;
+  }
+  .wrap { max-width: 1180px; margin-inline: auto; display: flex; flex-direction: column; gap: 56px; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.2; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; }
+  h2 { font-size: clamp(21px, 3vw, 27px); font-weight: 700; }
+  h3 { font-size: 16px; font-weight: 700; }
+  p { margin: 0; max-width: 72ch; }
+  .lede { color: var(--ink-soft); font-size: 16px; }
+  section { display: flex; flex-direction: column; gap: 18px; }
+  .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .note {
+    background: var(--note-bg); color: var(--note-ink);
+    border-radius: 10px; padding: 10px 14px; font-size: 14px;
+  }
+  .note b { font-weight: 700; }
+  .decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .decision { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .decision .tag { align-self: flex-start; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--chip-ink); }
+  .decision .tag.warn { background: var(--note-bg); color: var(--note-ink); }
+  .decision p { font-size: 14px; color: var(--ink-soft); }
+
+  .variant { display: flex; flex-direction: column; gap: 12px; }
+  .variant-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+  .variant-head span { color: var(--ink-soft); font-size: 14px; }
+  .pair { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .scroll { overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
+
+  /* ---------- Marcos de dispositivo ---------- */
+  .browser { width: 760px; flex: none; background: #fff; border-radius: 12px; border: 1px solid #D5DDE7; overflow: hidden; box-shadow: 0 10px 30px rgba(20, 40, 70, .10); color: #1E2A38; }
+  .browser .bar { height: 34px; background: #EEF2F6; display: flex; align-items: center; gap: 6px; padding-inline: 12px; }
+  .browser .bar i { width: 10px; height: 10px; border-radius: 50%; background: #CBD4DE; display: block; }
+  .browser .url { margin-left: 10px; background: #fff; border-radius: 6px; padding: 3px 12px; font-size: 12px; color: #52667B; flex: 1; font-family: ui-monospace, Consolas, monospace; }
+  .phone { width: 300px; flex: none; background: #fff; border-radius: 30px; border: 8px solid #1B2430; overflow: hidden; box-shadow: 0 12px 30px rgba(20, 40, 70, .18); color: #1E2A38; }
+  .phone .notch { height: 18px; background: #1B2430; width: 110px; margin-inline: auto; border-radius: 0 0 12px 12px; }
+
+  /* ---------- Tienda: portada ---------- */
+  .hero { position: relative; color: #fff; overflow: hidden; }
+  .hero.solid { background: var(--neg); }
+  .hero.gradient { background: linear-gradient(125deg, #9B2C5A 0%, #C2456A 45%, #E9895F 100%); }
+  .hero.photo { background: #3a2230; }
+  .hero .photo-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero .overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(122, 31, 69, .92) 0%, rgba(122, 31, 69, .72) 45%, rgba(122, 31, 69, .15) 100%); }
+  .phone .hero .overlay { background: linear-gradient(0deg, rgba(122, 31, 69, .95) 10%, rgba(122, 31, 69, .55) 60%, rgba(122, 31, 69, .20) 100%); }
+  .hero-inner { position: relative; display: flex; flex-direction: column; gap: 12px; }
+  .browser .hero-inner { padding: 40px 44px 44px; max-width: 520px; }
+  .phone .hero-inner { padding: 26px 20px 24px; }
+  .logo { width: 56px; height: 56px; border-radius: 16px; background: #fff; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+  .phone .logo { width: 48px; height: 48px; border-radius: 14px; }
+  .logo span { font-weight: 800; color: var(--neg); font-size: 20px; letter-spacing: -.02em; }
+  .biz { font-size: 30px; font-weight: 800; line-height: 1.1; letter-spacing: -.01em; }
+  .phone .biz { font-size: 24px; }
+  .tagline { font-size: 15px; opacity: .92; }
+  .phone .tagline { font-size: 13.5px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; opacity: .92; }
+  .meta b { font-weight: 600; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 14px; text-decoration: none; border: 0; }
+  .btn.white { background: #fff; color: var(--neg); }
+  .btn.brand { background: var(--neg); color: #fff; }
+  .btn.ghost-w { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.55); }
+  .btn.wa { background: #25D366; color: #073B1F; }
+  .phone .btn { padding: 10px 14px; font-size: 13px; }
+  .wa-dot { width: 16px; height: 16px; border-radius: 50%; background: #073B1F; display: inline-block; position: relative; }
+  .wa-dot::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #25D366; }
+
+  /* ---------- Tienda: cuerpo limpio ---------- */
+  .store-body { background: #F7F8FA; padding: 22px 28px 26px; display: flex; flex-direction: column; gap: 14px; }
+  .phone .store-body { padding: 16px 14px 18px; gap: 12px; }
+  .cat-title { font-weight: 700; font-size: 15px; color: #1E2A38; }
+  .svc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .phone .svc-grid { grid-template-columns: 1fr; gap: 10px; }
+  .svc { background: #fff; border: 1px solid #E3E8EE; border-radius: 12px; padding: 14px; display: flex; gap: 12px; align-items: center; }
+  .svc .ic { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+  .svc .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .svc .n { font-weight: 700; font-size: 14px; }
+  .svc .d { font-size: 12.5px; color: #5A6A85; }
+  .svc .p { font-weight: 800; font-size: 14px; color: #1E2A38; white-space: nowrap; }
+  .svc.sel { border-color: var(--neg); box-shadow: 0 0 0 2px var(--neg-soft); }
+  .add { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; border: 1px solid #D6DEE7; color: var(--neg); flex: none; }
+  .svc.sel .add { background: var(--neg); color: #fff; border-color: var(--neg); }
+  .store-foot { text-align: center; font-size: 11.5px; color: #7B8BA0; padding: 10px 0 2px; }
+  .store-foot b { color: #52667B; font-weight: 600; }
+
+  /* ---------- Continuación: horario ---------- */
+  .flow { display: flex; flex-wrap: wrap; gap: 20px; }
+  .steps { display: flex; gap: 6px; font-size: 12px; font-weight: 600; color: #7B8BA0; flex-wrap: wrap; }
+  .steps .on { color: var(--neg); }
+  .steps .done { color: #1E2A38; }
+  .card { background: #fff; border: 1px solid #E3E8EE; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .pros { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pro { display: flex; align-items: center; gap: 8px; border: 1px solid #E3E8EE; border-radius: 999px; padding: 5px 12px 5px 5px; font-size: 13px; font-weight: 600; }
+  .pro .av { width: 26px; height: 26px; border-radius: 50%; background: #E9DCE2; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--neg-dark); }
+  .pro.sel { border-color: var(--neg); background: var(--neg-soft); }
+  .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .day { border: 1px solid #E3E8EE; border-radius: 10px; padding: 6px 0; text-align: center; font-size: 11px; color: #5A6A85; }
+  .day b { display: block; font-size: 15px; color: #1E2A38; }
+  .day.sel { background: var(--neg); border-color: var(--neg); color: #fff; }
+  .day.sel b { color: #fff; }
+  .day.off { opacity: .45; }
+  .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .phone .slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .slot { border: 1px solid #D6DEE7; border-radius: 8px; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .slot.sel { background: var(--neg); border-color: var(--neg); color: #fff; }
+  .summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid #E3E8EE; padding-top: 12px; font-size: 13px; }
+  .summary b { font-size: 15px; }
+  .pay { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pay .opt { flex: 1; min-width: 130px; border: 1px solid #D6DEE7; border-radius: 10px; padding: 10px; font-size: 12.5px; }
+  .pay .opt.sel { border-color: var(--neg); background: var(--neg-soft); }
+  .yape { display: inline-block; background: #742284; color: #fff; font-weight: 800; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+
+  /* ---------- Panel de plataforma ---------- */
+  .plat { width: 1000px; }
+  .plat-top { background: #0B2A45; color: #fff; display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+  .plat-badge { display: inline-flex; align-items: center; gap: 6px; background: #FFD54F; color: #3D2E00; font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; }
+  .plat-top .brand { font-weight: 800; font-size: 16px; }
+  .plat-top .who { margin-left: auto; font-size: 12.5px; opacity: .85; }
+  .plat-body { display: grid; grid-template-columns: 200px minmax(0, 1fr); background: var(--m-bg); min-height: 520px; }
+  .plat-nav { background: #fff; border-right: 1px solid var(--m-line); padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; color: var(--m-muted); }
+  .plat-nav .grp { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #8A99AF; padding: 10px 10px 4px; }
+  .plat-nav a { padding: 8px 10px; border-radius: 7px; color: inherit; text-decoration: none; font-weight: 500; }
+  .plat-nav a.on { background: var(--aqua-light); color: var(--aqua); font-weight: 700; }
+  .plat-main { padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; color: var(--m-text); }
+  .m-card { background: #fff; border-radius: 7px; box-shadow: 0 1px 4px rgba(42, 53, 71, .08); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .m-title { font-size: 17px; font-weight: 700; }
+  .m-sub { font-size: 12.5px; color: var(--m-muted); }
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .kpi { background: var(--m-bg); border-radius: 7px; padding: 10px 12px; }
+  .kpi b { display: block; font-size: 20px; font-weight: 800; }
+  .kpi span { font-size: 12px; color: var(--m-muted); }
+  table.m { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.m th { text-align: left; font-size: 11.5px; color: var(--m-muted); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--m-line); }
+  table.m td { padding: 10px 8px; border-bottom: 1px solid var(--m-line); vertical-align: middle; }
+  table.m tr.sel td { background: var(--aqua-light); }
+  .mchip { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .mchip.trial { background: #FEF5E5; color: #8A5A00; }
+  .mchip.ok { background: #E6FFFA; color: #02796F; }
+  .mchip.off { background: #FDEDE8; color: #B63A1C; }
+  .ctx { display: flex; align-items: center; gap: 10px; background: var(--m-bg); border-radius: 7px; padding: 10px; }
+  .ctx .lg { width: 36px; height: 36px; border-radius: 9px; background: var(--neg-soft); color: var(--neg); font-weight: 800; display: grid; place-items: center; font-size: 13px; }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+  .field label { font-weight: 600; color: var(--m-text); }
+  .input { border: 1px solid #DFE5EF; border-radius: 7px; padding: 8px 10px; font-size: 13px; color: var(--m-text); background: #fff; }
+  .input.req { border-color: #F3B6A2; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { font-size: 11.5px; color: var(--m-muted); }
+  .hint.warn { color: #8A5A00; }
+  .mbtns { display: flex; gap: 8px; justify-content: flex-end; }
+  .mbtn { border-radius: 7px; padding: 8px 14px; font-weight: 600; font-size: 13px; border: 1px solid transparent; }
+  .mbtn.primary { background: var(--aqua); color: #fff; }
+  .mbtn.outline { background: #fff; color: var(--aqua); border-color: #B9D8EC; }
+
+  /* ---------- Correos ---------- */
+  .mails { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .mail { width: 520px; flex: none; background: #EEF1F5; border-radius: 12px; border: 1px solid #D5DDE7; overflow: hidden; color: #1E2A38; }
+  .mail-hd { background: #fff; padding: 12px 16px; border-bottom: 1px solid #E3E8EE; font-size: 12.5px; color: #52667B; display: flex; flex-direction: column; gap: 2px; }
+  .mail-hd b { color: #1E2A38; }
+  .mail-body { padding: 18px; }
+  .m-sheet { background: #fff; border-radius: 10px; overflow: hidden; }
+  .m-strip { height: 5px; background: var(--neg); }
+  .m-brand { display: flex; align-items: center; gap: 10px; padding: 18px 22px 6px; }
+  .m-brand .lg { width: 40px; height: 40px; border-radius: 11px; background: var(--neg-soft); color: var(--neg); font-weight: 800; display: grid; place-items: center; }
+  .m-brand b { font-size: 16px; }
+  .m-content { padding: 8px 22px 22px; display: flex; flex-direction: column; gap: 14px; font-size: 14px; }
+  .m-content h3 { font-size: 20px; }
+  .state { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; padding: 4px 10px; border-radius: 999px; align-self: flex-start; }
+  .state.ok { background: #E6F6EC; color: #16713D; }
+  .state.wait { background: #FFF3DC; color: #8A5A00; }
+  .state.review { background: #E7F0FE; color: #1D5DB8; }
+  .sede-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fff; border: 1px solid #E3E8EE; border-radius: 12px; padding: 10px 14px; font-size: 13px; }
+  .sede-bar b { font-size: 14px; }
+  .sede-bar .chg { color: var(--neg); font-weight: 700; white-space: nowrap; }
+  .details { border: 1px solid #E3E8EE; border-radius: 10px; }
+  .details div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; padding: 9px 12px; border-bottom: 1px solid #EEF1F5; font-size: 13.5px; }
+  .details div:last-child { border-bottom: 0; }
+  .details span { color: #5A6A85; }
+  .mail-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mail-btns .btn { font-size: 13.5px; padding: 10px 16px; }
+  .btn.outline-n { background: #fff; color: var(--neg); border: 1px solid #E2C3D0; }
+  .small { font-size: 12px; color: #5A6A85; }
+  .m-foot { padding: 14px 22px 18px; font-size: 11.5px; color: #7B8BA0; border-top: 1px solid #EEF1F5; }
+
+  @media (max-width: 700px) {
+    .pair, .flow, .mails { flex-direction: column; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="blurA" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+    <filter id="blurB" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+    <symbol id="salon" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
+      <rect width="800" height="420" fill="#4a2c38"/>
+      <rect x="0" y="0" width="800" height="420" fill="url(#warm)"/>
+      <g filter="url(#blurA)">
+        <circle cx="140" cy="60" r="38" fill="#ffd9a0" opacity=".85"/>
+        <circle cx="400" cy="50" r="34" fill="#ffd9a0" opacity=".8"/>
+        <circle cx="660" cy="62" r="38" fill="#ffd9a0" opacity=".85"/>
+      </g>
+      <g filter="url(#blurB)">
+        <rect x="80" y="110" width="150" height="200" rx="75" fill="#d9c3b4" opacity=".55"/>
+        <rect x="330" y="105" width="150" height="205" rx="75" fill="#d9c3b4" opacity=".5"/>
+        <rect x="580" y="110" width="150" height="200" rx="75" fill="#d9c3b4" opacity=".55"/>
+        <rect x="95" y="290" width="120" height="70" rx="18" fill="#1f1418" opacity=".85"/>
+        <rect x="345" y="290" width="120" height="70" rx="18" fill="#1f1418" opacity=".85"/>
+        <rect x="595" y="290" width="120" height="70" rx="18" fill="#1f1418" opacity=".85"/>
+        <rect x="0" y="360" width="800" height="60" fill="#2b1a20"/>
+        <rect x="250" y="210" width="60" height="150" rx="8" fill="#6b8f71" opacity=".7"/>
+        <circle cx="280" cy="200" r="36" fill="#7fa487" opacity=".7"/>
+      </g>
+    </symbol>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6b3b4d"/>
+      <stop offset="1" stop-color="#2f1c24"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">bmad-ux · revisión visual temprana · 19-09-2026</div>
+    <h1>Revisión visual temprana</h1>
+    <p class="lede">Versión 2. Portada de reservas en tres estilos, cómo continúa hacia el servicio y el horario, el panel de plataforma y cuatro correos según el estado. El negocio «Rosa Estilistas» y su foto son de ejemplo. Son maquetas para decidir la dirección: el código de la aplicación no se ha tocado.</p>
+    <div class="decisions">
+      <div class="decision"><span class="tag">Decidido</span><h3>Identidad del negocio</h3><p>Logo, color y portada se definen una vez; en el lanzamiento todas las sedes los heredan y conservan sus datos propios.</p></div>
+      <div class="decision"><span class="tag">Decidido</span><h3>Todos los planes</h3><p>Logo, color y los tres estilos de portada en todos los planes. La portada propia por sede llega después.</p></div>
+      <div class="decision"><span class="tag">Decidido</span><h3>Pago total</h3><p>Si el negocio exige pago, se cobra el total. Adelantos y QR por sede, después.</p></div>
+      <div class="decision"><span class="tag warn">Por aprobar (F-9)</span><h3>Plazo de corrección</h3><p>30 min desde que el negocio pide otra captura, horario retenido, nunca después de 15 min antes de la cita.</p></div>
+    </div>
+  </header>
+
+  <!-- ================= A. PORTADAS ================= -->
+  <section>
+    <div class="eyebrow">A · Página de reservas</div>
+    <h2>Tres estilos de portada del mismo negocio</h2>
+    <p class="lede">El fondo decorativo vive solo en la portada. Debajo, los servicios y el horario siempre sobre superficie limpia. La marca de la plataforma aparece solo en el pie.</p>
+
+    <!-- A1 sólido -->
+    <div class="variant">
+      <div class="variant-head"><h3>1 · Color sólido</h3><span>El más sobrio y el que mejor se lee. Disponible en todos los planes.</span></div>
+      <div class="scroll"><div class="pair">
+        <div class="browser">
+          <div class="bar"><i></i><i></i><i></i><div class="url">rosaestilistas.site.chiraflow.pe</div></div>
+          <div class="hero solid"><div class="hero-inner">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="meta"><span><b>Sede Balta</b> · Av. Balta 512</span><span>Abierto hoy · 9:00–19:00</span></div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid">
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min</span></div><span class="p">S/ 35</span><span class="add">+</span></div>
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#6C5B7B,#B7A5C9)"></div><div class="txt"><span class="n">Tinte completo</span><span class="d">2 h</span></div><span class="p">S/ 120</span><span class="add">+</span></div>
+            </div>
+            <div class="store-foot">Reservas con <b>ChiraFlow</b></div>
+          </div>
+        </div>
+        <div class="phone"><div class="notch"></div>
+          <div class="hero solid"><div class="hero-inner">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="meta"><span><b>Sede Balta</b></span><span>Abierto hoy · 9:00–19:00</span></div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid"><div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min · S/ 35</span></div><span class="add">+</span></div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- A2 degradado -->
+    <div class="variant">
+      <div class="variant-head"><h3>2 · Degradado prediseñado</h3><span>Más vivo, sin fotografía. Degradado «Atardecer» de la selección inicial, generado a partir del color del negocio.</span></div>
+      <div class="scroll"><div class="pair">
+        <div class="browser">
+          <div class="bar"><i></i><i></i><i></i><div class="url">rosaestilistas.site.chiraflow.pe</div></div>
+          <div class="hero gradient"><div class="hero-inner">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="meta"><span><b>Sede Balta</b> · Av. Balta 512</span><span>Abierto hoy · 9:00–19:00</span></div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid">
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min</span></div><span class="p">S/ 35</span><span class="add">+</span></div>
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#6C5B7B,#B7A5C9)"></div><div class="txt"><span class="n">Tinte completo</span><span class="d">2 h</span></div><span class="p">S/ 120</span><span class="add">+</span></div>
+            </div>
+            <div class="store-foot">Reservas con <b>ChiraFlow</b></div>
+          </div>
+        </div>
+        <div class="phone"><div class="notch"></div>
+          <div class="hero gradient"><div class="hero-inner">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="meta"><span><b>Sede Balta</b></span><span>Abierto hoy · 9:00–19:00</span></div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid"><div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min · S/ 35</span></div><span class="add">+</span></div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- A3 foto -->
+    <div class="variant">
+      <div class="variant-head"><h3>3 · Fotografía con degradado</h3><span>La más cercana: se ve el local. La capa de color garantiza que el texto se lea. En móvil la capa va de abajo hacia arriba, porque el texto queda abajo.</span></div>
+      <div class="scroll"><div class="pair">
+        <div class="browser">
+          <div class="bar"><i></i><i></i><i></i><div class="url">rosaestilistas.site.chiraflow.pe</div></div>
+          <div class="hero photo"><svg class="photo-svg" aria-hidden="true"><use href="#salon"/></svg><div class="overlay"></div><div class="hero-inner">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="meta"><span><b>Sede Balta</b> · Av. Balta 512</span><span>Abierto hoy · 9:00–19:00</span></div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid">
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min</span></div><span class="p">S/ 35</span><span class="add">+</span></div>
+              <div class="svc"><div class="ic" style="background:linear-gradient(135deg,#6C5B7B,#B7A5C9)"></div><div class="txt"><span class="n">Tinte completo</span><span class="d">2 h</span></div><span class="p">S/ 120</span><span class="add">+</span></div>
+            </div>
+            <div class="store-foot">Reservas con <b>ChiraFlow</b></div>
+          </div>
+        </div>
+        <div class="phone"><div class="notch"></div>
+          <div class="hero photo"><svg class="photo-svg" aria-hidden="true"><use href="#salon"/></svg><div class="overlay"></div><div class="hero-inner" style="padding-top:90px">
+            <div class="logo"><span>RE</span></div>
+            <div class="biz">Rosa Estilistas</div>
+            <div class="tagline">Peluquería, color y uñas en el centro de Chiclayo</div>
+            <div class="cta-row"><span class="btn white">Reservar cita</span><span class="btn ghost-w"><span class="wa-dot"></span>WhatsApp</span></div>
+          </div></div>
+          <div class="store-body">
+            <div class="cat-title">Cabello</div>
+            <div class="svc-grid"><div class="svc"><div class="ic" style="background:linear-gradient(135deg,#9B2C5A,#D98AA8)"></div><div class="txt"><span class="n">Corte de cabello mujer</span><span class="d">45 min · S/ 35</span></div><span class="add">+</span></div></div>
+          </div>
+        </div>
+      </div></div>
+      <p class="note"><b>[SUPUESTO]</b> La foto es una ilustración de relleno. En la tienda real sería la del negocio, con el punto de enfoque que elija el administrador.</p>
+    </div>
+  </section>
+
+  <!-- ================= B. CONTINUACIÓN ================= -->
+  <section>
+    <div class="eyebrow">A · Continuación</div>
+    <h2>De la portada al horario</h2>
+    <p class="lede">María elige «Corte de cabello mujer», luego a Rosa Paredes, el sábado y las 10:30. El color del negocio marca solo lo seleccionado; todo lo demás es neutro. Los huecos son los reales del servidor.</p>
+    <div class="scroll"><div class="flow">
+      <div class="browser">
+        <div class="bar"><i></i><i></i><i></i><div class="url">rosaestilistas.site.chiraflow.pe/reservar</div></div>
+        <div class="store-body" style="gap:14px">
+          <div class="sede-bar"><span>Reservando en <b>Sede Balta</b> · Av. Balta 512</span><span class="chg">Cambiar sede</span></div>
+          <div class="steps"><span class="done">1 Servicio ✓</span><span>›</span><span class="on">2 Profesional y horario</span><span>›</span><span>3 Tus datos</span><span>›</span><span>4 Pago</span></div>
+          <div class="card">
+            <div class="cat-title">¿Con quién?</div>
+            <div class="pros">
+              <span class="pro sel"><span class="av">RP</span>Rosa Paredes</span>
+              <span class="pro"><span class="av">CD</span>Carla Díaz</span>
+              <span class="pro"><span class="av">·</span>Cualquiera disponible</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cat-title">¿Qué día?</div>
+            <div class="days">
+              <div class="day">lun<b>21</b></div><div class="day">mar<b>22</b></div><div class="day">mié<b>23</b></div><div class="day">jue<b>24</b></div><div class="day">vie<b>25</b></div><div class="day sel">sáb<b>26</b></div><div class="day off">dom<b>27</b></div>
+            </div>
+            <div class="cat-title" style="margin-top:4px">Horarios libres · sábado 26</div>
+            <div class="slots">
+              <div class="slot">09:00</div><div class="slot">09:45</div><div class="slot sel">10:30</div><div class="slot">11:15</div>
+              <div class="slot">12:00</div><div class="slot">15:30</div><div class="slot">16:15</div><div class="slot">17:00</div>
+            </div>
+            <div class="summary"><span>Corte de cabello mujer · 45 min<br><span class="small">con Rosa Paredes · sáb 26 sep, 10:30</span></span><b>S/ 35</b></div>
+            <div style="display:flex;justify-content:flex-end"><span class="btn brand">Continuar</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone"><div class="notch"></div>
+        <div class="store-body" style="gap:10px">
+          <div class="sede-bar"><span><b>Sede Balta</b></span><span class="chg">Cambiar</span></div>
+          <div class="steps"><span class="done">1 ✓</span><span>›</span><span class="on">2 Profesional y horario</span><span>›</span><span>3</span><span>›</span><span>4</span></div>
+          <div class="pros"><span class="pro sel"><span class="av">RP</span>Rosa</span><span class="pro"><span class="av">CD</span>Carla</span></div>
+          <div class="days">
+            <div class="day">lu<b>21</b></div><div class="day">ma<b>22</b></div><div class="day">mi<b>23</b></div><div class="day">ju<b>24</b></div><div class="day">vi<b>25</b></div><div class="day sel">sá<b>26</b></div><div class="day off">do<b>27</b></div>
+          </div>
+          <div class="slots"><div class="slot">09:00</div><div class="slot">09:45</div><div class="slot sel">10:30</div><div class="slot">11:15</div><div class="slot">12:00</div><div class="slot">15:30</div></div>
+          <div class="card" style="padding:12px;gap:8px">
+            <div class="cat-title" style="font-size:13.5px">Pago de la cita</div>
+            <div class="pay">
+              <div class="opt sel"><span class="yape">yape</span><br><b>Pagar ahora</b><br>S/ 35 · verás el QR</div>
+              <div class="opt"><b>Pagar en el local</b><br>el día de tu cita</div>
+            </div>
+          </div>
+          <span class="btn brand" style="width:100%">Continuar · S/ 35</span>
+          <div class="store-foot">Reservas con <b>ChiraFlow</b></div>
+        </div>
+      </div>
+    </div></div>
+    <p class="note"><b>Decidido:</b> desde el enlace <code>/balta</code> la sede llega preseleccionada y se puede cambiar; si ya hay servicios elegidos, se avisa antes de reiniciar la selección. El paso de pago respeta la configuración del negocio: con pago obligatorio, «Pagar en el local» no aparece y se cobra el total.</p>
+  </section>
+
+  <!-- ================= C. PANEL DE PLATAFORMA ================= -->
+  <section>
+    <div class="eyebrow">B · Panel de plataforma</div>
+    <h2>Mismos componentes, identidad inconfundible</h2>
+    <p class="lede">La barra superior oscura con la etiqueta «Administración de plataforma» no desaparece nunca. La navegación es propia. El negocio seleccionado se ve siempre en su ficha, con su logo pero sin teñir el panel de su color.</p>
+    <div class="scroll">
+      <div class="browser plat">
+        <div class="bar"><i></i><i></i><i></i><div class="url">admin.chiraflow.pe/negocios · pestaña: «[Plataforma] Negocios»</div></div>
+        <div class="plat-top">
+          <span class="brand">ChiraFlow</span>
+          <span class="plat-badge">▲ Administración de plataforma</span>
+          <span class="who">Superadmin · 2FA activo</span>
+        </div>
+        <div class="plat-body">
+          <nav class="plat-nav">
+            <div class="grp">Operación</div>
+            <a class="on">Negocios</a>
+            <a>Pagos registrados</a>
+            <a>Planes y precios</a>
+            <div class="grp">Control</div>
+            <a>Auditoría</a>
+            <a>Envíos de correo</a>
+            <a>Equipo de plataforma</a>
+          </nav>
+          <div class="plat-main">
+            <div class="m-card">
+              <div><div class="m-title">Negocios</div><div class="m-sub">Solo datos centrales. La plataforma no entra en la base de ningún negocio.</div></div>
+              <div class="kpis">
+                <div class="kpi"><b>42</b><span>en prueba</span></div>
+                <div class="kpi"><b>17</b><span>con plan activo</span></div>
+                <div class="kpi"><b>3</b><span>vencidos</span></div>
+              </div>
+              <table class="m">
+                <thead><tr><th>Negocio</th><th>Estado</th><th>Plan</th><th>Vence</th><th>Prof.</th></tr></thead>
+                <tbody>
+                  <tr class="sel"><td><b>Rosa Estilistas</b><br><span class="m-sub">Chiclayo · 1 sede</span></td><td><span class="mchip trial">Prueba</span></td><td>—</td><td>en 3 días</td><td>3</td></tr>
+                  <tr><td><b>Barbería El Tío</b><br><span class="m-sub">Piura · 2 sedes</span></td><td><span class="mchip ok">Activo</span></td><td>Equipo · mensual</td><td>14 oct</td><td>4</td></tr>
+                  <tr><td><b>Spa Mar Azul</b><br><span class="m-sub">Trujillo · 1 sede</span></td><td><span class="mchip off">Vencido</span></td><td>Independiente</td><td>hace 2 días</td><td>1</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="m-card">
+              <div class="ctx"><div class="lg">RE</div><div><b>Rosa Estilistas</b><div class="m-sub">Prueba · vence el 22 sep · Sede principal: Balta</div></div></div>
+              <div class="m-title" style="font-size:15px">Activar o cambiar plan</div>
+              <div class="two">
+                <div class="field"><label>Plan nuevo</label><div class="input">Equipo</div></div>
+                <div class="field"><label>Periodicidad</label><div class="input">Mensual</div></div>
+              </div>
+              <div class="two">
+                <div class="field"><label>Vigente desde</label><div class="input">22/09/2026</div></div>
+                <div class="field"><label>Hasta</label><div class="input">21/10/2026</div></div>
+              </div>
+              <div class="field"><label>Profesionales extra</label><div class="input">0</div></div>
+              <div class="field"><label>Motivo (obligatorio)</label><div class="input req">Pago por Yape confirmado por WhatsApp</div></div>
+              <div class="field"><label>Pago asociado</label><div class="input">Yape · S/ 89 · op. 48291034</div><span class="hint">Se registra aparte como pago. Sin pago, la activación queda en el historial como «sin cobro».</span></div>
+              <div class="mbtns"><span class="mbtn outline">Cancelar</span><span class="mbtn primary">Aplicar cambio</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>Cómo se distingue sin depender del color:</b> etiqueta con texto permanente, barra superior propia, navegación con otras secciones, título de pestaña «[Plataforma] …» y otro icono de navegador. <b>[SUPUESTO]</b> las cifras y los negocios son de ejemplo.</p>
+  </section>
+
+  <!-- ================= D. CORREOS ================= -->
+  <section>
+    <div class="eyebrow">C · Correo en nombre del negocio</div>
+    <h2>Cuatro estados, cuatro correos distintos</h2>
+    <p class="lede">Fondo limpio, identidad del negocio en la cabecera y un toque moderado de su color. El estado real va escrito arriba. Los botones abren la página de la cita en el SaaS: abrir un enlace no cambia nada, la acción se confirma allí.</p>
+    <div class="scroll"><div class="mails">
+      <div class="mail">
+        <div class="mail-hd"><span><b>Rosa Estilistas</b> &lt;reservas@notificaciones.chiraflow.pe&gt;</span><span>Responder a: hola@rosaestilistas.pe</span><span>Asunto: <b>Tu cita está confirmada · sáb 26 sep, 10:30</b></span></div>
+        <div class="mail-body"><div class="m-sheet">
+          <div class="m-strip"></div>
+          <div class="m-brand"><div class="lg">RE</div><b>Rosa Estilistas</b></div>
+          <div class="m-content">
+            <span class="state ok">✓ Confirmada</span>
+            <h3>¡Te esperamos, María!</h3>
+            <p>Recibimos tu pago y tu cita quedó confirmada.</p>
+            <div class="details">
+              <div><span>Servicio</span><b>Corte de cabello mujer · 45 min</b></div>
+              <div><span>Profesional</span>Rosa Paredes</div>
+              <div><span>Sede</span>Balta · Av. Balta 512, Chiclayo</div>
+              <div><span>Fecha y hora</span><b>Sábado 26 de septiembre, 10:30</b> (hora de Lima)</div>
+              <div><span>Pago</span>S/ 35 · Yape · verificado</div>
+            </div>
+            <div class="mail-btns"><span class="btn brand">Ver reserva</span><span class="btn outline-n">Reprogramar</span><span class="btn outline-n">Cancelar</span></div>
+            <p class="small">Puedes reprogramar o cancelar hasta 24 horas antes. Código de reserva: <b>R-482913</b>.</p>
+          </div>
+          <div class="m-foot">Enviado por ChiraFlow en nombre de Rosa Estilistas. Responde a este correo para escribir al salón.</div>
+        </div></div>
+      </div>
+      <div class="mail">
+        <div class="mail-hd"><span><b>Rosa Estilistas</b> &lt;reservas@notificaciones.chiraflow.pe&gt;</span><span>Asunto: <b>Reserva recibida · falta tu pago</b></span></div>
+        <div class="mail-body"><div class="m-sheet">
+          <div class="m-strip"></div>
+          <div class="m-brand"><div class="lg">RE</div><b>Rosa Estilistas</b></div>
+          <div class="m-content">
+            <span class="state wait">● Pendiente de pago</span>
+            <h3>Tu cita aún no está confirmada</h3>
+            <p>Paga <b>S/ 35 por Yape</b> y sube la captura en los próximos <b>60 minutos</b> (hasta hoy a las 20:52). Si no llega a tiempo, el horario se libera.</p>
+            <div class="details">
+              <div><span>Servicio</span>Corte de cabello mujer</div>
+              <div><span>Fecha y hora</span>Sábado 26 de septiembre, 10:30</div>
+            </div>
+            <div class="mail-btns"><span class="btn brand">Pagar y subir captura</span><span class="btn outline-n">Ver reserva</span></div>
+          </div>
+          <div class="m-foot">Enviado por ChiraFlow en nombre de Rosa Estilistas.</div>
+        </div></div>
+      </div>
+      <div class="mail">
+        <div class="mail-hd"><span><b>Rosa Estilistas</b> &lt;reservas@notificaciones.chiraflow.pe&gt;</span><span>Asunto: <b>Recibimos tu comprobante · lo estamos revisando</b></span></div>
+        <div class="mail-body"><div class="m-sheet">
+          <div class="m-strip"></div>
+          <div class="m-brand"><div class="lg">RE</div><b>Rosa Estilistas</b></div>
+          <div class="m-content">
+            <span class="state review">◐ Comprobante en revisión</span>
+            <h3>Recibimos tu comprobante, María</h3>
+            <p>El salón revisará tu pago de <b>S/ 35</b>. <b>Tu horario sigue reservado</b> mientras tanto y te avisaremos cuando quede confirmada. No necesitas hacer nada más.</p>
+            <div class="details">
+              <div><span>Servicio</span>Corte de cabello mujer · Rosa Paredes</div>
+              <div><span>Fecha y hora</span>Sábado 26 de septiembre, 10:30 (hora de Lima)</div>
+            </div>
+            <div class="mail-btns"><span class="btn brand">Ver reserva</span></div>
+          </div>
+          <div class="m-foot">Enviado por ChiraFlow en nombre de Rosa Estilistas. Responde a este correo para escribir al salón.</div>
+        </div></div>
+      </div>
+      <div class="mail">
+        <div class="mail-hd"><span><b>Rosa Estilistas</b> &lt;reservas@notificaciones.chiraflow.pe&gt;</span><span>Asunto: <b>Tu cita está confirmada · sáb 26 sep, 10:30</b></span></div>
+        <div class="mail-body"><div class="m-sheet">
+          <div class="m-strip"></div>
+          <div class="m-brand"><div class="lg">RE</div><b>Rosa Estilistas</b></div>
+          <div class="m-content">
+            <span class="state ok">✓ Confirmada · pagas en el local</span>
+            <h3>¡Te esperamos, María!</h3>
+            <p>Tu cita quedó confirmada. <b>Pagarás S/ 35 en el local</b> el día de tu cita.</p>
+            <div class="details">
+              <div><span>Servicio</span><b>Corte de cabello mujer · 45 min</b></div>
+              <div><span>Profesional</span>Rosa Paredes</div>
+              <div><span>Sede</span>Balta · Av. Balta 512, Chiclayo</div>
+              <div><span>Fecha y hora</span><b>Sábado 26 de septiembre, 10:30</b> (hora de Lima)</div>
+              <div><span>Pago</span>S/ 35 · en el local</div>
+            </div>
+            <div class="mail-btns"><span class="btn brand">Ver reserva</span><span class="btn outline-n">Reprogramar</span><span class="btn outline-n">Cancelar</span></div>
+            <p class="small">Puedes reprogramar o cancelar hasta 24 horas antes. Código de reserva: <b>R-482913</b>.</p>
+          </div>
+          <div class="m-foot">Enviado por ChiraFlow en nombre de Rosa Estilistas. Responde a este correo para escribir al salón.</div>
+        </div></div>
+      </div>
+    </div></div>
+    <p class="note"><b>Los correos de la plataforma</b> (plan activado, prueba por vencer, contraseña cambiada) usarán la identidad de ChiraFlow: cabecera con tu logo y azul AQUA, remitente «ChiraFlow», sin la marca de ningún negocio. <b>[SUPUESTO]</b> dominio remitente <code>notificaciones.chiraflow.pe</code>, pendiente de L-1.</p>
+  </section>
+
+</div>

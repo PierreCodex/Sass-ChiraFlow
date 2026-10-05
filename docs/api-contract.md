@@ -342,9 +342,16 @@ duplicarla.
 | Método | Ruta | Query / payload | Respuesta |
 |---|---|---|---|
 | GET | `/publico/{slug}` | — | `{ data: { negocio, locales } }` |
-| GET | `/publico/{slug}/sucursal/{localId}` | — | `{ data: TiendaLocal }` |
-| GET | `/publico/{slug}/sucursal/{localId}/horarios` | `?profesional_id&fecha&duracion_min` | `{ data: string[] }` — `["09:00","09:45",…]` |
-| POST | `/publico/{slug}/sucursal/{localId}/reservar` | `ReservaPayload` | `{ data: ReservaConfirmada }` |
+| GET | `/publico/{slug}/sucursal/{sede}` | — | `{ data: TiendaLocal }` |
+| GET | `/publico/{slug}/sucursal/{sede}/horarios` | `?profesional_id&fecha&duracion_min` | `{ data: string[] }` — `["09:00","09:45",…]` |
+| POST | `/publico/{slug}/sucursal/{sede}/reservar` | `ReservaPayload` | `{ data: ReservaConfirmada }` |
+
+⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-81): `{sede}` es el **slug de la sede, único dentro
+de su negocio** (`balta`), no su id numérico. Durante la transición, un id
+numérico se sigue aceptando y la respuesta trae `local.slug` para que la página
+redirija a la dirección con slug. Un slug antiguo de la sede resuelve igual
+(historial de slugs) y la respuesta trae el slug vigente. Direcciones de las
+páginas: `{slug}.site.<marca>/{sede}` y `/reservar/{slug}/{sede}`.
 
 Estos endpoints **no comparten middleware con el panel**: no llevan sesión, no
 exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
@@ -686,6 +693,13 @@ local principal no se borra y se edita desde Configuración).
 
 **Payload (multipart)**: lo mismo con `banner: File|null` y `logo: File|null`.
 
+⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-81, FR-82): `Local` gana **`slug`**
+(derivado del nombre al crearla, único dentro del negocio; editable, y el
+anterior redirige para siempre). **`color`, `banner_url` y `logo_url` dejan de
+emitirse y de aceptarse**: la identidad visual es del negocio (ver
+Configuración → apariencia). Sus valores se trasladan al negocio según FR-82 y
+se conservan sin uso hasta la portada por sede (FR-80, posterior).
+
 `LocalProfesional` — fila de `local_profesional`. El `index` devuelve **una fila
 por cada profesional del negocio**, tenga o no fila en la pivote; si no la
 tiene, `habilitado: false` y el resto en null.
@@ -830,6 +844,31 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
 - **Agenda**: `horario_apertura?`, `horario_cierre?` (respaldo cuando un
   profesional no tiene horario propio; por defecto 09:00–20:00)
 - **Marca**: `color_primario?`, `color_secundario?`, `logo_url?`, `cover_url?`
+
+  ⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-77 a FR-79, FR-82): la marca pasa a ser
+  **`apariencia`**, la misma en todas las sedes y en todos los planes:
+  ```jsonc
+  "color_primario": "#9B2C5A",          // el texto encima se calcula (AA)
+  "texto_sobre_color": "claro",          // "claro" | "oscuro" — solo lectura
+  "logo_url": "…/logo-512.webp",
+  "apariencia": {
+    "portada_estilo": "foto",             // "solido" | "degradado" | "foto"
+    "degradado": "atardecer",             // clave de la selección, o "de_mi_color"
+    "portada": {                          // null si no hay foto
+      "url_2400": "…", "url_1600": "…", "url_800": "…",
+      "enfoque": { "x": 0.42, "y": 0.35 } // 0–1, punto que se mantiene visible
+    }
+  }
+  ```
+  - `color_secundario` **se retira** de la respuesta y del payload.
+  - Payload multipart: `color_primario`, `logo: File`, `portada: File`,
+    `apariencia[portada_estilo]`, `apariencia[degradado]`,
+    `apariencia[enfoque][x|y]`, más `logo_eliminar` y `portada_eliminar`.
+  - 422: logo que no sea PNG, JPG o WebP, de más de 1 MB o menor de 256 × 256;
+    portada de más de 5 MB o menor de 1600 × 600; color sin contraste posible
+    (`errors.color_primario`).
+  - «Publicar» es este mismo `PUT`: no existe borrador en el servidor en esta
+    versión.
 - **Sitio público**: `sitio_publico_activo`, `mostrar_en_marketplace`,
   `terminos_servicio?`
 - **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min }`
@@ -878,6 +917,11 @@ de `tenants`.
 
 // LocalPublico: id, nombre, direccion?, descripcion?, telefono?, banner_url?,
 // logo_url?, latitud?, longitud?, color?, horario_desde?, horario_hasta?
+//
+// ⚠️ Cambio aprobado el 2026-09-19, pendiente de implementar (FR-77, FR-81, FR-82):
+// negocio gana: logo_url, color_primario, texto_sobre_color, apariencia (igual
+//   que en Configuración); es la identidad de TODAS las sedes.
+// LocalPublico gana slug y pierde banner_url, logo_url y color.
 
 // GET /publico/{slug}/sucursal/{localId}  → TiendaLocal
 {
@@ -1148,6 +1192,11 @@ GET /configuracion  →  PUT /configuracion (objeto completo)   ↻ configuracio
 Se cachea 10 minutos porque el formulario de citas la consulta en cada apertura.
 
 ### Tienda pública (`{slug}.dominio` · `/reservar/{slug}`)
+
+⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar**: la sede se elige **antes** del servicio cuando hay
+varias; desde `{slug}.site.<marca>/{sede}` llega preseleccionada y se puede
+cambiar (si ya hay servicios elegidos, se avisa antes de reiniciar la
+selección). Las rutas de sucursal usan el slug de la sede (FR-81).
 
 ```
 1. GET /publico/{slug}

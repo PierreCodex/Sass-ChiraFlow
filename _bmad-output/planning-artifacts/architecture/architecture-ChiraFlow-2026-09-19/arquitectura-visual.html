@@ -1,0 +1,475 @@
+<title>Arquitectura de ChiraFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F5F6F3;
+    --surface: #FFFFFF;
+    --ink: #1B2220;
+    --ink-soft: #4A5552;
+    --line: #DCE0DA;
+    --accent: #5A3FCB;
+    --accent-soft: #ECE8FB;
+    --amber: #B87503;
+    --amber-soft: #FBF0DC;
+    --ok: #1F7A4D;
+    --ok-soft: #E3F3EA;
+    --stop: #B3261E;
+    --stop-soft: #FBE7E5;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121715;
+      --surface: #1A201E;
+      --ink: #E7ECE9;
+      --ink-soft: #A7B2AE;
+      --line: #2E3734;
+      --accent: #A996F5;
+      --accent-soft: #272040;
+      --amber: #E8B04A;
+      --amber-soft: #33280F;
+      --ok: #6FCF9C;
+      --ok-soft: #16301F;
+      --stop: #F28B82;
+      --stop-soft: #3A1A18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #121715;
+    --surface: #1A201E;
+    --ink: #E7ECE9;
+    --ink-soft: #A7B2AE;
+    --line: #2E3734;
+    --accent: #A996F5;
+    --accent-soft: #272040;
+    --amber: #E8B04A;
+    --amber-soft: #33280F;
+    --ok: #6FCF9C;
+    --ok-soft: #16301F;
+    --stop: #F28B82;
+    --stop-soft: #3A1A18;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-inline: 16px;
+    padding-block: 32px 64px;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 48px;
+  }
+  nav.toc {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 24px);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+  }
+  nav.toc .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  nav.toc a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-left: 2px solid var(--line);
+  }
+  nav.toc a:hover, nav.toc a:focus-visible {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    outline: none;
+  }
+  main { display: flex; flex-direction: column; gap: 56px; min-width: 0; }
+
+  header.hero { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: .02em;
+  }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 700; }
+  h2 { font-size: clamp(24px, 3.2vw, 30px); font-weight: 700; }
+  h3 { font-size: 18px; font-weight: 600; font-family: var(--body); }
+  p { margin: 0; max-width: 68ch; }
+  .lede { font-size: 18px; color: var(--ink-soft); }
+  code, .mono { font-family: var(--mono); font-size: .9em; }
+  code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+
+  section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 24px; }
+  .q { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .fact {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fact b { font-family: var(--display); font-size: 22px; font-weight: 700; }
+  .fact span { color: var(--ink-soft); font-size: 14px; }
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+  .diagram pre.mermaid { margin: 0; background: transparent; }
+  .caption { font-size: 14px; color: var(--ink-soft); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  ol.ladder { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: paso; }
+  ol.ladder li {
+    counter-increment: paso;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  ol.ladder li::before {
+    content: counter(paso);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--accent);
+    text-align: center;
+  }
+  ol.ladder .desc { display: flex; flex-direction: column; gap: 2px; }
+  ol.ladder .desc span { color: var(--ink-soft); font-size: 14px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .chip.stop { background: var(--stop-soft); color: var(--stop); }
+  .chip.ok { background: var(--ok-soft); color: var(--ok); }
+  .chip.warn { background: var(--amber-soft); color: var(--amber); }
+  .chip.acc { background: var(--accent-soft); color: var(--accent); }
+
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .rule {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rule .id { font-family: var(--mono); font-size: 12px; color: var(--accent); display: flex; gap: 8px; align-items: center; }
+  .rule p { font-size: 14px; color: var(--ink-soft); }
+  .group-title { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); margin-top: 8px; }
+
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: var(--amber-soft);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 15px;
+  }
+  .callout strong { color: var(--amber); }
+
+  a { color: var(--accent); }
+  footer { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 16px; }
+
+  @media (max-width: 820px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    nav.toc { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    nav.toc .label { width: 100%; margin-bottom: 0; }
+    nav.toc a { border-left: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+    ol.ladder li { grid-template-columns: 28px minmax(0, 1fr); }
+    ol.ladder .chip { grid-column: 2; justify-self: start; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contenido">
+    <div class="label">Contenido</div>
+    <a href="#resumen">En una frase</a>
+    <a href="#piezas">Las piezas</a>
+    <a href="#dominios">Dónde vive cada cosa</a>
+    <a href="#permisos">Quién puede hacer qué</a>
+    <a href="#reserva">Una reserva con Yape</a>
+    <a href="#correos">Correos y tareas</a>
+    <a href="#despliegue">Dónde corre</a>
+    <a href="#reglas">Las 21 reglas</a>
+    <a href="#despues">Para después</a>
+  </nav>
+
+  <main>
+    <header class="hero" id="resumen">
+      <div class="eyebrow">architecture/ARCHITECTURE-SPINE.md · 19-09-2026 · borrador</div>
+      <h1>Arquitectura de ChiraFlow</h1>
+      <p class="lede">Dos aplicaciones —Laravel y Next— que se hablan solo a través de un contrato, una base de datos por cada negocio, y veintiuna reglas que evitan que el backend y el frontend construyan cosas incompatibles.</p>
+      <div class="facts">
+        <div class="fact"><b>1 base por negocio</b><span>Ningún negocio puede ver datos de otro: están en bases separadas.</span></div>
+        <div class="fact"><b>3 superficies</b><span>Panel del negocio, tienda pública y panel de plataforma, en una app por lado.</span></div>
+        <div class="fact"><b>21 reglas</b><span>AD-1 a AD-21: lo que cualquier historia debe respetar.</span></div>
+        <div class="fact"><b>≈ 60–75 $/mes</b><span>Contabo + Vercel Pro + Resend + Cloudflare, al lanzar.</span></div>
+      </div>
+    </header>
+
+    <section id="piezas">
+      <div class="q">¿Qué piezas hay y quién habla con quién?</div>
+      <h2>Las piezas</h2>
+      <p>El navegador nunca habla con Laravel: habla con el <strong>BFF</strong>, un intermediario dentro de Next que guarda la sesión en una cookie que el navegador no puede leer. Laravel tiene una zona por superficie, y todas usan los mismos <em>services</em>, que es donde viven las reglas.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  subgraph NAV[Navegador]
+    P[Panel del negocio]
+    T[Tienda y página de la cita]
+    A[Panel de plataforma]
+  end
+  BFF[BFF de Next]
+  subgraph LAR[Laravel]
+    RP[Zona panel]
+    RU[Zona pública]
+    RA[Zona plataforma]
+    S[Services: las reglas]
+    N[Notificador]
+    TP[Agenda de tareas]
+  end
+  DBC[(Base central)]
+  DBT[(Una base por negocio)]
+  P --> BFF
+  T --> BFF
+  A --> BFF
+  BFF --> RP
+  BFF --> RU
+  BFF --> RA
+  RP --> S
+  RU --> S
+  RA --> S
+  S --> N
+  S --> TP
+  S --> DBC
+  S --> DBT
+        </pre>
+      </div>
+      <p class="caption">Las flechas marcan la única dirección permitida: una zona nunca llama a otra, y ninguna regla se escribe dos veces (AD-2, AD-3).</p>
+    </section>
+
+    <section id="dominios">
+      <div class="q">¿Qué dirección escribe cada persona?</div>
+      <h2>Dónde vive cada cosa</h2>
+      <p>La misma estructura que AgendaPro: primero el nombre del negocio y después la marca. El DNS lo gestiona Cloudflare.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dirección</th><th>Qué es</th><th>Quién entra</th><th>Cloudflare</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">salondeperez.site.tumarca.pe</td><td>Tienda del negocio</td><td>Cualquiera, sin cuenta</td><td><span class="chip acc">sin proxy → Vercel</span></td></tr>
+            <tr><td class="mono">salondeperez.site.tumarca.pe/cita/…</td><td>La cita del cliente, desde su correo</td><td>Quien tiene el enlace</td><td><span class="chip acc">sin proxy → Vercel</span></td></tr>
+            <tr><td class="mono">app.tumarca.pe</td><td>Panel del negocio</td><td>Usuarios del negocio</td><td><span class="chip acc">sin proxy → Vercel</span></td></tr>
+            <tr><td class="mono">admin.tumarca.pe</td><td>Panel de plataforma</td><td>Tú y tu equipo, con 2FA</td><td><span class="chip acc">sin proxy → Vercel</span></td></tr>
+            <tr><td class="mono">api.tumarca.pe</td><td>Laravel</td><td>Solo el BFF</td><td><span class="chip ok">con proxy → Contabo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">Tres reglas mantienen separadas tienda y panel aunque compartan dominio (AD-15): la sesión vive en una cookie solo del host <code>__Host-</code>; las tiendas no aceptan HTML ni scripts del negocio; y el BFF rechaza cambios que no vengan de su propio host.</p>
+    </section>
+
+    <section id="permisos">
+      <div class="q">¿Cómo decide el sistema si alguien puede hacer algo?</div>
+      <h2>Quién puede hacer qué</h2>
+      <p>Cada petición del panel pasa estos cinco controles, siempre en este orden (AD-4). El primero que falla responde y los demás no se miran.</p>
+      <ol class="ladder">
+        <li><div class="desc"><strong>¿Es de tu negocio?</strong><span>Si pides algo de otro negocio, para ti no existe.</span></div><span class="chip stop">404</span></li>
+        <li><div class="desc"><strong>¿Tu suscripción está vigente?</strong><span>Si venció, solo puedes ir a Mi Plan, tu perfil, soporte y salir.</span></div><span class="chip warn">403 suscripcion_vencida</span></li>
+        <li><div class="desc"><strong>¿Tu plan incluye esta función?</strong><span>Por ejemplo, inventario o varias sedes. Subir de plan nunca da permisos a una persona.</span></div><span class="chip warn">403 plan_no_incluye</span></li>
+        <li><div class="desc"><strong>¿Tu rol lo permite?</strong><span>Ver o gestionar cada módulo; los roles los arma el negocio.</span></div><span class="chip warn">403 sin_permiso</span></li>
+        <li><div class="desc"><strong>¿Está dentro de tu alcance?</strong><span>Tus sedes y, si tu rol es «solo lo propio», tus citas. Vale igual al leer que al escribir.</span></div><span class="chip stop">404</span></li>
+      </ol>
+      <p class="caption">Y una regla más al repartir permisos: nadie puede dar un rol o un alcance mayor que el suyo (FR-63).</p>
+    </section>
+
+    <section id="reserva">
+      <div class="q">¿Qué pasa por dentro cuando María reserva y paga con Yape?</div>
+      <h2>Una reserva con Yape, de principio a fin</h2>
+      <p>La plataforma nunca toca el dinero: María paga directamente al Yape del salón. El sistema solo guarda la captura y espera a que alguien del salón la verifique. Mostrar el QR no confirma nada.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+  actor M as María
+  participant T as Tienda
+  participant L as Laravel
+  participant R as Recepción del salón
+  M->>T: Elige servicio, profesional y hora
+  T->>L: Reservar (con Turnstile)
+  L->>L: Bloqueo, revalida el hueco y crea la cita pendiente
+  L-->>M: Correo: pendiente de pago, con QR y plazo de 60 min
+  M->>T: Paga en Yape y sube la captura
+  T->>L: Evidencia (con su código de cita)
+  L-->>R: Aviso: pago por verificar
+  R->>L: Aprueba
+  L->>L: La cita pasa a confirmada
+  L-->>M: Correo: tu cita está confirmada
+  Note over L: Sin captura en el plazo, la cita se cancela sola y el hueco se libera
+        </pre>
+      </div>
+      <p class="caption">Toda ocupación o liberación de un hueco —reservar, reprogramar, cancelar, caducar— pasa por el mismo camino con bloqueo, así que dos acciones simultáneas nunca chocan (AD-7).</p>
+    </section>
+
+    <section id="correos">
+      <div class="q">¿Cómo salen los correos y los recordatorios sin fallar?</div>
+      <h2>Correos y tareas con hora</h2>
+      <p>Los services no envían correos: solo anotan lo que pasó. Un único notificador decide quién recibe qué, según la matriz de eventos, y envía solo cuando la operación ya quedó guardada. Si el correo falla, la reserva sigue ahí.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  OP[Operación: reservar, reprogramar, verificar pago] --> EV[(Eventos del negocio)]
+  EV --> NT[Notificador único]
+  NT --> EN[(Envíos pendientes)]
+  NT --> AG[(Agenda central de tareas)]
+  AG -->|cada minuto| TR[Trabajo: ¿sigue aplicando?]
+  TR --> EN
+  EN -->|tras guardar| RS[Resend]
+  RS -->|entregado, rebotado| EN
+        </pre>
+      </div>
+      <p class="caption">Los recordatorios y la caducidad del pago viven en una agenda central sin datos personales; justo antes de actuar, cada tarea comprueba que la cita no cambió (AD-8, AD-9).</p>
+    </section>
+
+    <section id="despliegue">
+      <div class="q">¿Dónde corre y cuánto cuesta?</div>
+      <h2>Dónde corre</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TB
+  U[Navegadores] --> CF[Cloudflare DNS]
+  CF --> V[Vercel Pro: Next, BFF, tiendas, plataforma]
+  CF --> C
+  V --> C
+  subgraph C[Contabo VPS en EE. UU., gestionado con Forge]
+    LV[Laravel 12]
+    WK[Worker de cola]
+    SC[Programador cada minuto]
+    DB[(MySQL 8.4 LTS)]
+  end
+  WK --> RS[Resend]
+  DB --> R2[Cloudflare R2: copia diaria]
+        </pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pieza</th><th>Servicio</th><th>≈ USD/mes</th></tr></thead>
+          <tbody>
+            <tr><td>Backend, worker, programador, MySQL</td><td>Contabo Cloud VPS 6 + Laravel Forge</td><td class="num">21–34</td></tr>
+            <tr><td>Frontend, BFF, tiendas, plataforma</td><td>Vercel Pro (funciones en <code>iad1</code>)</td><td class="num">20</td></tr>
+            <tr><td>Correo</td><td>Resend Pro</td><td class="num">20</td></tr>
+            <tr><td>DNS, copias y verificación anti-robots</td><td>Cloudflare (DNS, R2, Turnstile)</td><td class="num">0–2</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>Dos avisos de versión.</strong> Tu MySQL local es 8.0.30, que dejó de tener soporte en abril de 2026: producción usará 8.4 LTS y conviene igualar el local. Y Laravel 12 recibe parches de seguridad solo hasta el 24-02-2027: la actualización a 13 tiene esa fecha límite.</div>
+    </section>
+
+    <section id="reglas">
+      <div class="q">¿Qué debe respetar cualquier historia?</div>
+      <h2>Las 21 reglas</h2>
+      <p>El texto completo, con qué evita cada una, está en <code>ARCHITECTURE-SPINE.md</code>. «Adoptada» significa que ya funciona así en el código.</p>
+
+      <div class="group-title">Aislamiento y seguridad</div>
+      <div class="rules">
+        <div class="rule"><div class="id">AD-1 <span class="chip ok">adoptada</span></div><h3>Una base por negocio</h3><p>El negocio sale del token; lo ajeno responde 404.</p></div>
+        <div class="rule"><div class="id">AD-2 <span class="chip ok">adoptada</span></div><h3>Una regla, un sitio</h3><p>Cada regla vive en un solo service y la llaman todos los caminos.</p></div>
+        <div class="rule"><div class="id">AD-3</div><h3>Una zona por superficie</h3><p>Panel, pública y plataforma, cada una con su middleware y su credencial.</p></div>
+        <div class="rule"><div class="id">AD-4</div><h3>Orden único de autorización</h3><p>Los cinco controles de arriba, igual al leer que al escribir.</p></div>
+        <div class="rule"><div class="id">AD-11</div><h3>Superficie pública</h3><p>Sin ids en las URLs, límites de peticiones con nombre y Turnstile.</p></div>
+        <div class="rule"><div class="id">AD-12</div><h3>Plataforma aparte</h3><p>Solo administradores con 2FA; no entra en la base de ningún negocio.</p></div>
+        <div class="rule"><div class="id">AD-15</div><h3>Dominios y sesión</h3><p>Cookies solo del host y un BFF que enruta según el host.</p></div>
+      </div>
+
+      <div class="group-title">Agenda, pagos y correo</div>
+      <div class="rules">
+        <div class="rule"><div class="id">AD-6 <span class="chip ok">adoptada</span></div><h3>Un solo cálculo de huecos</h3><p>Panel, tienda y enlace ofrecen exactamente lo mismo.</p></div>
+        <div class="rule"><div class="id">AD-7 <span class="chip ok">adoptada</span></div><h3>Un camino con bloqueo</h3><p>Todo lo que ocupa o libera un hueco pasa por el service de citas.</p></div>
+        <div class="rule"><div class="id">AD-8</div><h3>Eventos y un notificador</h3><p>Los services anotan; uno solo decide los correos.</p></div>
+        <div class="rule"><div class="id">AD-9</div><h3>Agenda central de tareas</h3><p>Recordatorios y caducidades, re-comprobados antes de actuar.</p></div>
+        <div class="rule"><div class="id">AD-16</div><h3>Tiempo y dinero</h3><p>UTC para lo programado; soles como número; precios congelados.</p></div>
+      </div>
+
+      <div class="group-title">Planes y suscripción</div>
+      <div class="rules">
+        <div class="rule"><div class="id">AD-5</div><h3>Funciones del plan</h3><p>Un catálogo de claves en el código; los valores, por plan en la base.</p></div>
+        <div class="rule"><div class="id">AD-10</div><h3>Un camino para la suscripción</h3><p>Manual, automático o pasarela: todo pasa por el mismo sitio y activar nunca equivale a cobrar.</p></div>
+        <div class="rule"><div class="id">AD-21 <span class="chip ok">adoptada</span></div><h3>Procesos diarios</h3><p>Provisioning al verificar el correo, ciclo de vida y métricas.</p></div>
+      </div>
+
+      <div class="group-title">Proceso, pruebas y operación</div>
+      <div class="rules">
+        <div class="rule"><div class="id">AD-13</div><h3>El contrato cambia primero</h3><p>Contrato, después backend, después frontend.</p></div>
+        <div class="rule"><div class="id">AD-14 <span class="chip ok">adoptada</span></div><h3>Las migraciones solo se añaden</h3><p>Nunca se edita una migración que ya corrió.</p></div>
+        <div class="rule"><div class="id">AD-17</div><h3>Nada ficticio al lanzar</h3><p>Sin mocks; lo que no tiene backend no aparece en el menú.</p></div>
+        <div class="rule"><div class="id">AD-18</div><h3>Un solo tablero</h3><p><code>sprint-status.yaml</code> sustituye a <code>estado.md</code>.</p></div>
+        <div class="rule"><div class="id">AD-19</div><h3>Pruebas en las fronteras</h3><p>Pest, Vitest, un caso dorado compartido y recorridos completos con Playwright.</p></div>
+        <div class="rule"><div class="id">AD-20</div><h3>Entornos y operación</h3><p>Tres entornos separados, copias fuera del servidor y restauración mensual.</p></div>
+      </div>
+    </section>
+
+    <section id="despues">
+      <div class="q">¿Qué se decidió dejar para más adelante?</div>
+      <h2>Para después</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Qué</th><th>Cuándo revisarlo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Actualizar a Laravel 13</strong></td><td><span class="chip warn">antes del 24-02-2027</span></td></tr>
+            <tr><td>Pasarela de suscripciones (Mercado Pago)</td><td>Tras el lanzamiento</td></tr>
+            <tr><td>Caja, Reportes, Soporte, WhatsApp</td><td>Tras el lanzamiento</td></tr>
+            <tr><td>Varios negocios por persona</td><td>Cuando un cliente real lo pida</td></tr>
+            <tr><td>Dominio propio por negocio</td><td>Con el plan que lo incluya</td></tr>
+            <tr><td>Rastreo de errores (p. ej. Sentry)</td><td>Antes de abrir el registro al público</td></tr>
+            <tr><td>Retención de comprobantes y datos de clientes</td><td>Con los textos legales</td></tr>
+            <tr><td>Base de datos o archivos fuera del VPS</td><td>Si el rendimiento cae o el disco supera el 60 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Fuente: <span class="mono">Sass-ChiraFlow/_bmad-output/planning-artifacts/architecture/architecture-ChiraFlow-2026-09-19/</span> · Decisiones tomadas en el trabajo guiado del 19-09-2026, sobre el PRD (FR-1 a FR-76) y las decisiones A-1 a A-7.</footer>
+  </main>
+</div>

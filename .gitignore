@@ -21,3 +21,7 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
+
+# BMAD: overrides personales y cache de render
+_bmad/custom/*.user.toml
+_bmad/render/
