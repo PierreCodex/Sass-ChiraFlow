@@ -1,4 +1,4 @@
-# STATUS DEFINITIONS:
+ # STATUS DEFINITIONS:
 # ==================
 # Epic Status:
 #   - backlog: Epic not yet started
@@ -29,18 +29,18 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 09-20-2026 13:40
+last_updated: 10-05-2026 12:00
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
 story_location: 
   D:/PERSONAL_JEAN/Sass-ChiraFlow/_bmad-output/implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-un-profesional-no-agenda-a-nombre-de-otro: backlog
-  1-2-las-citas-no-salen-del-alcance-de-sedes: backlog
-  1-3-no-se-pueden-agendar-citas-imposibles: backlog
-  1-4-nadie-concede-lo-que-no-tiene: backlog
+  epic-1: in-progress
+  1-1-un-profesional-no-agenda-a-nombre-de-otro: done
+  1-2-las-citas-no-salen-del-alcance-de-sedes: done
+  1-3-no-se-pueden-agendar-citas-imposibles: done
+  1-4-nadie-concede-lo-que-no-tiene: review
   1-5-un-rol-de-recepción-listo-para-usar: backlog
   1-6-un-permiso-propio-para-los-pagos: backlog
   1-7-quien-puede-agendar-puede-abrir-el-formulario: backlog
@@ -124,35 +124,31 @@ development_status:
   9-5-producción-de-verdad-con-copias-que-se-restauran: backlog
   9-6-un-piloto-antes-de-abrir-del-todo: backlog
   epic-9-retrospective: optional
-
-# ===========================================================================
-# BLOQUES PROPIOS DE CHIRAFLOW (el script los conserva entre ejecuciones)
-# ---------------------------------------------------------------------------
-# `development_status` solo admite el vocabulario de BMAD
-# (backlog / ready-for-dev / in-progress / review / done). Lo verificado, lo
-# pendiente, lo bloqueado y lo listo para desarrollar se expresan aqui.
-# Fuente de las historias: _bmad-output/planning-artifacts/epics.md (62).
-# Este archivo SUSTITUYE a docs/estado.md y a docs/plan-sprints.md.
-# ===========================================================================
-
 verificado:
   que_es: "Epica 0 del epics.md - construido, probado y en uso. No se replanifica."
   evidencia: "312 pruebas Pest en verde (backend, 2026-09-19)"
   requisitos: "FR1-FR5, FR7, FR10-FR13, FR15-FR17, FR19, FR20, FR23-FR25, FR27, FR29-FR32"
   modulos:
-    - {modulo: "0.A Fundaciones (tenancy, migraciones, seeders)", backend: "2026-08-15", frontend: "no aplica"}
-    - {modulo: "0.B Registro, verificacion, login, recuperacion", backend: "2026-08-22", frontend: "2026-08-22"}
-    - {modulo: "0.B Onboarding (checklist + paso 1)", backend: "2026-08-22", frontend: "2026-08-22", nota: "el marcado automatico falla: F-01, Story 1.12"}
+    - {modulo: "0.A Fundaciones (tenancy, migraciones, seeders)", backend: "2026-08-15",
+      frontend: "no aplica"}
+    - {modulo: "0.B Registro, verificacion, login, recuperacion", backend: "2026-08-22",
+      frontend: "2026-08-22"}
+    - {modulo: "0.B Onboarding (checklist + paso 1)", backend: "2026-08-22", 
+        frontend: "2026-08-22", nota: "el marcado automatico falla: F-01, Story 1.12"}
     - {modulo: "1.A Categorias", backend: "2026-08-27", frontend: "2026-08-27"}
     - {modulo: "1.B Servicios", backend: "2026-08-27", frontend: "2026-08-27"}
     - {modulo: "1.C Clientes", backend: "2026-08-27", frontend: "2026-08-27"}
-    - {modulo: "2.A Usuarios y Profesionales", backend: "2026-09-04", frontend: "2026-09-05", nota: "el alta con cuenta tiene el hueco G-4: Story 1.4"}
+    - {modulo: "2.A Usuarios y Profesionales", backend: "2026-09-04", frontend: "2026-09-05",
+      nota: "el alta con cuenta tiene el hueco G-4: Story 1.4"}
     - {modulo: "2.A Roles del negocio", backend: "2026-09-04", frontend: "2026-09-05"}
     - {modulo: "2.B Configuracion", backend: "2026-09-04", frontend: "2026-09-05"}
-    - {modulo: "Capacidades y permisos aplicados", backend: "2026-09-05", frontend: "2026-09-05", nota: "lecturas si, escrituras no: G-1 a G-3"}
-    - {modulo: "3.A Locales (sedes, pivote, grupos)", backend: "2026-09-05", frontend: "2026-09-05"}
+    - {modulo: "Capacidades y permisos aplicados", backend: "2026-09-05", 
+        frontend: "2026-09-05", nota: "lecturas si, escrituras no: G-1 a G-3"}
+    - {modulo: "3.A Locales (sedes, pivote, grupos)", backend: "2026-09-05", 
+        frontend: "2026-09-05"}
     - {modulo: "3.B Inventario", backend: "2026-09-06", frontend: "2026-09-06"}
-    - {modulo: "4.A Servicio de disponibilidad", backend: "2026-09-06", frontend: "no aplica"}
+    - {modulo: "4.A Servicio de disponibilidad", backend: "2026-09-06", frontend: "no
+        aplica"}
     - {modulo: "4.B Citas", backend: "2026-09-06", frontend: "2026-09-06"}
 
 preparacion:
@@ -160,11 +156,15 @@ preparacion:
     razon: "sin decisiones abiertas y sin depender de otra epica"
     historias:
       - {id: "1.1", agente: claude, archivo_compartido: CitaService}
-      - {id: "1.2", agente: claude, archivo_compartido: CitaService, orden: "despues de 1.1"}
-      - {id: "1.3", agente: claude, archivo_compartido: CitaService, orden: "despues de 1.2"}
+      - {id: "1.2", agente: claude, archivo_compartido: CitaService, orden: "despues
+          de 1.1"}
+      - {id: "1.3", agente: claude, archivo_compartido: CitaService, orden: "despues
+          de 1.2"}
       - {id: "1.4", agente: claude}
-      - {id: "1.5", agente: claude}
-      - {id: "1.6", agente: claude}
+      - {id: "1.5", agente: sandro, asignada: "2026-10-05", nota: "antes de empezar, resolver
+          la decision de pagos de Recepcion (ver pendiente_de_decision)"}
+      - {id: "1.6", agente: sandro, asignada: "2026-10-05", orden: "con o despues de 1.5
+          (comparten la siembra de roles de sistema)"}
       - {id: "1.7", agente: claude, nota: "contrato primero (AD-13)"}
       - {id: "1.8", agente: claude}
       - {id: "1.9", agente: claude}
@@ -175,7 +175,8 @@ preparacion:
       - {id: "1.14", agente: codex}
       - {id: "1.15", agente: claude}
       - {id: "2.1", agente: claude, nota: "migracion nueva + contrato primero"}
-      - {id: "2.2", agente: claude, archivo_compartido: "CitaService + Disponibilidad", orden: "despues de 1.3"}
+      - {id: "2.2", agente: claude, archivo_compartido: "CitaService + Disponibilidad",
+        orden: "despues de 1.3"}
       - {id: "2.3", agente: codex, apoyo: claude, orden: "despues de 2.1"}
       - {id: "3.1", agente: codex}
       - {id: "3.3", agente: codex, apoyo: claude}
@@ -199,21 +200,29 @@ preparacion:
       - {id: "9.4", agente: codex, nota: "el contenido del tutorial sigue por definir"}
 
   pendiente_de_decision:
+    - historia: "1.5"
+      falta: "Recepcion y el modulo pagos: la historia 1.5 dice 'ver' y la matriz A-1 y
+        el PRD dicen 'gestionar'"
+      salida_por_defecto: "ninguna; decide el humano antes de implementar 1.5 y 1.6"
     - historia: "3.2"
       falta: "Q-19: arrastrar citas y rango visible del calendario"
       salida_por_defecto: "se implementa sin arrastrar; no bloquea"
     - historia: "6.7"
-      falta: "plazo por defecto de la confirmacion por correo y si se permite reenviar a peticion"
+      falta: "plazo por defecto de la confirmacion por correo y si se permite reenviar
+        a peticion"
       salida_por_defecto: "60 min configurable desde 15; sin reenvio manual"
     - historia: "7.4"
       falta: "F-9: ventana de correccion (30 min), margen de 15 min y maximo de capturas"
       salida_por_defecto: "30 min, 15 min de margen, 3 capturas"
     - historia: "8.3"
-      falta: "F-5, F-6, F-7: nombres y precios de los planes, dias de prueba y de gracia"
-      salida_por_defecto: "ninguna; la pantalla se puede construir con los valores del seeder actual"
+      falta: "F-5, F-6, F-7: nombres y precios de los planes, dias de prueba y de
+        gracia"
+      salida_por_defecto: "ninguna; la pantalla se puede construir con los valores
+        del seeder actual"
     - historia: "9.1"
       falta: "F-5, F-6, F-7 (los mismos precios)"
-      salida_por_defecto: "precios leidos de un unico sitio para cambiarlos sin tocar la maqueta"
+      salida_por_defecto: "precios leidos de un unico sitio para cambiarlos sin tocar
+        la maqueta"
     - historia: "9.2"
       falta: "L-5 y L-6: textos legales y facturacion con RUC"
       salida_por_defecto: "ninguna; hace falta el texto legal real"
@@ -226,7 +235,8 @@ preparacion:
       bloqueado_por: "Epica 2 (regla unica de reservabilidad, Story 2.2)"
       desbloquea: "cerrar 2.1 y 2.2"
     - historias: ["6.6", "6.7", "6.8", "6.9", "6.11"]
-      bloqueado_por: "Epica 2 + Epica 4 (correo fiable: 4.1, 4.2, 4.5) + Epica 5 (identidad en correos y tienda)"
+      bloqueado_por: "Epica 2 + Epica 4 (correo fiable: 4.1, 4.2, 4.5) + Epica 5 (identidad
+        en correos y tienda)"
       desbloquea: "cerrar 2.2, 4.5 y 5.1"
     - historias: ["6.10"]
       bloqueado_por: "Cloudflare Turnstile contratado y configurado (AD-11)"
@@ -234,12 +244,15 @@ preparacion:
     - historias: ["7.1", "7.2", "7.3", "7.4", "7.5", "7.6"]
       bloqueado_por: "Epica 6 (la tienda tiene que existir antes de cobrar en ella)"
       desbloquea: "cerrar 6.6"
-      nota: "hasta entonces, un negocio con pago obligatorio NO recibe reservas publicas (Story 6.6); no se degrada a pago en el local"
+      nota: "hasta entonces, un negocio con pago obligatorio NO recibe reservas publicas
+        (Story 6.6); no se degrada a pago en el local"
     - historias: ["4.8"]
-      bloqueado_por: "Evolution API desplegada en Railway con el numero de la plataforma y consentimiento verificado"
+      bloqueado_por: "Evolution API desplegada en Railway con el numero de la plataforma
+        y consentimiento verificado"
       desbloquea: "instancia en Railway + numero dado de alta"
     - historias: ["9.5"]
-      bloqueado_por: "L-1 y L-2 (dominio de marca y de tienda), VPS de Contabo, Vercel Pro, Resend Pro, R2"
+      bloqueado_por: "L-1 y L-2 (dominio de marca y de tienda), VPS de Contabo, Vercel
+        Pro, Resend Pro, R2"
       desbloquea: "contratar y apuntar los DNS en Cloudflare"
     - historias: ["9.6"]
       bloqueado_por: "todo lo anterior + Q-03 y Q-04 (fecha objetivo y alcance definitivo)"
@@ -258,17 +271,38 @@ migrado_desde_estado_md:
     la mano, y lo que una necesita de la otra es una dependencia entre
     historias, no un recado.
   cola_del_frontend_que_sigue_viva:
-    - {apunte: "GET /citas sin filtrar por fecha en el selector de huecos (?fecha=&per_page=200)", historia: "1.10"}
-    - {apunte: "Sustituir useTodos() por Autocomplete paginado en los 8 modulos con all()", historia: "1.10"}
+    - {apunte: "GET /citas sin filtrar por fecha en el selector de huecos (?fecha=&per_page=200)",
+      historia: "1.10"}
+    - {apunte: "Sustituir useTodos() por Autocomplete paginado en los 8 modulos con
+        all()", historia: "1.10"}
     - {apunte: "Paginar LocalesGrid (truncado silencioso visible)", historia: "1.10"}
     - {apunte: "CampoImagenes descarta en silencio con slice(0, max)", historia: "1.10"}
     - {apunte: "Apagar la rama mock de perfil", historia: "1.11"}
-    - {apunte: "Selector de sedes de una cuenta, cuando haya endpoint que lo escriba", historia: "1.8"}
-    - {apunte: "4.C Calendario: conectar y comprobar paridad de franjas con el motor", historia: "3.2"}
-    - {apunte: "codigo de la cita, que hoy no se ve en ninguna pantalla", historia: "3.1"}
-    - {apunte: "La trampa del Autocomplete (id en renderInput), tercera vez que aparece", historia: "1.10", nota: "anotarla en la tabla de trampas del CLAUDE.md del frontend"}
+    - {apunte: "Selector de sedes de una cuenta, cuando haya endpoint que lo escriba",
+      historia: "1.8"}
+    - {apunte: "4.C Calendario: conectar y comprobar paridad de franjas con el motor",
+      historia: "3.2"}
+    - {apunte: "codigo de la cita, que hoy no se ve en ninguna pantalla", 
+        historia: "3.1"}
+    - {apunte: "La trampa del Autocomplete (id en renderInput), tercera vez que aparece",
+      historia: "1.10", nota: "anotarla en la tabla de trampas del CLAUDE.md del frontend"}
+    - {apunte: "Formulario de cita: pintar los 422 de reservabilidad bajo su campo
+        (empleado_id: de baja / no atiende en esa sede; servicio_id: no presta X) y a
+        nivel de formulario si el selector de sede esta oculto; ofrecer solo
+        combinaciones reservables", historia: "1.7", origen: "1.3 (2026-09-28), detalle
+        en Backend-Sass docs/pendientes-contrato.md [Story 1.3]"}
+    - {apunte: "Ficha de servicio: al CREAR, empleado_ids [] significa 'lo prestan
+        todos' (al editar sigue siendo 'nadie'); sede y profesional nuevos nacen con
+        todo asignado y se recortan despues. Explicarlo en la ficha", historia: "1.10",
+      origen: "1.3 (2026-09-28)"}
+    - {apunte: "Empleados: ocultar 'Darle acceso al panel' (el bloque usuario de
+        POST/PUT /profesionales) a quien no sea el administrador general; si llega,
+        responde 403 sin_permiso sin crear nada. Saber quien es el general: usuario.rol
+        del login", historia: "1.4", origen: "1.4 (2026-09-29), detalle en Backend-Sass
+        docs/pendientes-contrato.md [Story 1.4]"}
   traspasos_pendientes_convertidos_en_historias:
-    - {traspaso: "FE-BE 2026-09-06 permisos del formulario de cita (F-02)", historia: "1.7"}
+    - {traspaso: "FE-BE 2026-09-06 permisos del formulario de cita (F-02)", 
+        historia: "1.7"}
     - {traspaso: "FE-BE 2026-09-06 fuente de la cita (F-03)", historia: "1.13"}
     - {traspaso: "FE-BE 2026-09-06 hooks de onboarding (F-01)", historia: "1.12"}
     - {traspaso: "FE-BE 2026-09-06 422 en ingles (F-04)", historia: "1.9"}
@@ -293,23 +327,32 @@ sprint_1:
   dependencias_verificadas_2026_09_20:
     - historia: "1.11"
       veredicto: "independiente"
-      evidencia: "routes/api.php:83 GET /user, :94 PUT /user, :87 PUT /user/password ya existen"
+      evidencia: "routes/api.php:83 GET /user, :94 PUT /user, :87 PUT /user/password
+        ya existen"
     - historia: "1.14"
       veredicto: "independiente"
-      evidencia: "app/Support/RolesSistema.php:25 MODULOS no incluye 'grupos' (cuelga de 'locales'), asi que ocultarlo es solo menu y rutas del panel"
+      evidencia: "app/Support/RolesSistema.php:25 MODULOS no incluye 'grupos' (cuelga
+        de 'locales'), asi que ocultarlo es solo menu y rutas del panel"
     - historia: "3.1"
       veredicto: "NO independiente: necesita backend primero"
-      evidencia: "CitaResource.php:26 ya emite 'codigo', pero CitaController.php:32-40 solo busca por cliente (nombre, apellido, telefono)"
-      accion: "Claude anade 'codigo' a la busqueda de GET /citas (contrato primero, AD-13); Codex conecta la pantalla despues"
+      evidencia: "CitaResource.php:26 ya emite 'codigo', pero CitaController.php:32-40
+        solo busca por cliente (nombre, apellido, telefono)"
+      accion: "Claude anade 'codigo' a la busqueda de GET /citas (contrato primero,
+        AD-13); Codex conecta la pantalla despues"
   cobertura_de_los_huecos_de_seguridad:
-    G-1: {historia: "1.1", que_cierra: "un profesional agenda o reasigna citas de un companero"}
+    G-1: {historia: "1.1", que_cierra: "un profesional agenda o reasigna citas de
+        un companero"}
     G-2: {historia: "1.2", que_cierra: "crear o mover citas a una sede fuera del alcance"}
-    G-3: {historia: "1.3", que_cierra: "citas imposibles: profesional inactivo, no habilitado en la sede o que no presta el servicio"}
-    G-4: {historia: "1.4", que_cierra: "POST /profesionales crea cuentas con mas permisos y alcance que el actor"}
+    G-3: {historia: "1.3", que_cierra: "citas imposibles: profesional inactivo, no
+        habilitado en la sede o que no presta el servicio"}
+    G-4: {historia: "1.4", que_cierra: "POST /profesionales crea cuentas con mas permisos
+        y alcance que el actor"}
     nota: "los cuatro estan dentro del Sprint 1"
   pruebas_que_no_se_tocan:
-    - "La suite completa en verde antes de abrir la primera historia (linea base) y antes de cada merge"
-    - "Las pruebas de aislacion entre negocios (404 a lo ajeno) se conservan y se amplian, nunca se relajan"
+    - "La suite completa en verde antes de abrir la primera historia (linea base)
+      y antes de cada merge"
+    - "Las pruebas de aislacion entre negocios (404 a lo ajeno) se conservan y se
+      amplian, nunca se relajan"
     - "Cada historia de G-1..G-4 anade una prueba que falla sin el arreglo"
     - "bmad-code-review antes de integrar toda historia que toque CitaService o Disponibilidad"
   criterio_de_cierre:
