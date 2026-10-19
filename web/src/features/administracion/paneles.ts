@@ -10,6 +10,7 @@ import PantallaSedes from "@/features/locales/components/PantallaSedes";
 import ProfesionalesPorLocal from "@/features/locales/components/ProfesionalesPorLocal";
 import PantallaRoles from "@/features/roles/components/PantallaRoles";
 import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
+import SeccionCobros from "@/features/pagos/components/SeccionCobros";
 
 /**
  * El panel de cada sección, para las que ya lo tienen.
@@ -27,6 +28,7 @@ const PANELES: Record<string, ComponentType> = {
   "general/agenda": SeccionAgenda,
   "general/marca": SeccionMarca,
   "general/sitio-publico": SeccionSitioPublico,
+  "general/cobros": SeccionCobros,
   "equipo/usuarios": PantallaUsuarios,
   "equipo/profesionales": PantallaProfesionales,
   "equipo/roles": PantallaRoles,
