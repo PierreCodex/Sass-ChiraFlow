@@ -77,8 +77,9 @@ export default function SucursalPage({
     >
       <Container maxWidth="lg" sx={{ py: 4, pb: carrito.unidades ? 14 : 4 }}>
         {confirmada ? (
-          <Box maxWidth={560} mx="auto">
+          <Box maxWidth={640} mx="auto">
             <ComprobanteReserva
+              slug={negocio.slug}
               reserva={confirmada}
               onVolver={() => {
                 setConfirmada(null);
