@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import Alert from "@mui/material/Alert";
@@ -33,6 +33,11 @@ export default function LoginPlataformaPage() {
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [formularioListo, setFormularioListo] = useState(false);
+
+  useEffect(() => {
+    setFormularioListo(true);
+  }, []);
 
   const pedirCodigo = async (correo = email, clave = password) => {
     setCargando(true);
@@ -116,7 +121,14 @@ export default function LoginPlataformaPage() {
             </Alert>
           ) : null}
 
-          <Box component="form" onSubmit={enviar} noValidate>
+          {!formularioListo ? (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Activando el formulario. Si este aviso permanece, permite JavaScript
+              para este sitio y recarga la página.
+            </Alert>
+          ) : null}
+
+          <Box component="form" method="post" onSubmit={enviar} noValidate>
             {paso === "credenciales" ? (
               <>
                 <CustomFormLabel htmlFor="email" sx={{ mt: 0 }}>
@@ -130,6 +142,7 @@ export default function LoginPlataformaPage() {
                   autoComplete="username"
                   fullWidth
                   autoFocus
+                  disabled={!formularioListo}
                   defaultValue={email}
                 />
                 <CustomFormLabel htmlFor="password">Contraseña</CustomFormLabel>
@@ -140,6 +153,7 @@ export default function LoginPlataformaPage() {
                   type="password"
                   autoComplete="current-password"
                   fullWidth
+                  disabled={!formularioListo}
                   defaultValue={password}
                 />
               </>
@@ -174,11 +188,14 @@ export default function LoginPlataformaPage() {
               fullWidth
               sx={{ mt: 3 }}
               disabled={
+                !formularioListo ||
                 cargando ||
                 (paso === "codigo" && codigo.length !== 6)
               }
             >
-              {cargando
+              {!formularioListo
+                ? "Activando formulario…"
+                : cargando
                 ? "Un momento…"
                 : paso === "credenciales"
                   ? "Enviarme el código"
