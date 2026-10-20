@@ -34,15 +34,15 @@ export default function LoginPlataformaPage() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  const pedirCodigo = async () => {
+  const pedirCodigo = async (correo = email, clave = password) => {
     setCargando(true);
     setError(null);
     try {
-      const respuesta = await accesoPlataformaApi.pedirCodigo(email.trim(), password);
+      const respuesta = await accesoPlataformaApi.pedirCodigo(correo, clave);
       setMinutos(respuesta.minutos);
       setPaso("codigo");
       setCodigo("");
-      setAviso(`Te enviamos un código a ${email.trim()}. Vence en ${respuesta.minutos} minutos.`);
+      setAviso(`Te enviamos un código a ${correo}. Vence en ${respuesta.minutos} minutos.`);
     } catch (e) {
       setError(mensaje(e));
     } finally {
@@ -50,10 +50,21 @@ export default function LoginPlataformaPage() {
     }
   };
 
-  const enviar = async (evento: FormEvent) => {
+  const enviar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
+    if (cargando) return;
     if (paso === "credenciales") {
-      await pedirCodigo();
+      // El autocompletado puede rellenar los inputs sin emitir onChange.
+      const datos = new FormData(evento.currentTarget);
+      const correo = String(datos.get("email") ?? "").trim();
+      const clave = String(datos.get("password") ?? "");
+      if (!correo || !clave) {
+        setError("Ingresa tu correo y contraseña.");
+        return;
+      }
+      setEmail(correo);
+      setPassword(clave);
+      await pedirCodigo(correo, clave);
       return;
     }
 
@@ -112,22 +123,24 @@ export default function LoginPlataformaPage() {
                   Correo
                 </CustomFormLabel>
                 <CustomTextField
+                  key="email"
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="username"
                   fullWidth
                   autoFocus
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  defaultValue={email}
                 />
                 <CustomFormLabel htmlFor="password">Contraseña</CustomFormLabel>
                 <CustomTextField
+                  key="password"
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   fullWidth
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setPassword(e.target.value)
-                  }
+                  defaultValue={password}
                 />
               </>
             ) : (
@@ -136,6 +149,7 @@ export default function LoginPlataformaPage() {
                   Código de 6 dígitos
                 </CustomFormLabel>
                 <CustomTextField
+                  key="codigo"
                   id="codigo"
                   fullWidth
                   autoFocus
@@ -161,7 +175,7 @@ export default function LoginPlataformaPage() {
               sx={{ mt: 3 }}
               disabled={
                 cargando ||
-                (paso === "credenciales" ? !email.trim() || !password : codigo.length !== 6)
+                (paso === "codigo" && codigo.length !== 6)
               }
             >
               {cargando
@@ -182,7 +196,7 @@ export default function LoginPlataformaPage() {
                 >
                   Volver
                 </Button>
-                <Button onClick={pedirCodigo} disabled={cargando}>
+                <Button onClick={() => pedirCodigo()} disabled={cargando}>
                   Enviar otro código
                 </Button>
               </Stack>
