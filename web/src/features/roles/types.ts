@@ -21,9 +21,9 @@ export type NivelPermiso = "ver" | "gestionar";
  * etiqueta sino de concepto: lo que separa a los dos administradores no es un
  * permiso de más, es el ALCANCE — uno manda en la empresa, el otro en su sede.
  */
-export type ClaveRolSistema = "admin_general" | "admin_local" | "profesional";
+export type ClaveRolSistema = "admin_general" | "admin_local" | "profesional" | "recepcion";
 
-/** Módulo del panel → nivel de acceso. Vienen **siempre los 14**. */
+/** Módulo del panel → nivel de acceso. Vienen **siempre los 15**. */
 export type MatrizPermisos = Record<string, NivelPermiso | null>;
 
 export interface Rol {
@@ -31,7 +31,7 @@ export interface Rol {
   nombre: string;
   clave: ClaveRolSistema | null;
   sistema: boolean;
-  /** Los 14 módulos siempre, con `null` donde no hay acceso. */
+  /** Los 15 módulos siempre, con `null` donde no hay acceso. */
   permisos: MatrizPermisos;
   /** Del rol, no de cada vista: un profesional ve SUS citas. */
   solo_propios: boolean;
