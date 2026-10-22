@@ -16,6 +16,7 @@ import {
   IconPackage,
   IconLifebuoy,
   IconQrcode,
+  IconFileInvoice,
 } from "@tabler/icons-react";
 
 export interface MenuitemsType {
@@ -128,6 +129,16 @@ const Menuitems: MenuitemsType[] = [
     icon: IconCashRegister,
     href: "/caja",
     modulo: "caja",
+  },
+  {
+    id: uniqueId(),
+    title: "Comprobantes",
+    icon: IconFileInvoice,
+    href: "/comprobantes",
+    // Prototipo: lo que se cobra al cliente es dinero de la caja.
+    modulo: "caja",
+    chip: "Nuevo",
+    chipColor: "secondary",
   },
   {
     id: uniqueId(),
