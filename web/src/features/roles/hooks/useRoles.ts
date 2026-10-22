@@ -18,7 +18,7 @@ export const {
  *
  * Va aparte de `useRoles()` —que alimenta los selects— porque solo esta
  * pantalla necesita `modulos`, y pedirlo en todas partes sería arrastrar una
- * lista de catorce claves por cada desplegable de rol del panel.
+ * lista de quince claves por cada desplegable de rol del panel.
  */
 export function useRolesConModulos() {
   return useQuery({
