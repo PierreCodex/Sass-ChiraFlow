@@ -12,13 +12,20 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { IconCheck, IconRefresh, IconX } from "@tabler/icons-react";
+import { IconCheck, IconFileInvoice, IconRefresh, IconX } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { dialogoResponsive } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { formatFechaLarga, formatMoneda } from "@/lib/format";
+
+import DialogoComprobante from "@/features/comprobantes/components/DialogoComprobante";
+import DialogoEmitirComprobante, {
+  type BorradorComprobante,
+} from "@/features/comprobantes/components/DialogoEmitirComprobante";
+import { useComprobanteDeReserva } from "@/features/comprobantes/hooks/useComprobantes";
+import type { Comprobante } from "@/features/comprobantes/types";
 
 import { useDecidirPago } from "../hooks/usePagos";
 import {
@@ -38,21 +45,44 @@ type Accion = "pedir_otra" | "rechazar" | null;
  * Revisar la captura y decidir en dos clics (Story 7.4): aprobar, pedir otra
  * captura (la cita sigue reservada) o rechazar y cancelar (definitivo).
  */
-export default function DialogoVerificarPago({ pago, onCerrar }: Props) {
+export default function DialogoVerificarPago({ pago: pagoInicial, onCerrar }: Props) {
   const { aprobar, pedirOtra, rechazar } = useDecidirPago();
   const [accion, setAccion] = useState<Accion>(null);
   const [motivo, setMotivo] = useState("");
+  const [borrador, setBorrador] = useState<BorradorComprobante | null>(null);
+  const [comprobanteAbierto, setComprobanteAbierto] = useState<Comprobante | null>(null);
+
+  // Tras aprobar el diálogo no se cierra: se queda en «Verificado» para
+  // ofrecer el comprobante en el mismo paso.
+  const pago = aprobar.data?.codigo === pagoInicial?.codigo ? aprobar.data : pagoInicial;
+  const { data: comprobante } = useComprobanteDeReserva(
+    pago?.estado === "verificado" ? pago.codigo : null
+  );
 
   useEffect(() => {
     setAccion(null);
     setMotivo("");
+    setBorrador(null);
+    setComprobanteAbierto(null);
     aprobar.reset();
     pedirOtra.reset();
     rechazar.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pago?.codigo]);
+  }, [pagoInicial?.codigo]);
 
   if (!pago) return null;
+
+  const borradorDelPago = (): BorradorComprobante => ({
+    reserva_codigo: pago.codigo,
+    metodo_pago: pago.metodo_nombre,
+    cliente: {
+      nombre: pago.cliente_nombre,
+      tipo_documento: "dni",
+      email: pago.cliente_email || null,
+      telefono: pago.cliente_telefono || null,
+    },
+    lineas: [{ descripcion: pago.servicios, cantidad: 1, precio_unitario: pago.total }],
+  });
 
   const ocupado = aprobar.isPending || pedirOtra.isPending || rechazar.isPending;
   const error = aprobar.error ?? pedirOtra.error ?? rechazar.error;
@@ -173,6 +203,14 @@ export default function DialogoVerificarPago({ pago, onCerrar }: Props) {
                 </Box>
               ) : null}
 
+              {pago.estado === "verificado" ? (
+                <Alert severity="success">
+                  {comprobante
+                    ? "Pago verificado y comprobante emitido."
+                    : "Pago verificado. Entrégale su comprobante al cliente."}
+                </Alert>
+              ) : null}
+
               {error ? <Alert severity="error">{toApiError(error).message}</Alert> : null}
             </Stack>
           </Grid>
@@ -181,7 +219,20 @@ export default function DialogoVerificarPago({ pago, onCerrar }: Props) {
 
       <DialogActions sx={{ p: 2.5, gap: 1, flexWrap: "wrap" }}>
         {!decidible ? (
-          <Button onClick={onCerrar}>Cerrar</Button>
+          <>
+            <Button onClick={onCerrar}>Cerrar</Button>
+            {pago.estado === "verificado" ? (
+              <Button
+                variant="contained"
+                startIcon={<IconFileInvoice size={18} />}
+                onClick={() =>
+                  comprobante ? setComprobanteAbierto(comprobante) : setBorrador(borradorDelPago())
+                }
+              >
+                {comprobante ? "Ver comprobante" : "Emitir comprobante"}
+              </Button>
+            ) : null}
+          </>
         ) : accion ? (
           <>
             <Button color="inherit" onClick={() => setAccion(null)} disabled={ocupado}>
@@ -219,7 +270,7 @@ export default function DialogoVerificarPago({ pago, onCerrar }: Props) {
               variant="contained"
               color="success"
               startIcon={<IconCheck size={18} />}
-              onClick={() => aprobar.mutate(pago.codigo, { onSuccess: onCerrar })}
+              onClick={() => aprobar.mutate(pago.codigo)}
               disabled={ocupado}
             >
               {aprobar.isPending ? "Aprobando…" : "Aprobar pago"}
@@ -227,6 +278,19 @@ export default function DialogoVerificarPago({ pago, onCerrar }: Props) {
           </>
         )}
       </DialogActions>
+
+      <DialogoEmitirComprobante
+        borrador={borrador}
+        onCerrar={() => setBorrador(null)}
+        onEmitido={(emitido) => {
+          setBorrador(null);
+          setComprobanteAbierto(emitido);
+        }}
+      />
+      <DialogoComprobante
+        comprobante={comprobanteAbierto}
+        onCerrar={() => setComprobanteAbierto(null)}
+      />
     </Dialog>
   );
 }
