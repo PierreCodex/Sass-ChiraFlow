@@ -50,7 +50,8 @@ export function normalizarTelefono(valor: string): string {
 /** Etiquetas de los roles. El backend manda la clave; el texto lo pone aquí. */
 const ETIQUETAS_ROL: Record<string, string> = {
   admin_general: "Administrador general",
-  admin_local: "Administrador local",
+  admin_local: "Administrador de sede",
+  recepcion: "Recepción",
   profesional: "Profesional",
 };
 

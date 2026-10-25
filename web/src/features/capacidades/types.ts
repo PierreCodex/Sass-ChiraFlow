@@ -1,7 +1,7 @@
 import type { NivelPermiso } from "@/features/roles/types";
 
 /**
- * Los 14 módulos del panel, en el orden en que los manda el backend.
+ * Los 15 módulos del panel, en el orden en que los manda el backend.
  *
  * Son las claves con las que se pregunta por permiso, y **no** las rutas ni
  * los títulos del menú: `empleados` sigue llamándose así aunque su pantalla se
@@ -16,6 +16,7 @@ export const MODULOS = [
   "servicios",
   "inventario",
   "caja",
+  "pagos",
   "reportes",
   "locales",
   "empleados",
@@ -39,7 +40,7 @@ export type Modulo = (typeof MODULOS)[number];
  * que decide de verdad es la de allá — el backend responde 403 igual.
  */
 export interface Capacidades {
-  /** Los 14 módulos siempre, con `null` donde no hay acceso. */
+  /** Los 15 módulos siempre, con `null` donde no hay acceso. */
   permisos: Record<string, NivelPermiso | null>;
   /**
    * Ve lo suyo y no lo de sus compañeros.

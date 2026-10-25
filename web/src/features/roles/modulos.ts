@@ -2,7 +2,7 @@ import type { Modulo } from "@/features/capacidades/types";
 import type { NivelPermiso } from "./types";
 
 /**
- * Cómo se llama y dónde va cada uno de los 14 módulos en pantalla.
+ * Cómo se llama y dónde va cada uno de los 15 módulos en pantalla.
  *
  * El backend manda **claves**, no etiquetas: `empleados`, `facturacion`. Los
  * rótulos y la agrupación los pone el frontend, que es la convención del repo
@@ -23,6 +23,7 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
   servicios: "Servicios y categorías",
   inventario: "Inventario",
   caja: "Caja",
+  pagos: "Pagos de citas",
   reportes: "Reportes",
   locales: "Locales y grupos",
   empleados: "Profesionales",
@@ -33,7 +34,7 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
 };
 
 /**
- * Los 14 en bloques con sentido para quien reparte permisos.
+ * Los 15 en bloques con sentido para quien reparte permisos.
  *
  * Catorce interruptores seguidos no se leen: quien está decidiendo qué puede
  * hacer una recepcionista piensa en «lo del día a día» y «lo de la empresa»,
@@ -59,8 +60,8 @@ export const GRUPOS_MODULOS: GrupoModulos[] = [
   },
   {
     titulo: "Dinero",
-    descripcion: "La caja del día y lo que se saca en limpio.",
-    modulos: ["caja", "reportes"],
+    descripcion: "La caja del día, los pagos por verificar y lo que se saca en limpio.",
+    modulos: ["caja", "pagos", "reportes"],
   },
   {
     titulo: "El negocio",

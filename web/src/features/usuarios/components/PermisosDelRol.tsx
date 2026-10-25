@@ -53,7 +53,7 @@ export default function PermisosDelRol({ rol, cargando }: Props) {
 
   /*
     Los módulos salen de las claves de su propia matriz: el backend garantiza
-    que `permisos` trae SIEMPRE los 14, con `null` donde no hay acceso. Así
+    que `permisos` trae SIEMPRE los 15, con `null` donde no hay acceso. Así
     esta vista no necesita pedir la lista aparte solo para pintar un resumen.
   */
   const modulos = Object.keys(rol.permisos);

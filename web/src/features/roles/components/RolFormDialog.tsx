@@ -36,7 +36,7 @@ interface Props {
   onCerrar: () => void;
 }
 
-/** Los 14 en `null`: un rol nuevo no da acceso a nada hasta que se marca. */
+/** Los 15 en `null`: un rol nuevo no da acceso a nada hasta que se marca. */
 function matrizVacia(modulos: string[]): Matriz {
   return Object.fromEntries(modulos.map((m) => [m, null]));
 }
@@ -182,7 +182,7 @@ const RolFormDialog = ({
           />
           {/*
             Va en su propio recuadro y no como una fila más de la matriz: no
-            dice QUÉ puede hacer sino SOBRE QUIÉN, y colarlo entre los catorce
+            dice QUÉ puede hacer sino SOBRE QUIÉN, y colarlo entre los quince
             módulos lo haría parecer un permiso más.
           */}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
