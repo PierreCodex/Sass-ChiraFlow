@@ -39,7 +39,7 @@ const TarjetaAuth = ({ children }: { children: ReactNode }) => (
           sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "450px" }}
         >
           <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
-            <Logo />
+            <Logo alto={52} />
           </Box>
           {children}
         </Card>
