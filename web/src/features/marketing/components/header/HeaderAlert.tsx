@@ -29,7 +29,7 @@ const HeaderAlert = () => {
           />
         ) : null}
         <Typography variant="body1" color="white" fontWeight={500} fontSize="13px" sx={{ opacity: 0.9 }}>
-          10 días de prueba gratis, sin tarjeta de crédito
+          7 días de prueba gratis, sin tarjeta de crédito
         </Typography>
       </Stack>
       <IconButton

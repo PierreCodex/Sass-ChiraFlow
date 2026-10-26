@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { suscripcionKeys } from "@/features/suscripcion/hooks/useSuscripcion";
 import { plataformaApi } from "../services/plataforma.api";
 import type { EstadoNegocio, MetodoPagoSuscripcion, PlanPlataforma } from "../types";
 
@@ -61,9 +62,14 @@ export function useAccionesNegocio(id: string) {
 
 export function useGuardarPlan() {
   const refrescar = useRefrescar();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (plan: PlanPlataforma) => plataformaApi.guardarPlan(plan),
-    onSuccess: refrescar,
+    onSuccess: () => {
+      refrescar();
+      // La landing y «Mi plan» leen estos mismos planes (prototipo).
+      queryClient.invalidateQueries({ queryKey: suscripcionKeys.planes });
+    },
   });
 }
 

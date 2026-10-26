@@ -41,7 +41,7 @@ const C2a = () => {
               </Typography>
               <Stack spacing={{ xs: 1, sm: 2 }} direction="row" flexWrap="wrap" mb={3}>
                 <Button component={Link} variant="contained" size="large" href="/register">
-                  Prueba gratis 10 días
+                  Prueba gratis 7 días
                 </Button>
                 <Button component={Link} variant="outlined" size="large" href="/login">
                   Iniciar sesión

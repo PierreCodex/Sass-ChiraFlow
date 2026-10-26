@@ -17,7 +17,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
-import { IconCheck, IconEdit } from "@tabler/icons-react";
+import { IconCheck, IconEdit, IconPlus } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
@@ -30,12 +30,32 @@ import {
 } from "@/features/plataforma/hooks/usePlataforma";
 import { ETIQUETA_FEATURE, limite, type PlanPlataforma } from "@/features/plataforma/types";
 
+/** Un plan en blanco: `id` 0 le dice al servicio que es nuevo. */
+const planNuevo: PlanPlataforma = {
+  id: 0,
+  slug: "",
+  nombre: "",
+  descripcion: "",
+  precio_mensual: 0,
+  precio_anual: null,
+  precio_promo: null,
+  promo_duracion_meses: 3,
+  promo_activa: false,
+  max_profesionales: 1,
+  max_sucursales: 1,
+  max_whatsapp_mes: 0,
+  destacado: false,
+  features: [],
+  activo: true,
+};
+
 /** Los planes que ofrece la plataforma, con cuántos negocios usa cada uno. */
 export default function PlanesPlataformaPage() {
   const { data: planes, isPending } = usePlanesPlataforma();
   const { data: resumen } = useResumenPlataforma();
   const guardar = useGuardarPlan();
   const [editando, setEditando] = useState<PlanPlataforma | null>(null);
+  const nombreValido = !editando || editando.nombre.trim() !== "";
 
   const usan = (slug: string) =>
     resumen?.por_plan.find((item) => item.plan.slug === slug)?.negocios ?? 0;
@@ -63,14 +83,25 @@ export default function PlanesPlataformaPage() {
 
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h3" fontWeight={700}>
-          Planes
-        </Typography>
-        <Typography color="textSecondary">
-          Lo que se ofrece a los negocios. Son los mismos 4 planes que siembra el backend.
-        </Typography>
-      </Box>
+      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2}>
+        <Box>
+          <Typography variant="h3" fontWeight={700}>
+            Planes
+          </Typography>
+          <Typography color="textSecondary">
+            Lo que se ofrece a los negocios. Los que se ofrecen en la landing son los mismos
+            que ven la landing y «Mi plan».
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<IconPlus size={18} />}
+          sx={{ alignSelf: { sm: "center" }, flexShrink: 0 }}
+          onClick={() => setEditando(planNuevo)}
+        >
+          Nuevo plan
+        </Button>
+      </Stack>
 
       {isPending ? (
         <Skeleton variant="rounded" height={420} />
@@ -158,9 +189,24 @@ export default function PlanesPlataformaPage() {
       )}
 
       <Dialog open={!!editando} onClose={() => setEditando(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Editar plan {editando?.nombre}</DialogTitle>
+        <DialogTitle>{editando?.id ? `Editar plan ${editando.nombre}` : "Nuevo plan"}</DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2}>
+            <Grid size={12}>
+              <CustomFormLabel htmlFor="nombre" sx={{ mt: 0 }}>
+                Nombre
+              </CustomFormLabel>
+              <CustomTextField
+                id="nombre"
+                fullWidth
+                value={editando?.nombre ?? ""}
+                error={!nombreValido}
+                helperText={!nombreValido ? "Escribe el nombre del plan." : undefined}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditando((actual) => (actual ? { ...actual, nombre: e.target.value } : actual))
+                }
+              />
+            </Grid>
             <Grid size={12}>
               <CustomFormLabel htmlFor="descripcion" sx={{ mt: 0 }}>
                 Descripción
@@ -214,7 +260,7 @@ export default function PlanesPlataformaPage() {
           </Button>
           <Button
             variant="contained"
-            disabled={guardar.isPending}
+            disabled={guardar.isPending || !nombreValido}
             onClick={() =>
               editando && guardar.mutate(editando, { onSuccess: () => setEditando(null) })
             }

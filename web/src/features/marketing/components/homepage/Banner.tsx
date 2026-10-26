@@ -76,7 +76,7 @@ const Banner = () => {
               justifyContent="center"
             >
               <Button component={Link} color="primary" size="large" variant="contained" href="/register">
-                Prueba gratis 10 días
+                Prueba gratis 7 días
               </Button>
               <Button component={Link} variant="outlined" color="inherit" size="large" href="#planes">
                 Ver planes

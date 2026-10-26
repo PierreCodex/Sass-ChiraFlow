@@ -73,6 +73,25 @@ export const plataformaApi = {
   guardarPlan: async (plan: PlanPlataforma): Promise<PlanPlataforma> => {
     await delay(400);
     const datos = almacenPlataforma.leer();
+
+    // `id` 0: un plan nuevo. Se le da el siguiente id y un slug único.
+    if (!plan.id) {
+      const base =
+        plan.nombre
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || "plan";
+      let slug = base;
+      for (let n = 2; datos.planes.some((item) => item.slug === slug); n++) slug = `${base}-${n}`;
+
+      const nuevo = { ...plan, id: Math.max(0, ...datos.planes.map((item) => item.id)) + 1, slug };
+      datos.planes = [...datos.planes, nuevo];
+      almacenPlataforma.guardar(datos);
+      return nuevo;
+    }
+
     datos.planes = datos.planes.map((item) => (item.id === plan.id ? plan : item));
     almacenPlataforma.guardar(datos);
     return plan;

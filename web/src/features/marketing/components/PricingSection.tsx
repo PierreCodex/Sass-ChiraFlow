@@ -36,8 +36,8 @@ const PricingSection = () => {
 
         {isPending ? (
           <Grid container spacing={3}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Grid key={i} size={{ xs: 12, md: 4 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6, lg: 3 }}>
                 <Skeleton variant="rounded" height={360} />
               </Grid>
             ))}
@@ -49,7 +49,7 @@ const PricingSection = () => {
             {planes.map((plan) => {
               const { conPromo, precio } = precioAplicado(plan, true);
               return (
-                <Grid key={plan.id} size={{ xs: 12, md: 4 }}>
+                <Grid key={plan.id} size={{ xs: 12, sm: 6, lg: 3 }}>
                   <Card
                     elevation={plan.destacado ? 9 : 1}
                     variant={plan.destacado ? "elevation" : "outlined"}

@@ -12,7 +12,7 @@ import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 const PREGUNTAS = [
   {
-    pregunta: "¿Qué incluye la prueba gratuita de 10 días?",
+    pregunta: "¿Qué incluye la prueba gratuita de 7 días?",
     respuesta:
       "Acceso completo a las funciones de tu plan, sin tarjeta de crédito. Si no continúas, no se te cobra nada.",
   },

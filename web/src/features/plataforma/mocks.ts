@@ -58,6 +58,14 @@ export const planesIniciales: PlanPlataforma[] = [
     promo_activa: false, max_profesionales: 15, max_sucursales: 999, max_whatsapp_mes: 500,
     destacado: false, features: PRO, activo: true,
   },
+  {
+    // Propuesta 2026-10-26, aún no está en el PlanSeeder del backend.
+    id: 5, slug: "empresa", nombre: "Empresa",
+    descripcion: "Para cadenas y clínicas con varias sedes y equipos grandes",
+    precio_mensual: 799, precio_anual: 7990, precio_promo: null, promo_duracion_meses: 0,
+    promo_activa: false, max_profesionales: 30, max_sucursales: 999, max_whatsapp_mes: 1000,
+    destacado: false, features: PRO, activo: true,
+  },
 ];
 
 /** Fecha YYYY-MM-DD desplazada `dias` desde hoy. */
@@ -178,7 +186,15 @@ export const almacenPlataforma = {
     if (typeof window === "undefined") return inicial();
     try {
       const crudo = window.localStorage.getItem(CLAVE);
-      return crudo ? (JSON.parse(crudo) as Almacen) : inicial();
+      if (!crudo) return inicial();
+
+      // Un navegador que guardó los datos antes de que existiera un plan no
+      // lo vería nunca: los que falten por slug se añaden al leer.
+      const datos = JSON.parse(crudo) as Almacen;
+      const faltan = planesIniciales.filter(
+        (inicialPlan) => !datos.planes.some((plan) => plan.slug === inicialPlan.slug)
+      );
+      return faltan.length ? { ...datos, planes: [...datos.planes, ...faltan] } : datos;
     } catch {
       return inicial();
     }
