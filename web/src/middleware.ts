@@ -47,8 +47,9 @@ const RUTAS_PUBLICAS = [
   "/invitacion",
   "/verificar-correo",
   "/reservar",
-  // La landing del SaaS.
+  // La landing del SaaS y sus páginas legales.
   "/inicio",
+  "/terminos",
 ];
 
 function esPublica(pathname: string) {

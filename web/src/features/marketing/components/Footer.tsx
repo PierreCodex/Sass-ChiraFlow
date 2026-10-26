@@ -37,6 +37,7 @@ const footerLinks = [
       { title: true, titleText: "Soporte" },
       { title: false, titleText: "Centro de soporte", link: "/soporte" },
       { title: false, titleText: "Contacto", link: "/inicio#faq" },
+      { title: false, titleText: "Términos y condiciones", link: "/terminos" },
     ],
   },
 ];
