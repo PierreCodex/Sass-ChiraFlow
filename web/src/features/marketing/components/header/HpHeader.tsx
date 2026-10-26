@@ -7,7 +7,6 @@ import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled } from "@mui/material/styles";
 import { IconMenu2 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -32,35 +31,37 @@ const HpHeader = () => {
     justifyContent: "space-between",
   }));
 
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
-  const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
   const [open, setOpen] = useState(false);
 
   return (
     <AppBarStyled position="sticky" elevation={0}>
       <Container sx={{ maxWidth: "1400px !important" }}>
         <ToolbarStyled>
-          <Logo href="/inicio" alto={48} />
-          {lgDown ? (
-            <IconButton color="inherit" aria-label="menu" onClick={() => setOpen(true)}>
-              <IconMenu2 size={20} />
-            </IconButton>
-          ) : null}
-          {lgUp ? (
-            <>
-              <Stack spacing={1} direction="row" alignItems="center">
-                <Navigations />
-              </Stack>
-              <Stack direction="row" spacing={1.5}>
-                <Button component={Link} color="inherit" href="/login">
-                  Iniciar sesión
-                </Button>
-                <Button component={Link} color="primary" variant="contained" href="/register">
-                  Prueba gratis
-                </Button>
-              </Stack>
-            </>
-          ) : null}
+          <Logo href="/inicio" alto={56} />
+          {/*
+           * Móvil o escritorio lo decide el CSS, no `useMediaQuery`: este
+           * vale `false` en el primer render, y hasta que el navegador
+           * respondía la barra salía sin enlaces ni menú.
+           */}
+          <IconButton
+            color="inherit"
+            aria-label="menu"
+            onClick={() => setOpen(true)}
+            sx={{ display: { xs: "inline-flex", lg: "none" } }}
+          >
+            <IconMenu2 size={22} />
+          </IconButton>
+          <Stack spacing={1} direction="row" alignItems="center" sx={{ display: { xs: "none", lg: "flex" } }}>
+            <Navigations />
+          </Stack>
+          <Stack direction="row" spacing={1.5} sx={{ display: { xs: "none", lg: "flex" } }}>
+            <Button component={Link} color="inherit" href="/login">
+              Iniciar sesión
+            </Button>
+            <Button component={Link} color="primary" variant="contained" href="/register">
+              Prueba gratis
+            </Button>
+          </Stack>
         </ToolbarStyled>
       </Container>
       <Drawer

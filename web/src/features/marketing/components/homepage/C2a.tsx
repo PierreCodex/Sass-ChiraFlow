@@ -6,7 +6,6 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
-import useMediaQuery from "@mui/material/useMediaQuery";
 
 import DashboardMockup from "./DashboardMockup";
 
@@ -16,7 +15,6 @@ import DashboardMockup from "./DashboardMockup";
  * Modernize (`design-collection.png`) que no representa este producto.
  */
 const C2a = () => {
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
 
   return (
     <Container sx={{ maxWidth: "1400px !important", py: { xs: "20px", lg: "30px" } }}>
@@ -41,7 +39,7 @@ const C2a = () => {
               </Typography>
               <Stack spacing={{ xs: 1, sm: 2 }} direction="row" flexWrap="wrap" mb={3}>
                 <Button component={Link} variant="contained" size="large" href="/register">
-                  Prueba gratis 10 días
+                  Prueba gratis 7 días
                 </Button>
                 <Button component={Link} variant="outlined" size="large" href="/login">
                   Iniciar sesión
@@ -57,11 +55,18 @@ const C2a = () => {
           </Grid>
         </Container>
 
-        {lgUp ? (
-          <Box sx={{ position: "absolute", right: "-40px", top: "50%", transform: "translateY(-50%)" }}>
-            <DashboardMockup />
-          </Box>
-        ) : null}
+        {/* Solo donde hay sitio al lado del texto; lo decide el CSS. */}
+        <Box
+          sx={{
+            display: { xs: "none", lg: "block" },
+            position: "absolute",
+            right: "-40px",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
+        >
+          <DashboardMockup />
+        </Box>
       </Box>
     </Container>
   );

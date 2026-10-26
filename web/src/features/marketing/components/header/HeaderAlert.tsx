@@ -5,7 +5,6 @@ import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { IconX } from "@tabler/icons-react";
 
 /**
@@ -14,22 +13,24 @@ import { IconX } from "@tabler/icons-react";
  */
 const HeaderAlert = () => {
   const [visible, setVisible] = useState(true);
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
 
   if (!visible) return null;
 
   return (
-    <Box bgcolor="primary.main" textAlign="center" py="11px" position="relative">
+    <Box bgcolor="primary.main" textAlign="center" py="11px" pl={{ xs: 2, sm: 6 }} pr={6} position="relative">
       <Stack direction={{ xs: "column", sm: "row" }} spacing="16px" justifyContent="center" alignItems="center">
-        {lgUp ? (
-          <Chip
-            label="Nuevo"
-            size="small"
-            sx={{ backgroundColor: "rgba(255,255,255,0.15)", color: "white", borderRadius: "8px" }}
-          />
-        ) : null}
+        <Chip
+          label="Nuevo"
+          size="small"
+          sx={{
+            display: { xs: "none", lg: "inline-flex" },
+            backgroundColor: "rgba(255,255,255,0.15)",
+            color: "white",
+            borderRadius: "8px",
+          }}
+        />
         <Typography variant="body1" color="white" fontWeight={500} fontSize="13px" sx={{ opacity: 0.9 }}>
-          10 días de prueba gratis, sin tarjeta de crédito
+          7 días de prueba gratis, sin tarjeta de crédito
         </Typography>
       </Stack>
       <IconButton
