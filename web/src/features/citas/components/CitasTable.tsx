@@ -6,14 +6,16 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import DataTable, { type Columna } from "@/components/shared/DataTable";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { usePaginacion } from "@/hooks/usePaginacion";
 import { formatFecha, formatMoneda } from "@/lib/format";
 import { ESTADOS_CITA } from "../constants";
+import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { useCitas } from "../hooks/useCitas";
+import { enlaceRecordatorio } from "../recordatorio";
 import { nombreDeServicios, type Cita, type EstadoCita } from "../types";
 
 interface Props {
@@ -32,6 +34,7 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
     [params, estado]
   );
   const { data, isPending, error } = useCitas(consulta);
+  const { data: negocio } = useNegocio();
 
   const columnas: Columna<Cita>[] = [
     {
@@ -109,20 +112,46 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       id: "acciones",
       label: "Acciones",
       align: "right",
-      render: (cita) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-          <Tooltip title="Editar">
-            <IconButton size="small" color="primary" onClick={() => onEditar(cita)}>
-              <IconPencil size={18} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton size="small" color="error" onClick={() => onEliminar(cita)}>
-              <IconTrash size={18} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
+      render: (cita) => {
+        const recordatorio = enlaceRecordatorio(cita, negocio);
+        return (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+            <Tooltip
+              title={
+                recordatorio
+                  ? "Recordar por WhatsApp"
+                  : cita.cliente_telefono
+                    ? "Esta cita ya no necesita recordatorio"
+                    : "El cliente no dejó celular"
+              }
+            >
+              {/* El span deja ver el tooltip aunque el botón esté desactivado. */}
+              <span>
+                <IconButton
+                  size="small"
+                  color="success"
+                  disabled={!recordatorio}
+                  href={recordatorio ?? ""}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <IconBrandWhatsapp size={18} />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Editar">
+              <IconButton size="small" color="primary" onClick={() => onEditar(cita)}>
+                <IconPencil size={18} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Eliminar">
+              <IconButton size="small" color="error" onClick={() => onEliminar(cita)}>
+                <IconTrash size={18} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      },
     },
   ];
 
