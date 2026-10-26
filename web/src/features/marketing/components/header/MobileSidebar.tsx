@@ -10,7 +10,7 @@ import { NavLinks } from "./Navigations";
 const MobileSidebar = () => (
   <>
     <Box px={3} py={2}>
-      <Logo href="/inicio" />
+      <Logo href="/inicio" alto={40} />
     </Box>
     <Box p={3}>
       <Stack direction="column" spacing={2}>

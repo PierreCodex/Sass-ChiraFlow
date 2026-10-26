@@ -40,7 +40,7 @@ const HpHeader = () => {
     <AppBarStyled position="sticky" elevation={0}>
       <Container sx={{ maxWidth: "1400px !important" }}>
         <ToolbarStyled>
-          <Logo href="/inicio" />
+          <Logo href="/inicio" alto={48} />
           {lgDown ? (
             <IconButton color="inherit" aria-label="menu" onClick={() => setOpen(true)}>
               <IconMenu2 size={20} />
