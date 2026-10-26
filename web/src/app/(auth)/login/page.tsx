@@ -54,8 +54,8 @@ export default function Login2() {
               elevation={9}
               sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "450px" }}
             >
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <Logo />
+              <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
+                <Logo alto={52} />
               </Box>
               {/* AuthLogin lee `next` y `sesion` de la URL con
                   useSearchParams, que suspende el arbol durante el
