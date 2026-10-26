@@ -18,7 +18,8 @@ import { useContext } from "react";
 const ALTO_LOGO = 36;
 const ANCHO_LOGO = 112; // 498 × 160 px en origen
 
-const Logo = () => {
+/** `href`: a dónde lleva. El panel va a `/`; la landing, a sí misma. */
+const Logo = ({ href = "/" }: { href?: string }) => {
   const { isCollapse, isSidebarHover, activeMode } = useContext(CustomizerContext);
 
   const TopbarHeight = config.topbarHeight;
@@ -33,7 +34,7 @@ const Logo = () => {
   }));
 
   return (
-    <LinkStyled href="/">
+    <LinkStyled href={href}>
       <Image
         src={activeMode === "dark" ? "/images/logos/tivu-logo-blanco.png" : "/images/logos/tivu-logo.png"}
         alt="tivu"

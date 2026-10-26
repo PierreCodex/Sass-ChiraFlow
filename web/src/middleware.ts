@@ -49,6 +49,9 @@ const RUTAS_PUBLICAS = [
   "/reservar",
   // Panel de plataforma (prototipo Épica 8): sesión propia, no la del negocio.
   "/plataforma",
+  // La landing del SaaS y sus páginas legales.
+  "/inicio",
+  "/terminos",
 ];
 
 function esPublica(pathname: string) {
@@ -98,6 +101,18 @@ export function middleware(request: NextRequest) {
   // logout + vuelta al login. Esto es para que no se pinte un dashboard vacío
   // que se rompe medio segundo después.
   if (request.cookies.has(COOKIE_TOKEN)) return NextResponse.next();
+
+  /*
+   * La puerta de la web: quien llega a `/` sin sesión ve la landing, no el
+   * login. Se reescribe y no se redirige, para que la dirección siga siendo
+   * la raíz. Con sesión, `/` sigue siendo el panel (arriba), y la landing
+   * queda a mano en `/inicio`.
+   */
+  if (pathname === "/") {
+    const landing = request.nextUrl.clone();
+    landing.pathname = "/inicio";
+    return NextResponse.rewrite(landing);
+  }
 
   const login = request.nextUrl.clone();
   login.pathname = "/login";
