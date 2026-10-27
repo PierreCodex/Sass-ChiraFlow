@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body>
         {/* Fuera del tema de MUI: el violeta de tivu va a mano. */}
-        <NextTopLoader color="#6843E8" />
+        <NextTopLoader color="#4A2CF5" />
         <CustomizerContextProvider>
           <Providers>{children}</Providers>
         </CustomizerContextProvider>
