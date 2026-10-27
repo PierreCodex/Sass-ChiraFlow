@@ -10,6 +10,8 @@ import Link from "next/link";
  * La portada de la landing: titular, subtítulo y las dos llamadas a la
  * acción, centrados.
  *
+ * Encima, la animación del logo.
+ *
  * Sin las decoraciones de la demo de Modernize (`banner-top-left.svg`,
  * `banner-top-right.svg`, `bottom-part.svg`): eran capturas de su dashboard,
  * en inglés y en dólares, colocadas con `position: absolute`, así que según
@@ -21,6 +23,28 @@ const TITULO = { xs: "34px", sm: "48px", md: "60px", lg: "68px" };
 const Banner = () => (
   <Box bgcolor="primary.light" py={{ xs: 7, md: 11 }}>
     <Container maxWidth="md" sx={{ textAlign: "center" }}>
+      {/*
+       * La animación del logo, una sola vez: sin `loop`, el vídeo se queda en
+       * el último fotograma, que es el logo completo. Su fondo es blanco; con
+       * `multiply` el blanco toma el color de la franja y no se ve el recuadro.
+       */}
+      <Box
+        component="video"
+        src="/images/logos/tivu-intro.mp4"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        aria-label="tivu"
+        sx={{
+          display: "block",
+          width: { xs: 280, sm: 380, md: 460 },
+          maxWidth: "100%",
+          mx: "auto",
+          mb: { xs: 2, md: 3 },
+          mixBlendMode: "multiply",
+        }}
+      />
       <Typography variant="h1" fontWeight={700} lineHeight={1.15} sx={{ fontSize: TITULO }}>
         Tu tiempo,{" "}
         <Box component="span" color="primary.main">
