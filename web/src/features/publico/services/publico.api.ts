@@ -4,6 +4,8 @@ import { delay } from "@/lib/mock-utils";
 import { citasMock } from "@/features/citas/mocks";
 import { profesionalesMock } from "@/features/profesionales/mocks";
 import { configuracionMock } from "@/features/configuracion/mocks";
+import { almacenPagos } from "@/features/pagos/mocks";
+import { registrarPagoMock } from "@/features/pagos/services/pagos.api";
 import {
   huecosDisponibles,
   jornadaDelDia,
@@ -155,15 +157,41 @@ export const publicoApi = {
             ]
           : citas;
 
-      return {
-        codigo: `R-${Date.now().toString().slice(-6)}`,
-        modo: payload.modo,
-        total: payload.servicios.reduce((suma, linea) => {
-          const servicio = servicios.find((item) => item.id === linea.id)!;
-          return suma + servicio.precio * linea.cantidad;
-        }, 0),
-        citas: unificadas,
-      };
+      const codigo = `R-${Date.now().toString().slice(-6)}`;
+      const total = payload.servicios.reduce((suma, linea) => {
+        const servicio = servicios.find((item) => item.id === linea.id)!;
+        return suma + servicio.precio * linea.cantidad;
+      }, 0);
+
+      // Pagar ahora deja un pago pendiente que la encargada verá en el panel.
+      let pago: ReservaConfirmada["pago"] = null;
+      if (payload.metodo_pago_eleccion === "ahora") {
+        const plazo = almacenPagos.config().plazo_min;
+        const venceA = new Date(Date.now() + plazo * 60_000).toISOString();
+        pago = { eleccion: "ahora", vence_a: venceA };
+        registrarPagoMock({
+          codigo,
+          cliente_nombre: [payload.cliente_nombre, payload.cliente_apellido]
+            .filter(Boolean)
+            .join(" "),
+          cliente_telefono: payload.cliente_telefono,
+          cliente_email: payload.cliente_email,
+          servicios: unificadas.map((cita) => cita.servicio).join(" + "),
+          fecha: unificadas[0].fecha,
+          hora_inicio: unificadas[0].hora_inicio,
+          total,
+          estado: "pendiente",
+          metodo_id: null,
+          metodo_nombre: null,
+          comprobante_url: null,
+          codigo_operacion: null,
+          motivo: null,
+          vence_a: venceA,
+          creado_en: new Date().toISOString(),
+        });
+      }
+
+      return { codigo, modo: payload.modo, total, pago, citas: unificadas };
     }
 
     const { data } = await api.post<{ data: ReservaConfirmada }>(

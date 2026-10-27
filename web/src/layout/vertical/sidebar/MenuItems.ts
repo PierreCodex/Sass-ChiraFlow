@@ -15,6 +15,8 @@ import {
   IconCashRegister,
   IconPackage,
   IconLifebuoy,
+  IconQrcode,
+  IconFileInvoice,
 } from "@tabler/icons-react";
 
 export interface MenuitemsType {
@@ -86,6 +88,16 @@ const Menuitems: MenuitemsType[] = [
     href: "/clientes",
     modulo: "clientes",
   },
+  {
+    id: uniqueId(),
+    title: "Pagos",
+    icon: IconQrcode,
+    href: "/pagos",
+    // Hasta que exista el módulo `pagos` (Story 1.6), cuelga de citas.
+    modulo: "citas",
+    chip: "Nuevo",
+    chipColor: "secondary",
+  },
 
   {
     navlabel: true,
@@ -117,6 +129,16 @@ const Menuitems: MenuitemsType[] = [
     icon: IconCashRegister,
     href: "/caja",
     modulo: "caja",
+  },
+  {
+    id: uniqueId(),
+    title: "Comprobantes",
+    icon: IconFileInvoice,
+    href: "/comprobantes",
+    // Prototipo: lo que se cobra al cliente es dinero de la caja.
+    modulo: "caja",
+    chip: "Nuevo",
+    chipColor: "secondary",
   },
   {
     id: uniqueId(),

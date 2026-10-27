@@ -17,7 +17,7 @@ export const env = {
     "http://localhost:8000/api",
 
   /** Nombre visible de la app (títulos, metadata). */
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Mi SaaS",
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "tivu",
 
   /**
    * Dominio raíz para las tiendas públicas por subdominio:

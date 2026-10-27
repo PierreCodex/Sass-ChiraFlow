@@ -26,6 +26,9 @@ import { dialogoResponsive, formularioCompacto } from "@/components/shared/estil
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 
+import { useConfigPagosPublica } from "@/features/pagos/hooks/usePagos";
+import { cobroActivo, metodosActivos, type EleccionPago } from "@/features/pagos/types";
+
 import SelectorHueco from "./SelectorHueco";
 import { useReservar } from "../hooks/useTienda";
 import type {
@@ -77,11 +80,20 @@ const WizardReserva = ({
   const [asignaciones, setAsignaciones] = useState<AsignacionServicio[]>([]);
   const [datos, setDatos] = useState<DatosCliente>(DATOS_VACIOS);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [eleccionPago, setEleccionPago] = useState<EleccionPago>("ahora");
+
+  const { data: configPagos } = useConfigPagosPublica(slug);
+  const pideCobro = cobroActivo(configPagos);
+  const cobroObligatorio = pideCobro && configPagos?.modo === "obligatorio";
+  const nombresMetodos = metodosActivos(configPagos)
+    .map((metodo) => metodo.nombre)
+    .join(", ");
 
   useEffect(() => {
     if (!abierto) return;
     reservar.reset();
     setPaso(0);
+    setEleccionPago("ahora");
     setModo("unica");
     setDatos(DATOS_VACIOS);
     setErrores({});
@@ -154,6 +166,11 @@ const WizardReserva = ({
       {
         ...datos,
         modo,
+        metodo_pago_eleccion: pideCobro
+          ? cobroObligatorio
+            ? "ahora"
+            : eleccionPago
+          : null,
         servicios: asignaciones.map((asignacion) => ({
           id: asignacion.id,
           cantidad: asignacion.cantidad,
@@ -464,10 +481,72 @@ const WizardReserva = ({
               </Typography>
             </Stack>
 
-            <Alert severity="info">
-              Tu reserva queda <strong>pendiente</strong> hasta que el negocio
-              la confirme. Te avisamos a {datos.cliente_email}.
-            </Alert>
+            {pideCobro && !cobroObligatorio ? (
+              <Box>
+                <Typography variant="h6" mb={1.5}>
+                  ¿Cómo quieres pagar?
+                </Typography>
+                <Grid container spacing={2}>
+                  {(
+                    [
+                      {
+                        valor: "ahora" as EleccionPago,
+                        titulo: "Pagar ahora",
+                        detalle: `Te mostramos el QR para pagar con ${nombresMetodos} y subes tu captura.`,
+                      },
+                      {
+                        valor: "local" as EleccionPago,
+                        titulo: "Pagar en el local",
+                        detalle: "Pagas el día de tu cita, al llegar.",
+                      },
+                    ]
+                  ).map((opcion) => (
+                    <Grid key={opcion.valor} size={{ xs: 12, sm: 6 }}>
+                      <Card
+                        variant="outlined"
+                        onClick={() => setEleccionPago(opcion.valor)}
+                        sx={{
+                          cursor: "pointer",
+                          height: "100%",
+                          borderColor:
+                            eleccionPago === opcion.valor ? "primary.main" : "divider",
+                        }}
+                      >
+                        <CardContent>
+                          <Stack direction="row" spacing={2} alignItems="flex-start">
+                            <Radio
+                              checked={eleccionPago === opcion.valor}
+                              sx={{ p: 0, mt: 0.5 }}
+                            />
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight={600}>
+                                {opcion.titulo}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {opcion.detalle}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            ) : null}
+
+            {cobroObligatorio ? (
+              <Alert severity="warning">
+                Este negocio pide el <strong>pago al reservar</strong>. Al
+                confirmar te mostramos el QR ({nombresMetodos}) para pagar{" "}
+                {formatMoneda(montoTotal)} y subir tu captura.
+              </Alert>
+            ) : (
+              <Alert severity="info">
+                Tu reserva queda <strong>pendiente</strong> hasta que el negocio
+                la confirme. Te avisamos a {datos.cliente_email}.
+              </Alert>
+            )}
           </Stack>
         ) : null}
       </DialogContent>
@@ -489,7 +568,11 @@ const WizardReserva = ({
             onClick={confirmar}
             disabled={reservar.isPending}
           >
-            {reservar.isPending ? "Reservando…" : "Confirmar reserva"}
+            {reservar.isPending
+              ? "Reservando…"
+              : pideCobro && (cobroObligatorio || eleccionPago === "ahora")
+                ? "Confirmar e ir a pagar"
+                : "Confirmar reserva"}
           </Button>
         ) : (
           <Button

@@ -7,6 +7,8 @@ import Link from "next/link";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormHelperText from "@mui/material/FormHelperText";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
@@ -20,7 +22,9 @@ import {
   IconMailCheck,
 } from "@tabler/icons-react";
 
+import CustomCheckbox from "@/components/forms/theme-elements/CustomCheckbox";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
+import { env } from "@/config/env";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
@@ -339,6 +343,49 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
           </Box>
         </Stack>
 
+        <Controller
+          name="acepta_terminos"
+          control={control}
+          render={({ field }) => (
+            <Box mt={2}>
+              <FormControlLabel
+                sx={{ alignItems: "flex-start", mr: 0 }}
+                control={
+                  <CustomCheckbox
+                    name={field.name}
+                    inputRef={field.ref}
+                    checked={!!field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    onBlur={field.onBlur}
+                    sx={{ mt: -0.5 }}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    He leído y acepto los{" "}
+                    {/* Pestaña nueva: no perder lo ya escrito en el formulario. */}
+                    <Typography
+                      component={Link}
+                      href="/terminos"
+                      target="_blank"
+                      variant="body2"
+                      sx={{ textDecoration: "none", color: "primary.main" }}
+                    >
+                      términos y condiciones
+                    </Typography>{" "}
+                    de {env.appName}, incluido el tratamiento de mis datos personales.
+                  </Typography>
+                }
+              />
+              {errors.acepta_terminos ? (
+                <FormHelperText error sx={{ ml: 4 }}>
+                  {errors.acepta_terminos.message}
+                </FormHelperText>
+              ) : null}
+            </Box>
+          )}
+        />
+
         <Button
           color="primary"
           variant="contained"
@@ -346,27 +393,10 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
           fullWidth
           type="submit"
           disabled={registro.isPending}
-          sx={{ mt: 3 }}
+          sx={{ mt: 2 }}
         >
           {registro.isPending ? "Creando tu cuenta…" : "Crear cuenta gratis"}
         </Button>
-
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          textAlign="center"
-          mt={1.5}
-        >
-          Al crear tu cuenta, aceptas nuestros{" "}
-          <Typography
-            component={Link}
-            href="/terminos"
-            variant="body2"
-            sx={{ textDecoration: "none", color: "primary.main" }}
-          >
-            términos y condiciones
-          </Typography>
-        </Typography>
       </Box>
 
       {subtitle}

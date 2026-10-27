@@ -24,7 +24,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
-import { IconPlus, IconX } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconPlus, IconX } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
@@ -46,6 +46,7 @@ import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
+import { enlaceRecordatorio } from "../recordatorio";
 import SelectorHuecos from "./SelectorHuecos";
 import {
   citaSchema,
@@ -144,6 +145,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
   // El dueño decide cómo se generan los huecos (ver Configuración).
   const { data: configuracion } = useNegocio();
+  const recordatorio = cita ? enlaceRecordatorio(cita, configuracion) : null;
 
   /**
    * Huecos en los que cabe esta cita: jornada del profesional, menos sus
@@ -669,6 +671,20 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
         <Divider />
 
         <DialogActions sx={{ p: 3 }}>
+          {recordatorio ? (
+            // Usa la cita guardada, no lo que se está editando: el mensaje no
+            // debe anunciar una hora que todavía no se guardó.
+            <Button
+              color="success"
+              startIcon={<IconBrandWhatsapp size={18} />}
+              href={recordatorio}
+              target="_blank"
+              rel="noreferrer"
+              sx={{ mr: "auto" }}
+            >
+              Recordar por WhatsApp
+            </Button>
+          ) : null}
           <Stack direction="row" spacing={1}>
             <Button type="submit" variant="contained" disabled={mutacion.isPending}>
               {mutacion.isPending
