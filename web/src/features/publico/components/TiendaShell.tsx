@@ -123,7 +123,7 @@ const TiendaShell = ({
           }}
         >
           <Typography variant="caption" color="textSecondary">
-            Reservas gestionadas con {process.env.NEXT_PUBLIC_APP_NAME ?? "Mi SaaS"}
+            Reservas gestionadas con {process.env.NEXT_PUBLIC_APP_NAME ?? "tivu"}
           </Typography>
         </Box>
       </Box>
