@@ -46,7 +46,7 @@ tema y su paleta. De un diseño anterior se replica el **contenido** (campos,
 reglas, textos), **nunca** el diseño.
 
 El tema es `TIVU_THEME` (`context/config.ts`), con la paleta de la marca
-tivu (violeta `#6843E8`, menta `#BAFFCE`) en `utils/theme/LightThemeColors.tsx`
+tivu (violeta `#4A2CF5`, menta `#33F3CE`, sacados del logo) en `utils/theme/LightThemeColors.tsx`
 y `DarkThemeColors.tsx`; no tocarlo. Sustituyó a `AQUA_THEME` el 2026-10-26,
 cuando llegó la marca. El logo es `layout/shared/logo/Logo.tsx`. Los colores se
 piden siempre al tema —`primary.main`, `secondary.light`— y nunca a mano en
