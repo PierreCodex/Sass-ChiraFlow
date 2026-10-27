@@ -111,15 +111,15 @@ const DarkThemeColors = [
     name: 'TIVU_THEME',
     palette: {
       primary: {
-        main: '#7B5CF0',
-        light: '#2A2152',
-        dark: '#6843E8',
+        main: '#6A50FA',
+        light: '#221B52',
+        dark: '#4A2CF5',
         contrastText: '#ffffff',
       },
       secondary: {
-        main: '#5EDDA6',
-        light: '#123D2E',
-        dark: '#2FC38A',
+        main: '#4FE8C8',
+        light: '#0F3B33',
+        dark: '#1EC4A2',
         contrastText: '#ffffff',
       },
     },

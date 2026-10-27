@@ -16,7 +16,7 @@ import { useContext } from "react";
  * de texto blanco. El símbolo es el mismo en las dos.
  */
 const ALTO_LOGO = 36;
-const ANCHO_LOGO = 112; // 498 × 160 px en origen
+const ANCHO_LOGO = 117; // 518 × 160 px en origen
 
 interface Props {
   /** A dónde lleva. El panel va a `/`; la landing, a sí misma. */
