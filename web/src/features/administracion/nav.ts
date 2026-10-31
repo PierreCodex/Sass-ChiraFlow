@@ -92,6 +92,14 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
           "Tu enlace de reservas, si está encendido y los términos que acepta el cliente.",
         modulo: "configuracion",
       },
+      {
+        // Prototipo de la Épica 7 con varios métodos: responde con mocks.
+        slug: "cobros",
+        titulo: "Cobros con QR",
+        descripcion:
+          "Si pides el pago al reservar y con qué billeteras: Yape, Plin, BIM, Lemon, Prex…",
+        modulo: "configuracion",
+      },
     ],
   },
   {

@@ -6,14 +6,24 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconFileInvoice, IconPencil, IconTrash } from "@tabler/icons-react";
 
 import DataTable, { type Columna } from "@/components/shared/DataTable";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { usePaginacion } from "@/hooks/usePaginacion";
 import { formatFecha, formatMoneda } from "@/lib/format";
 import { ESTADOS_CITA } from "../constants";
+import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
+import { usePermisos } from "@/features/capacidades/hooks/useCapacidades";
+import DialogoComprobante from "@/features/comprobantes/components/DialogoComprobante";
+import DialogoEmitirComprobante, {
+  type BorradorComprobante,
+} from "@/features/comprobantes/components/DialogoEmitirComprobante";
+import { useComprobantes } from "@/features/comprobantes/hooks/useComprobantes";
+import { numeroComprobante, type Comprobante } from "@/features/comprobantes/types";
 import { useCitas } from "../hooks/useCitas";
+import { admiteComprobante, borradorDesdeCita } from "../comprobante";
+import { enlaceRecordatorio } from "../recordatorio";
 import { nombreDeServicios, type Cita, type EstadoCita } from "../types";
 
 interface Props {
@@ -32,6 +42,20 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
     [params, estado]
   );
   const { data, isPending, error } = useCitas(consulta);
+  const { data: negocio } = useNegocio();
+
+  // Los comprobantes son dinero de la caja (como en el menú): quien solo
+  // agenda no los emite.
+  const { puedeGestionar: puedeCobrar } = usePermisos("caja");
+  const { data: comprobantes } = useComprobantes();
+  const [borrador, setBorrador] = useState<BorradorComprobante | null>(null);
+  const [comprobanteAbierto, setComprobanteAbierto] = useState<Comprobante | null>(null);
+
+  // Si la cita ya tiene uno vigente, el botón lo abre en vez de emitir otro.
+  const comprobanteDe = (cita: Cita) =>
+    comprobantes?.find(
+      (item) => item.reserva_codigo === cita.codigo && item.estado === "emitido"
+    ) ?? null;
 
   const columnas: Columna<Cita>[] = [
     {
@@ -109,20 +133,72 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
       id: "acciones",
       label: "Acciones",
       align: "right",
-      render: (cita) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-          <Tooltip title="Editar">
-            <IconButton size="small" color="primary" onClick={() => onEditar(cita)}>
-              <IconPencil size={18} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton size="small" color="error" onClick={() => onEliminar(cita)}>
-              <IconTrash size={18} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
+      render: (cita) => {
+        const recordatorio = enlaceRecordatorio(cita, negocio);
+        return (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+            <Tooltip
+              title={
+                recordatorio
+                  ? "Recordar por WhatsApp"
+                  : cita.cliente_telefono
+                    ? "Esta cita ya no necesita recordatorio"
+                    : "El cliente no dejó celular"
+              }
+            >
+              {/* El span deja ver el tooltip aunque el botón esté desactivado. */}
+              <span>
+                <IconButton
+                  size="small"
+                  color="success"
+                  disabled={!recordatorio}
+                  href={recordatorio ?? ""}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <IconBrandWhatsapp size={18} />
+                </IconButton>
+              </span>
+            </Tooltip>
+            {puedeCobrar ? (
+              <Tooltip
+                title={
+                  comprobanteDe(cita)
+                    ? `Ver comprobante ${numeroComprobante(comprobanteDe(cita)!)}`
+                    : admiteComprobante(cita)
+                      ? "Generar comprobante"
+                      : "Una cita cancelada o sin asistencia no se cobra"
+                }
+              >
+                <span>
+                  <IconButton
+                    size="small"
+                    color="secondary"
+                    disabled={!comprobanteDe(cita) && !admiteComprobante(cita)}
+                    onClick={() => {
+                      const existente = comprobanteDe(cita);
+                      if (existente) setComprobanteAbierto(existente);
+                      else setBorrador(borradorDesdeCita(cita));
+                    }}
+                  >
+                    <IconFileInvoice size={18} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+            <Tooltip title="Editar">
+              <IconButton size="small" color="primary" onClick={() => onEditar(cita)}>
+                <IconPencil size={18} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Eliminar">
+              <IconButton size="small" color="error" onClick={() => onEliminar(cita)}>
+                <IconTrash size={18} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      },
     },
   ];
 
@@ -161,6 +237,19 @@ const CitasTable = ({ onEditar, onEliminar }: Props) => {
         onPerPageChange={setPerPage}
         mensajeVacio="No hay citas que coincidan con el filtro."
         minWidth={1000}
+      />
+
+      <DialogoEmitirComprobante
+        borrador={borrador}
+        onCerrar={() => setBorrador(null)}
+        onEmitido={(comprobante) => {
+          setBorrador(null);
+          setComprobanteAbierto(comprobante);
+        }}
+      />
+      <DialogoComprobante
+        comprobante={comprobanteAbierto}
+        onCerrar={() => setComprobanteAbierto(null)}
       />
     </>
   );
