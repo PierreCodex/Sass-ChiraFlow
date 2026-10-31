@@ -47,6 +47,8 @@ const RUTAS_PUBLICAS = [
   "/invitacion",
   "/verificar-correo",
   "/reservar",
+  // Panel de plataforma (prototipo Épica 8): sesión propia, no la del negocio.
+  "/plataforma",
 ];
 
 function esPublica(pathname: string) {
