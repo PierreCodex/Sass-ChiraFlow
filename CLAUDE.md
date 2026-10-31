@@ -115,6 +115,37 @@ No hay tests todavía. `npm run lint` no está configurado (no hay eslint.config
 
 ---
 
+## Ramas: `develop` para trabajar, `main` para lo probado
+
+Desde el 2026-10-31, en los **dos** repos (`Sass-ChiraFlow` y `Backend-Sass`):
+
+```
+sprint-N/historia ──PR──> develop ──PR (bloque probado)──> main
+```
+
+- **`develop` es la rama común de trabajo.** Toda historia, arreglo o
+  prototipo **sale de `develop`** y **vuelve a `develop` por PR**. Ahí se
+  prueba todo junto.
+- **`main` es lo estable.** Solo recibe `develop`, por PR, cuando un bloque
+  está probado: al cerrar un sprint o antes de desplegar. La aprueba y la
+  mergea Jean. Nadie —tampoco un agente— hace merge local ni push directo a
+  `main` ni a `develop`.
+- **Nombres de rama:** `sprint-N/N-M-descripcion` para historias,
+  `feat/…`, `fix/…`, `chore/…` para lo demás. Siempre con base `develop`.
+- **Las ramas personales (`sandro/develop`, `dev-Sandro`…) son de quien las
+  creó, para probar en local.** Nadie saca ramas de ellas ni las mergea a
+  `develop` o `main`: arrastran trabajo sin revisar. Lo que valga de ahí se
+  lleva en su propia rama, salida de `develop`, con su PR.
+- **PR encadenadas:** su base tiene que ser `develop` o una rama que ya tenga
+  PR abierta. Nunca una rama sin PR: no hay forma de revisarla ni de
+  mergearla en orden.
+- **Al mergear:** «Create a merge commit» (el equivalente de `--no-ff`: cada
+  historia se revierte de un tirón).
+- **Antes de abrir la PR:** `npm run typecheck` en verde y `bmad-code-review`
+  hecho. En la PR, el enlace a la spec de la historia.
+
+---
+
 ## Arquitectura de `web/src`
 
 ```

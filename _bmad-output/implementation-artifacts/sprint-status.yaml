@@ -355,5 +355,5 @@ sprint_1:
     - "Las cuatro escaladas G-1 a G-4 tienen prueba que falla sin el arreglo"
     - "La suite completa en verde, incluida la de aislacion entre negocios"
     - "bmad-code-review antes de mergear cada historia que toque CitaService"
-    - "Merge con --no-ff, una rama por historia: sprint-N/historia"
+    - "Una rama por historia (sprint-N/historia) salida de develop y de vuelta a develop por PR con merge commit; develop pasa a main por PR al cerrar el sprint (desde 2026-10-31)"
   fuera_de_este_sprint: ["1.8", "1.10", "1.12", "1.13", "1.15", "3.2", "3.3"]
