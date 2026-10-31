@@ -322,8 +322,8 @@ duplicarla.
 | GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
 | POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
-| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación |
-| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas |
+| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación. Con alcance por sedes, solo los que ya tienen fila en alguna de sus sedes (1.8) |
+| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
 | POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
@@ -571,7 +571,7 @@ formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
 
 ```json
 { "data": {
-  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": "#...", "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": null, "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "locales": {"data": [{"id": 3, "nombre": "Principal"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
@@ -585,6 +585,10 @@ formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
 permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
 devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
 información de pago, comisión ni cuentas de profesionales.
+
+En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
+llegan todos los profesionales activos y sus servicios, y `locales` viene
+vacío. `color` de cada profesional es `null` hasta que la ficha lo tenga.
 
 #### `DELETE` borra de verdad
 
