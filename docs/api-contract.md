@@ -296,7 +296,7 @@ DELETE /{path}/{id}                                              → 204
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
-| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes. Con alcance por sedes, el `DELETE` de alguien habilitado también en una sede ajena da **403 `sin_permiso`**: la baja se lo lleva de todas, y eso lo decide el administrador general; en la suya se apaga con el interruptor (1.8, decidido el 2026-10-31) |
 | Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
 | Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
