@@ -13,6 +13,8 @@
  */
 const nextConfig = {
   reactStrictMode: false,
+  // Permite cargar los archivos de desarrollo al abrir la app por esta IP local.
+  allowedDevOrigins: ["172.22.80.1"],
   images: { unoptimized: true },
   redirects() {
     return [

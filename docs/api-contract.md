@@ -296,7 +296,7 @@ DELETE /{path}/{id}                                              → 204
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
-| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes |
 | Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
 | Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
@@ -563,6 +563,28 @@ distinción de escritura, no de estética: el campo editable del formulario
 reenvía `monto` al guardar, así que pintar ahí el total **subiría el precio del
 servicio con el importe de lo vendido**. Para mostrar, `monto_total`; para el
 campo editable, `monto`.
+
+#### Opciones para agendar (`GET /citas/opciones`)
+
+Requiere `citas: gestionar` y devuelve las proyecciones que necesita el
+formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
+
+```json
+{ "data": {
+  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": "#...", "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "locales": {"data": [{"id": 3, "nombre": "Principal"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
+} }
+```
+
+`productos` solo se incluye con `inventario: ver`; `clientes` solo con
+`clientes: ver` y acepta `?search=`. Los índices de gestión conservan sus
+permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
+devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
+información de pago, comisión ni cuentas de profesionales.
 
 #### `DELETE` borra de verdad
 

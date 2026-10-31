@@ -71,6 +71,10 @@ su propio `node_modules`. Nunca dos `npm run dev` en el mismo puerto.
 
 ## Flujo de trabajo
 
+**`RETOMAR.md`** (raíz de este repo) dice en qué historia vamos, a quién le
+toca cada una de las 62 y en qué repo se trabaja. Es el sitio por el que
+empezar cuando se vuelve después de unos días.
+
 - **Una historia** (`epics.md`, p. ej. «Story 1.11»): `bmad-build` sobre ella,
   en su rama. **Un arreglo pequeño**: `bmad-build` directo.
 - **Antes de mergear:** `bmad-code-review`. **Al cerrar una épica:**
