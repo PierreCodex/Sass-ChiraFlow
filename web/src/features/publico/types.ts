@@ -6,6 +6,8 @@
  * internos.
  */
 
+import type { EleccionPago } from "@/features/pagos/types";
+
 /** Cabecera del negocio en su tienda. */
 export interface NegocioPublico {
   id: number;
@@ -141,6 +143,11 @@ export interface DatosCliente {
 
 export interface ReservaPayload extends DatosCliente {
   modo: ModoReserva;
+  /**
+   * Cómo quiere pagar el cliente. `null` cuando el negocio no pide pago.
+   * Va a `citas.metodo_pago_eleccion` (prototipo de la Épica 7).
+   */
+  metodo_pago_eleccion: EleccionPago | null;
   servicios: {
     id: number;
     cantidad: number;
@@ -155,6 +162,8 @@ export interface ReservaConfirmada {
   codigo: string;
   modo: ModoReserva;
   total: number;
+  /** `null` si el negocio no pide pago o el cliente paga en el local. */
+  pago: { eleccion: EleccionPago; vence_a: string } | null;
   citas: {
     id: number;
     servicio: string;
