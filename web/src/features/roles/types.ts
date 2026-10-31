@@ -11,7 +11,7 @@
 export type NivelPermiso = "ver" | "gestionar";
 
 /**
- * Los tres roles de sistema. La clave sobrevive al renombrado del NOMBRE —el
+ * Los cuatro roles de sistema. La clave sobrevive al renombrado del NOMBRE —el
  * negocio puede llamar «Encargada» a Administrador local—, así que es lo que
  * hay que mirar para reconocerlos. Los roles propios del negocio la traen en
  * `null`.

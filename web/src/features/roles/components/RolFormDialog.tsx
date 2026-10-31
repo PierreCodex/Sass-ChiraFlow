@@ -155,7 +155,7 @@ const RolFormDialog = ({
               setNombre(e.target.value);
               setErrorNombre(null);
             }}
-            placeholder="Recepción, Barbero senior…"
+            placeholder="Cajera, Barbero senior…"
             error={!!errorNombre}
             helperText={errorNombre}
           />

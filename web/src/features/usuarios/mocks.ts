@@ -8,7 +8,7 @@ import type { Usuario } from "./types";
 */
 const ADMIN_GENERAL: RolResumen = { id: 1, nombre: "Administrador general", clave: "admin_general" };
 const PROFESIONAL: RolResumen = { id: 3, nombre: "Profesional", clave: "profesional" };
-const RECEPCION: RolResumen = { id: 4, nombre: "Recepción", clave: null };
+const RECEPCION: RolResumen = { id: 4, nombre: "Recepción", clave: "recepcion" };
 
 /*
   Tres cuentas que enseñan las tres combinaciones que existen, porque son
