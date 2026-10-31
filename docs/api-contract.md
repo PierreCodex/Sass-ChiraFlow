@@ -378,7 +378,7 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | `telefono` | string? | |
 | `documento` | string? | DNI del titular. Opcional |
 | `avatar_url` | string? | |
-| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
+| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio, y `recepcion` (Story 1.5), se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
 | `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |
 
 `negocio.nombre` y `negocio.slug` son **`null` hasta que el onboarding fije el
@@ -581,7 +581,7 @@ ve ninguna**: quien no atiende no tiene citas propias.
 
 ```json
 { "data": {
-    "permisos": { "citas": "gestionar", "caja": null, "…": "los 14 siempre" },
+    "permisos": { "citas": "gestionar", "caja": null, "…": "los 15 siempre" },
     "solo_propios": true,
     "locales": null
 } }
@@ -591,7 +591,7 @@ Lo que puede hacer quien está mirando, **ya resuelto**. Va aparte del
 `Usuario` de `/login` por arquitectura: los permisos viven en la base del
 negocio y el login se resuelve entero en la central.
 
-- `permisos`: los 14 módulos siempre, `null` donde no hay acceso.
+- `permisos`: los 15 módulos siempre (desde la Story 1.6 incluye `pagos`), `null` donde no hay acceso.
   `gestionar` incluye `ver`.
 - `solo_propios`: sobre **quién**, no sobre qué. **Ya filtra** (Sprint 4): el
   listado de citas devuelve solo las suyas y la de otro responde 404. Quien lo
@@ -634,9 +634,9 @@ desde la invitación.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` `nombre` | int, string | nombre único por negocio |
-| `clave` | `admin_general` \| `admin_local` \| `profesional` ? | `null` en los que cree el negocio |
+| `clave` | `admin_general` \| `admin_local` \| `profesional` \| `recepcion` ? | `null` en los que cree el negocio. `recepcion` desde la Story 1.5; `admin_local` se ve como «Administrador de sede» |
 | `sistema` | bool | |
-| `permisos` | `{ [modulo]: "ver"\|"gestionar"\|null }` | **los 14 siempre** |
+| `permisos` | `{ [modulo]: "ver"\|"gestionar"\|null }` | **los 15 siempre** |
 | `solo_propios` | bool | |
 | `editable` `borrable` `duplicable` | bool | **vienen resueltos**: no se deducen |
 | `usuarios_count` | int? | solo en el listado. Cuenta cuentas, no fichas |

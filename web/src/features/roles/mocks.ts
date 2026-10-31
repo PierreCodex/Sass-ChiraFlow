@@ -1,17 +1,17 @@
 import type { MatrizPermisos, NivelPermiso, Rol } from "./types";
 
 /**
- * Los 14 módulos del panel, en el orden en que los manda el backend
+ * Los 15 módulos del panel, en el orden en que los manda el backend
  * (`modulos`, fuera de `data`). Aquí solo sirven para armar los mocks: la
  * pantalla de roles usa la lista que llega con el listado, no esta.
  */
 const MODULOS = [
   "dashboard", "citas", "calendario", "clientes", "servicios",
-  "inventario", "caja", "reportes", "locales", "empleados",
+  "inventario", "caja", "pagos", "reportes", "locales", "empleados",
   "whatsapp", "configuracion", "facturacion", "soporte",
 ] as const;
 
-/** Los 14 módulos con el nivel indicado, y los sueltos por encima. */
+/** Los 15 módulos con el nivel indicado, y los sueltos por encima. */
 function permisos(
   base: NivelPermiso | null,
   excepciones: MatrizPermisos = {}
@@ -37,7 +37,7 @@ export const rolesMock: Rol[] = [
   },
   {
     id: 2,
-    nombre: "Administrador",
+    nombre: "Administrador de sede",
     clave: "admin_local",
     sistema: true,
     // La facturación es lo único que no se delega: separa al dueño de su mano
@@ -75,19 +75,23 @@ export const rolesMock: Rol[] = [
   {
     id: 4,
     nombre: "Recepción",
-    clave: null,
-    sistema: false,
+    // De sistema desde la Story 1.5: misma matriz que `RolesSistema` (A-1).
+    clave: "recepcion",
+    sistema: true,
     permisos: permisos(null, {
       dashboard: "ver",
       citas: "gestionar",
-      calendario: "ver",
+      calendario: "gestionar",
       clientes: "gestionar",
       servicios: "ver",
+      inventario: "ver",
       caja: "gestionar",
+      pagos: "gestionar",
+      empleados: "ver",
     }),
     solo_propios: false,
     editable: true,
-    borrable: true,
+    borrable: false,
     duplicable: true,
     usuarios_count: 0,
   },
