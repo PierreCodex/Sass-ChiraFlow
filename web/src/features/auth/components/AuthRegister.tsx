@@ -32,6 +32,7 @@ import { registerType } from "@/types/auth/auth";
 
 import { useCategoriasNegocio, useRegistro } from "../hooks/useAuth";
 import ReenviarVerificacion from "./ReenviarVerificacion";
+import { VERSION as VERSION_TERMINOS } from "@/features/legal/terminos";
 import {
   registroSchema,
   valoresIniciales,
@@ -80,6 +81,9 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         // El formulario no pide confirmación (la referencia tampoco la tiene),
         // pero el backend valida `confirmed`.
         password_confirmation: valores.password,
+        // El schema no deja llegar aquí sin la casilla marcada.
+        acepta_terminos: true,
+        terminos_version: VERSION_TERMINOS,
       },
       {
         onError: (error) => {
@@ -88,9 +92,12 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
 
           Object.entries(apiError.errors).forEach(([campo, mensajes]) => {
             // `nombre` y `apellido` salen de un único campo en pantalla.
+            // `terminos_version` no tiene campo propio: va bajo la casilla.
             const destino = CAMPOS_DEL_NOMBRE.includes(campo)
               ? "nombre_completo"
-              : (campo as keyof RegistroFormValues);
+              : campo === "terminos_version"
+                ? "acepta_terminos"
+                : (campo as keyof RegistroFormValues);
             setError(destino, { message: mensajes[0] });
           });
         },

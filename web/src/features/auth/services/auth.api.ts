@@ -46,6 +46,13 @@ export interface RegisterPayload {
   telefono: string;
   password: string;
   password_confirmation: string;
+  /**
+   * La constancia de los términos: siempre `true` (sin la casilla marcada el
+   * formulario no se envía) y la versión que se leyó, `VERSION` de
+   * `features/legal/terminos.ts`. El backend guarda ambas con la fecha.
+   */
+  acepta_terminos: true;
+  terminos_version: string;
 }
 
 /** Parámetros firmados que el correo de verificación pone en la URL. */

@@ -253,9 +253,19 @@ registro. Payload:
   "email": "maria@correo.pe",
   "telefono": "+51987654321",    // el frontend normaliza al formato internacional
   "password": "…",
-  "password_confirmation": "…"
+  "password_confirmation": "…",
+  "acepta_terminos": true,       // la casilla obligatoria del formulario
+  "terminos_version": "1.0"      // VERSION de web/src/features/legal/terminos.ts
 }
 ```
+
+**La constancia de los términos.** `acepta_terminos` se valida `accepted` y
+`terminos_version` `required|string|max:20`; si falta cualquiera de los dos →
+422 con `errors` en ese campo (el formulario los pinta bajo la casilla). Se
+guarda en el `users` dueño: `terminos_version`, `terminos_aceptados_at` (la hora
+del servidor, no una que mande el cliente) y `terminos_ip`. Es lo que prueba
+qué versión aceptó cada negocio y cuándo; cuando el texto cambie de fondo, sube
+la versión y queda claro quién aceptó cuál.
 
 Crea en la misma transacción el `tenants` (`slug NULL`, plan de prueba,
 `estado='registrada'`) y el `users` dueño, y envía el correo de verificación.
