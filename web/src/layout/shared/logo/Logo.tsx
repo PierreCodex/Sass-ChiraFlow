@@ -18,27 +18,44 @@ import { useContext } from "react";
 const ALTO_LOGO = 36;
 const ANCHO_LOGO = 117; // 518 × 160 px en origen
 
-const Logo = () => {
+interface Props {
+  /** A dónde lleva. El panel va a `/`; la landing, a sí misma. */
+  href?: string;
+  /**
+   * Para el logo suelto, fuera del menú (las tarjetas del login, registro…):
+   * a esta altura y con el enlace del ancho justo de la imagen, para que el
+   * contenedor lo pueda centrar. Sin él, el enlace mide 180 px como en el
+   * menú y la imagen queda pegada a su izquierda, descentrada.
+   */
+  alto?: number;
+}
+
+const Logo = ({ href = "/", alto }: Props) => {
   const { isCollapse, isSidebarHover, activeMode } = useContext(CustomizerContext);
 
   const TopbarHeight = config.topbarHeight;
+  const suelto = alto !== undefined;
+  const altoImagen = alto ?? ALTO_LOGO;
 
   const LinkStyled = styled(Link)(() => ({
-    height: TopbarHeight,
+    height: suelto ? altoImagen : TopbarHeight,
 
-    width: isCollapse == "mini-sidebar" && !isSidebarHover ? '40px' : '180px',
+    // El plegado del menú solo cuenta dentro del menú.
+    width: suelto
+      ? "auto"
+      : isCollapse == "mini-sidebar" && !isSidebarHover ? '40px' : '180px',
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
   }));
 
   return (
-    <LinkStyled href="/">
+    <LinkStyled href={href}>
       <Image
         src={activeMode === "dark" ? "/images/logos/tivu-logo-blanco.png" : "/images/logos/tivu-logo.png"}
         alt="tivu"
-        height={ALTO_LOGO}
-        width={ANCHO_LOGO}
+        height={altoImagen}
+        width={Math.round((altoImagen * ANCHO_LOGO) / ALTO_LOGO)}
         style={{ flexShrink: 0 }}
         priority
       />

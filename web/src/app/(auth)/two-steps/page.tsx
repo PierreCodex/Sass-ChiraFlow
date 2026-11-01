@@ -36,8 +36,8 @@ return (
             xl: 4
           }}>
           <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '450px' }}>
-            <Box display="flex" alignItems="center" justifyContent="center">
-              <Logo />
+            <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
+              <Logo alto={52} />
             </Box>
             <Typography variant="subtitle1" textAlign="center" color="textSecondary" mb={1}>
               We sent a verification code to your mobile. Enter the code from the mobile in the
