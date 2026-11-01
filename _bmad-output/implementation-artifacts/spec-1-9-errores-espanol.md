@@ -2,7 +2,7 @@
 title: 'Story 1.9 — Todos los errores en español'
 type: 'feature'
 created: '2026-10-20'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'quick'
 baseline_commit: 'sandro/develop'

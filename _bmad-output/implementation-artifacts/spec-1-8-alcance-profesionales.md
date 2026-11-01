@@ -2,7 +2,7 @@
 title: 'Story 1.8 — El alcance por sedes también en los profesionales'
 type: 'feature'
 created: '2026-10-20'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'quick'
 baseline_commit: 'sandro/develop'
