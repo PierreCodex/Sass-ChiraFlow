@@ -71,12 +71,20 @@ su propio `node_modules`. Nunca dos `npm run dev` en el mismo puerto.
 
 ## Flujo de trabajo
 
+**`RETOMAR.md`** (raíz de este repo) dice en qué historia vamos, a quién le
+toca cada una de las 62 y en qué repo se trabaja. Es el sitio por el que
+empezar cuando se vuelve después de unos días.
+
 - **Una historia** (`epics.md`, p. ej. «Story 1.11»): `bmad-build` sobre ella,
   en su rama. **Un arreglo pequeño**: `bmad-build` directo.
 - **Antes de mergear:** `bmad-code-review`. **Al cerrar una épica:**
   `bmad-retrospective`.
-- **Una rama por historia**, salida de `main`: `sprint-1/1-11-mi-perfil`.
-  Merge con `--no-ff`.
+- **Una rama por historia**, salida de **`develop`** y de vuelta a
+  **`develop` por PR**: `sprint-1/1-11-mi-perfil`. Merge con «Create a merge
+  commit». `main` solo recibe `develop`, por PR que aprueba Jean, cuando un
+  bloque está probado (desde el 2026-10-31; detalle en `CLAUDE.md` § Ramas).
+- **Nunca salir de una rama personal** (`sandro/develop`, `dev-Sandro`…) ni
+  mergearla: son para probar en local y arrastran trabajo sin revisar.
 - **Un responsable por historia**, el que dice `sprint-status.yaml` →
   `preparacion.listo_para_desarrollar` (`agente:`).
 - **Al terminar**, actualizar el estado de esa historia en `sprint-status.yaml`

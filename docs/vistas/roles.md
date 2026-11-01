@@ -10,12 +10,12 @@
 
 ## Qué muestra
 
-Los roles del negocio: los **tres de sistema** que llegan con el provisioning y
+Los roles del negocio: los **cuatro de sistema** que llegan con el provisioning y
 los que cree el administrador general.
 
 | Columna | Contenido |
 |---|---|
-| Rol | Nombre + chip «Del sistema», y debajo «Gestiona N de 14 módulos, ve otros M» |
+| Rol | Nombre + chip «Del sistema», y debajo «Gestiona N de 15 módulos, ve otros M» |
 | Alcance | «Solo lo suyo» / «Todo el negocio» (`solo_propios`) |
 | Personas | `usuarios_count` — cuenta **cuentas del panel**, no fichas de profesional |
 | Acciones | Editar / Ver permisos · Duplicar · Eliminar |
@@ -29,8 +29,9 @@ matriz acabaría divergiendo de la que manda.
 | Rol | Editar | Borrar | Duplicar |
 |---|---|---|---|
 | Administrador general (`admin_general`) | ✗ | ✗ | ✗ |
-| Administrador local (`admin_local`) | ✓ | ✗ | ✓ |
+| Administrador de sede (`admin_local`) | ✓ | ✗ | ✓ |
 | Profesional (`profesional`) | ✓ | ✗ | ✓ |
+| Recepción (`recepcion`) | ✓ | ✗ | ✓ |
 | Los que cree el negocio | ✓ | ✓ (si nadie lo usa) | ✓ |
 
 El botón apagado lleva su motivo en el tooltip. **El rol no editable se abre
@@ -81,7 +82,7 @@ para quitar un módulo del todo.
 ### `solo_propios` va aparte
 
 En su propio recuadro y no como una fila más: no dice **qué** puede hacer sino
-**sobre quién**, y colarlo entre los catorce lo haría parecer un permiso.
+**sobre quién**, y colarlo entre los quince lo haría parecer un permiso.
 
 Hoy el backend lo emite y **no filtra nada** — empieza a significar algo con
 las citas del Sprint 4.
@@ -108,10 +109,10 @@ general no se duplica — sería fabricar un segundo titular.
   "data": [
     {
       "id": 2,
-      "nombre": "Administrador local",
+      "nombre": "Administrador de sede",
       "clave": "admin_local",
       "sistema": true,
-      "permisos": { "dashboard": "gestionar", "configuracion": null, "…": "los 14" },
+      "permisos": { "dashboard": "gestionar", "configuracion": null, "…": "los 15" },
       "solo_propios": false,
       "editable": true,
       "borrable": false,
@@ -126,7 +127,7 @@ general no se duplica — sería fabricar un segundo titular.
 
 Dos cosas que no se ven en el JSON:
 
-1. **`permisos` trae SIEMPRE los 14 módulos**, con `null` donde no hay acceso,
+1. **`permisos` trae SIEMPRE los 15 módulos**, con `null` donde no hay acceso,
    aunque el guardado tenga cinco claves. Al guardar da igual mandar los nulls.
 2. **`modulos` viaja fuera de `data`**: la lista completa y ordenada para las
    filas de la matriz. La pantalla usa **esa** y no su constante local, para
@@ -181,3 +182,8 @@ acabaría enseñando algo distinto de lo que aquí se guarda.
 - **Alcance por sedes** (`local_usuario`): el esquema existe y `GET
   /capacidades` lo emite, pero no hay endpoint que lo escriba. Es **de la
   persona, no del rol**, así que su sitio sería Usuarios y no esta pantalla.
+- **Mi perfil no reconoce a Recepción** (Story 1.11). `usuario.rol` es el rol
+  central y deriva `recepcion` a `profesional`, así que la tarjeta dice
+  «Profesional» y «Ves y gestionas tu propia agenda» a quien ve la de todos.
+  Además `perfil/types.ts` aún busca las claves viejas `dueno` y `admin`. Lo
+  correcto es pintar el nombre del rol del negocio, no el central.

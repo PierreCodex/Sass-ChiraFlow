@@ -296,7 +296,7 @@ DELETE /{path}/{id}                                              → 204
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
-| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes. Con alcance por sedes, el `DELETE` de alguien habilitado también en una sede ajena da **403 `sin_permiso`**: la baja se lo lleva de todas, y eso lo decide el administrador general; en la suya se apaga con el interruptor (1.8, decidido el 2026-10-31) |
 | Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
 | Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
@@ -322,8 +322,8 @@ duplicarla.
 | GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
 | POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
-| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación |
-| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas |
+| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación. Con alcance por sedes, solo los que ya tienen fila en alguna de sus sedes (1.8) |
+| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
 | POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
@@ -378,7 +378,7 @@ Notación: `?` = puede ser `null`. Todos los `id` son enteros.
 | `telefono` | string? | |
 | `documento` | string? | DNI del titular. Opcional |
 | `avatar_url` | string? | |
-| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
+| `rol` | `admin_general` \| `admin_local` \| `profesional` | el rol de **sistema**; los que cree el negocio, y `recepcion` (Story 1.5), se derivan a `profesional`. Renombrado el 2026-09-04: antes `dueno` y `admin` |
 | `negocio` | `{ id, nombre, slug }`? | el tenant del usuario. **`id` es string**: el identificador aleatorio e inmutable del tenant (`yl9njvhq`), que nombra su base de datos y viaja como `X-Tenant` — no es un entero |
 
 `negocio.nombre` y `negocio.slug` son **`null` hasta que el onboarding fije el
@@ -564,6 +564,32 @@ reenvía `monto` al guardar, así que pintar ahí el total **subiría el precio 
 servicio con el importe de lo vendido**. Para mostrar, `monto_total`; para el
 campo editable, `monto`.
 
+#### Opciones para agendar (`GET /citas/opciones`)
+
+Requiere `citas: gestionar` y devuelve las proyecciones que necesita el
+formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
+
+```json
+{ "data": {
+  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": null, "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "locales": {"data": [{"id": 3, "nombre": "Principal"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
+} }
+```
+
+`productos` solo se incluye con `inventario: ver`; `clientes` solo con
+`clientes: ver` y acepta `?search=`. Los índices de gestión conservan sus
+permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
+devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
+información de pago, comisión ni cuentas de profesionales.
+
+En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
+llegan todos los profesionales activos y sus servicios, y `locales` viene
+vacío. `color` de cada profesional es `null` hasta que la ficha lo tenga.
+
 #### `DELETE` borra de verdad
 
 `citas` no lleva soft delete y las líneas caen en cascada. **Cancelar es un
@@ -581,7 +607,7 @@ ve ninguna**: quien no atiende no tiene citas propias.
 
 ```json
 { "data": {
-    "permisos": { "citas": "gestionar", "caja": null, "…": "los 14 siempre" },
+    "permisos": { "citas": "gestionar", "caja": null, "…": "los 15 siempre" },
     "solo_propios": true,
     "locales": null
 } }
@@ -591,7 +617,7 @@ Lo que puede hacer quien está mirando, **ya resuelto**. Va aparte del
 `Usuario` de `/login` por arquitectura: los permisos viven en la base del
 negocio y el login se resuelve entero en la central.
 
-- `permisos`: los 14 módulos siempre, `null` donde no hay acceso.
+- `permisos`: los 15 módulos siempre (desde la Story 1.6 incluye `pagos`), `null` donde no hay acceso.
   `gestionar` incluye `ver`.
 - `solo_propios`: sobre **quién**, no sobre qué. **Ya filtra** (Sprint 4): el
   listado de citas devuelve solo las suyas y la de otro responde 404. Quien lo
@@ -634,9 +660,9 @@ desde la invitación.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` `nombre` | int, string | nombre único por negocio |
-| `clave` | `admin_general` \| `admin_local` \| `profesional` ? | `null` en los que cree el negocio |
+| `clave` | `admin_general` \| `admin_local` \| `profesional` \| `recepcion` ? | `null` en los que cree el negocio. `recepcion` desde la Story 1.5; `admin_local` se ve como «Administrador de sede» |
 | `sistema` | bool | |
-| `permisos` | `{ [modulo]: "ver"\|"gestionar"\|null }` | **los 14 siempre** |
+| `permisos` | `{ [modulo]: "ver"\|"gestionar"\|null }` | **los 15 siempre** |
 | `solo_propios` | bool | |
 | `editable` `borrable` `duplicable` | bool | **vienen resueltos**: no se deducen |
 | `usuarios_count` | int? | solo en el listado. Cuenta cuentas, no fichas |

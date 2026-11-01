@@ -46,7 +46,7 @@ tema y su paleta. De un diseño anterior se replica el **contenido** (campos,
 reglas, textos), **nunca** el diseño.
 
 El tema es `TIVU_THEME` (`context/config.ts`), con la paleta de la marca
-tivu (violeta `#6843E8`, menta `#BAFFCE`) en `utils/theme/LightThemeColors.tsx`
+tivu (violeta `#4A2CF5`, menta `#33F3CE`, sacados del logo) en `utils/theme/LightThemeColors.tsx`
 y `DarkThemeColors.tsx`; no tocarlo. Sustituyó a `AQUA_THEME` el 2026-10-26,
 cuando llegó la marca. El logo es `layout/shared/logo/Logo.tsx`. Los colores se
 piden siempre al tema —`primary.main`, `secondary.light`— y nunca a mano en
@@ -90,8 +90,9 @@ Varias veces en este proyecto lo que parecía correcto no lo era.
 
 | Ruta | Qué es |
 |---|---|
-| `F:\PERSONAL_JEAN\mi-saas` | **Este proyecto.** Trabajar aquí. |
-| `F:\PERSONAL_JEAN\mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo |
+| `D:\PERSONAL_JEAN\Sass-ChiraFlow` | **Este proyecto.** Trabajar aquí. |
+| `D:\PERSONAL_JEAN\Backend-Sass` | El backend Laravel, **solo lectura desde aquí** |
+| `mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo. ⚠️ La ruta absoluta se perdió en la mudanza de `F:` a `D:`; hay que volver a apuntarla |
 | `C:\laragon\www\SAAS_LINEA_BIEN` | El Laravel anterior, **solo lectura** |
 
 ### Sobre el Laravel anterior
@@ -115,6 +116,37 @@ npm run typecheck   # tsc --noEmit  <- pasar esto SIEMPRE antes de dar algo por 
 ```
 
 No hay tests todavía. `npm run lint` no está configurado (no hay eslint.config).
+
+---
+
+## Ramas: `develop` para trabajar, `main` para lo probado
+
+Desde el 2026-10-31, en los **dos** repos (`Sass-ChiraFlow` y `Backend-Sass`):
+
+```
+sprint-N/historia ──PR──> develop ──PR (bloque probado)──> main
+```
+
+- **`develop` es la rama común de trabajo.** Toda historia, arreglo o
+  prototipo **sale de `develop`** y **vuelve a `develop` por PR**. Ahí se
+  prueba todo junto.
+- **`main` es lo estable.** Solo recibe `develop`, por PR, cuando un bloque
+  está probado: al cerrar un sprint o antes de desplegar. La aprueba y la
+  mergea Jean. Nadie —tampoco un agente— hace merge local ni push directo a
+  `main` ni a `develop`.
+- **Nombres de rama:** `sprint-N/N-M-descripcion` para historias,
+  `feat/…`, `fix/…`, `chore/…` para lo demás. Siempre con base `develop`.
+- **Las ramas personales (`sandro/develop`, `dev-Sandro`…) son de quien las
+  creó, para probar en local.** Nadie saca ramas de ellas ni las mergea a
+  `develop` o `main`: arrastran trabajo sin revisar. Lo que valga de ahí se
+  lleva en su propia rama, salida de `develop`, con su PR.
+- **PR encadenadas:** su base tiene que ser `develop` o una rama que ya tenga
+  PR abierta. Nunca una rama sin PR: no hay forma de revisarla ni de
+  mergearla en orden.
+- **Al mergear:** «Create a merge commit» (el equivalente de `--no-ff`: cada
+  historia se revierte de un tirón).
+- **Antes de abrir la PR:** `npm run typecheck` en verde y `bmad-code-review`
+  hecho. En la PR, el enlace a la spec de la historia.
 
 ---
 
