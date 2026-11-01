@@ -364,6 +364,8 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
                     checked={!!field.value}
                     onChange={(e) => field.onChange(e.target.checked)}
                     onBlur={field.onBlur}
+                    // Sin esto se anuncia como «Checkbox demo», el de la plantilla.
+                    inputProps={{ "aria-label": "Acepto los términos y condiciones" }}
                     sx={{ mt: -0.5 }}
                   />
                 }
