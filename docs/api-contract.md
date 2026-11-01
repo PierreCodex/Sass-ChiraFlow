@@ -171,6 +171,7 @@ registro, verificación y recuperación viajan **sin** sesión):
 | Método | Ruta | Payload | Respuesta |
 |---|---|---|---|
 | GET | `/publico/categorias-negocio` | — | `{ data: {id,nombre}[] }` · el select "Tipo de negocio" del registro |
+| GET | `/publico/planes` | — | `{ data: Plan[] }` · los mismos que `GET /planes`, ordenados por `precio_mensual`, para la sección de precios de la landing. **Sin sesión.** `planes` pasa a ser un slug reservado (`OnboardingService::SLUGS_RESERVADOS`) para que no choque con `/publico/{slug}` |
 | POST | `/register` | ver abajo | `{ data: Usuario }` · **no abre sesión** |
 | POST | `/email/verificar` | `{ id, hash, expires, signature }` (del enlace del correo) | 200 · **dispara el provisioning** |
 | POST | `/email/reenviar` | `{ email }` | 200 `{ message, retry_after }` · 429 si hay cooldown |

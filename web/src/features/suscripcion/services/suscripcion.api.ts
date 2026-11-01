@@ -31,6 +31,23 @@ export const suscripcionApi = {
   },
 
   /**
+   * Los mismos planes, **sin sesión**: los pide la landing a quien todavía no
+   * tiene cuenta. No usa `/planes` porque ese exige sesión, y su 401 haría
+   * que el interceptor tomara al visitante por una sesión caída y lo mandara
+   * al login.
+   */
+  planesPublicos: async (): Promise<Plan[]> => {
+    if (usarMocksPara("suscripcion")) {
+      await delay(250);
+      return [...planesMock].sort(
+        (a, b) => a.precio_mensual - b.precio_mensual
+      );
+    }
+    const { data } = await api.get<{ data: Plan[] }>("/publico/planes");
+    return data.data;
+  },
+
+  /**
    * Pide el cambio de plan.
    *
    * ⚠️ **No cobra nada.** `PlanController::solicitar` solo abre un ticket de

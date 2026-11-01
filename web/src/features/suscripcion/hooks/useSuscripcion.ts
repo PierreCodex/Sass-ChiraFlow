@@ -6,6 +6,7 @@ export const suscripcionKeys = {
   all: ["suscripcion"] as const,
   actual: ["suscripcion", "actual"] as const,
   planes: ["suscripcion", "planes"] as const,
+  planesPublicos: ["suscripcion", "planes", "publicos"] as const,
 };
 
 export function useSuscripcion() {
@@ -21,6 +22,15 @@ export function usePlanes() {
   return useQuery({
     queryKey: suscripcionKeys.planes,
     queryFn: suscripcionApi.planes,
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+/** Los planes para la landing, sin sesión (`GET /publico/planes`). */
+export function usePlanesPublicos() {
+  return useQuery({
+    queryKey: suscripcionKeys.planesPublicos,
+    queryFn: suscripcionApi.planesPublicos,
     staleTime: 30 * 60 * 1000,
   });
 }

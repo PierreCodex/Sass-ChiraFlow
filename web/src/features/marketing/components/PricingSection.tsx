@@ -1,5 +1,4 @@
 "use client";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -12,9 +11,8 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
-import { usePlanes } from "@/features/suscripcion/hooks/useSuscripcion";
+import { usePlanesPublicos } from "@/features/suscripcion/hooks/useSuscripcion";
 import { precioAplicado } from "@/features/suscripcion/types";
 
 /**
@@ -22,7 +20,7 @@ import { precioAplicado } from "@/features/suscripcion/types";
  * (todavía no tienen negocio en prueba), mismos 3 planes que `/mi-plan`.
  */
 const PricingSection = () => {
-  const { data: planes, isPending, isError, error } = usePlanes();
+  const { data: planes, isPending, isError } = usePlanesPublicos();
 
   return (
     <Box id="planes" sx={{ py: { xs: 8, md: 12 }, bgcolor: "background.default" }}>
@@ -43,7 +41,16 @@ const PricingSection = () => {
             ))}
           </Grid>
         ) : isError ? (
-          <Alert severity="error">{toApiError(error).message}</Alert>
+          // A un visitante no se le enseña un error técnico: si los planes no
+          // llegan, se le invita a verlos al crear su cuenta.
+          <Box textAlign="center">
+            <Typography color="textSecondary" mb={2}>
+              Conoce los planes y sus precios al crear tu cuenta.
+            </Typography>
+            <Button component={Link} href="/register" variant="contained" size="large">
+              Prueba gratis 7 días
+            </Button>
+          </Box>
         ) : (
           <Grid container spacing={3} alignItems="stretch">
             {planes.map((plan) => {
