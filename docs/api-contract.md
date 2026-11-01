@@ -296,7 +296,7 @@ DELETE /{path}/{id}                                              → 204
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
-| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes. Con alcance por sedes, el `DELETE` de alguien habilitado también en una sede ajena da **403 `sin_permiso`**: la baja se lo lleva de todas, y eso lo decide el administrador general; en la suya se apaga con el interruptor (1.8, decidido el 2026-10-31) |
 | Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
 | Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
@@ -322,8 +322,8 @@ duplicarla.
 | GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
 | POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
-| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación |
-| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas |
+| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación. Con alcance por sedes, solo los que ya tienen fila en alguna de sus sedes (1.8) |
+| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
 | POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
@@ -563,6 +563,32 @@ distinción de escritura, no de estética: el campo editable del formulario
 reenvía `monto` al guardar, así que pintar ahí el total **subiría el precio del
 servicio con el importe de lo vendido**. Para mostrar, `monto_total`; para el
 campo editable, `monto`.
+
+#### Opciones para agendar (`GET /citas/opciones`)
+
+Requiere `citas: gestionar` y devuelve las proyecciones que necesita el
+formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
+
+```json
+{ "data": {
+  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": null, "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "locales": {"data": [{"id": 3, "nombre": "Principal"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
+} }
+```
+
+`productos` solo se incluye con `inventario: ver`; `clientes` solo con
+`clientes: ver` y acepta `?search=`. Los índices de gestión conservan sus
+permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
+devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
+información de pago, comisión ni cuentas de profesionales.
+
+En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
+llegan todos los profesionales activos y sus servicios, y `locales` viene
+vacío. `color` de cada profesional es `null` hasta que la ficha lo tenga.
 
 #### `DELETE` borra de verdad
 
