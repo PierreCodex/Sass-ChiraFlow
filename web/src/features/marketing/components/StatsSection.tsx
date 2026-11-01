@@ -4,18 +4,27 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 
-/** Mismas 6 estadísticas que la sección de imágenes animadas del Blade. */
-const ESTADISTICAS = [
-  { numero: "82%", texto: "Crecen nuestros clientes en 24 meses" },
-  { numero: "90%", texto: "Menos inasistencias" },
-  { numero: "30 hrs", texto: "de ahorro en gestión" },
-  { numero: "320%", texto: "De aumento en retorno de inversión" },
-  { numero: "40%", texto: "Más clientes recurrentes" },
-  { numero: "70%", texto: "Más reservas fuera de horario de atención" },
+/**
+ * «Cómo funciona» en tres pasos. Sustituye a las cifras del Blade anterior,
+ * que no tenían clientes detrás que las respaldaran.
+ */
+const PASOS = [
+  {
+    titulo: "Crea tu negocio",
+    texto: "Tus servicios, tus profesionales y tus horarios, en unos minutos.",
+  },
+  {
+    titulo: "Comparte tu enlace",
+    texto: "Tu página de reservas con tu nombre. Mándala por WhatsApp o ponla en Instagram.",
+  },
+  {
+    titulo: "Recibe reservas",
+    texto: "Tus clientes eligen hora solos; tú las ves en tu agenda y cobras en tu caja.",
+  },
 ];
 
 const StatsSection = () => (
-  <Box sx={{ py: { xs: 8, md: 12 } }}>
+  <Box id="como-funciona" sx={{ py: { xs: 8, md: 12 } }}>
     <Container maxWidth="lg">
       <Typography
         variant="h3"
@@ -24,19 +33,31 @@ const StatsSection = () => (
         textAlign="center"
         sx={{ fontSize: { xs: 26, md: 34 } }}
       >
-        Cada cita es crecimiento
+        Cómo funciona
       </Typography>
       <Grid container spacing={4}>
-        {ESTADISTICAS.map((stat) => (
-          <Grid key={stat.texto} size={{ xs: 6, md: 4 }}>
-            <Box textAlign="center">
-              <Typography variant="h3" fontWeight={700} color="primary.main">
-                {stat.numero}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" mt={0.5}>
-                {stat.texto}
-              </Typography>
+        {PASOS.map((paso, i) => (
+          <Grid key={paso.titulo} size={{ xs: 12, md: 4 }} textAlign="center">
+            <Box
+              mx="auto"
+              mb={2}
+              width={56}
+              height={56}
+              borderRadius="50%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              bgcolor="primary.light"
+              color="primary.main"
+              fontSize={24}
+              fontWeight={700}
+            >
+              {i + 1}
             </Box>
+            <Typography variant="h5" fontWeight={700} mb={1}>
+              {paso.titulo}
+            </Typography>
+            <Typography color="textSecondary">{paso.texto}</Typography>
           </Grid>
         ))}
       </Grid>

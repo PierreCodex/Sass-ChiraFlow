@@ -7,7 +7,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
 
-import DashboardMockup from "./DashboardMockup";
+import Image from "next/image";
 
 /**
  * Misma tarjeta redondeada de CTA que `shared/c2a`, con un mockup del
@@ -60,12 +60,14 @@ const C2a = () => {
           sx={{
             display: { xs: "none", lg: "block" },
             position: "absolute",
-            right: "-40px",
+            right: "48px",
             top: "50%",
             transform: "translateY(-50%)",
           }}
         >
-          <DashboardMockup />
+          <Box sx={{ width: 560, borderRadius: "16px", overflow: "hidden", boxShadow: "0px 12px 30px rgba(74, 44, 245, 0.15)" }}>
+            <Image src="/images/landing/caja-movimientos.png" alt="La caja del día en tivu" width={963} height={504} style={{ width: "100%", height: "auto", display: "block" }} />
+          </Box>
         </Box>
       </Box>
     </Container>

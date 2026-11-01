@@ -2,81 +2,130 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import Image from "next/image";
 import Link from "next/link";
 
 /**
- * La portada de la landing: titular, subtítulo y las dos llamadas a la
- * acción, centrados.
- *
- * Encima, la animación del logo.
- *
- * Sin las decoraciones de la demo de Modernize (`banner-top-left.svg`,
- * `banner-top-right.svg`, `bottom-part.svg`): eran capturas de su dashboard,
- * en inglés y en dólares, colocadas con `position: absolute`, así que según
- * el ancho de la pantalla tapaban el texto. Sin nada flotando, la portada se
- * adapta sola a cualquier ancho.
+ * Hero de `frontend-pages/homepage/banner` de Modernize con el producto real:
+ * a los lados, las citas del día del panel y la tienda pública en un
+ * celular; abajo, el dashboard. Las imágenes van en el flujo de la cuadrícula
+ * (no `position: absolute` como en la plantilla), así nunca tapan el texto.
  */
-const TITULO = { xs: "34px", sm: "48px", md: "60px", lg: "68px" };
+const marco = {
+  borderRadius: "16px",
+  overflow: "hidden",
+  boxShadow: "0px 12px 30px rgba(74, 44, 245, 0.12)",
+  bgcolor: "background.paper",
+};
 
 const Banner = () => (
-  <Box bgcolor="primary.light" py={{ xs: 7, md: 11 }}>
-    <Container maxWidth="md" sx={{ textAlign: "center" }}>
-      {/*
-       * La animación del logo, una sola vez: sin `loop`, el vídeo se queda en
-       * el último fotograma, que es el logo completo. Su fondo es blanco; con
-       * `multiply` el blanco toma el color de la franja y no se ve el recuadro.
-       */}
+  <Box bgcolor="primary.light" pt={{ xs: 6, lg: 8 }} overflow="hidden">
+    <Container sx={{ maxWidth: "1400px !important" }}>
+      <Grid container spacing={4} alignItems="center" mb={{ xs: 6, lg: 6 }}>
+        <Grid size={{ lg: 3 }} sx={{ display: { xs: "none", lg: "block" } }}>
+          <Box sx={{ ...marco, transform: "rotate(-3deg)" }}>
+            <Image
+              src="/images/landing/citas-hoy.png"
+              alt="Las citas del día en el panel de tivu"
+              width={455}
+              height={486}
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 6 }} textAlign="center">
+          <Typography
+            variant="h1"
+            fontWeight={700}
+            lineHeight="1.15"
+            sx={{ fontSize: { xs: "36px", sm: "52px" } }}
+          >
+            Tus clientes reservan solos.{" "}
+            <Box component="span" color="primary.main">
+              Tú atiendes.
+            </Box>
+          </Typography>
+
+          <Typography
+            variant="h6"
+            fontWeight={400}
+            color="textSecondary"
+            mt={3}
+            mb={5}
+            sx={{ fontSize: { xs: 16, sm: 18 } }}
+          >
+            Tu agenda, tu página de reservas y tu caja en un solo lugar. En
+            soles y con recordatorios por WhatsApp, para salones, barberías,
+            spas y clínicas.
+          </Typography>
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            justifyContent="center"
+          >
+            <Button component={Link} size="large" variant="contained" href="/register">
+              Prueba gratis 7 días
+            </Button>
+            <Button component={Link} size="large" variant="outlined" color="inherit" href="#como-funciona">
+              Cómo funciona
+            </Button>
+          </Stack>
+          <Typography fontSize="13px" color="textSecondary" mt={2}>
+            Sin tarjeta de crédito · Cancela cuando quieras
+          </Typography>
+        </Grid>
+
+        <Grid size={{ lg: 3 }} sx={{ display: { xs: "none", lg: "flex" }, justifyContent: "center" }}>
+          <Box
+            sx={{
+              ...marco,
+              width: 230,
+              borderRadius: "32px",
+              border: "8px solid",
+              borderColor: "grey.900",
+              transform: "rotate(3deg)",
+            }}
+          >
+            <Image
+              src="/images/landing/tienda-movil.png"
+              alt="La página de reservas de un negocio en el celular"
+              width={390}
+              height={780}
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+          </Box>
+        </Grid>
+      </Grid>
+
+      {/* El dashboard asoma por abajo, como en la plantilla. */}
       <Box
-        component="video"
-        src="/images/logos/tivu-intro.mp4"
-        autoPlay
-        muted
-        playsInline
-        preload="auto"
-        aria-label="tivu"
         sx={{
-          display: "block",
-          width: { xs: 280, sm: 380, md: 460 },
-          maxWidth: "100%",
+          ...marco,
+          borderRadius: "16px 16px 0 0",
+          maxWidth: 1100,
           mx: "auto",
-          mb: { xs: 2, md: 3 },
-          mixBlendMode: "multiply",
+          maxHeight: { xs: 220, sm: 380, lg: 460 },
         }}
-      />
-      <Typography variant="h1" fontWeight={700} lineHeight={1.15} sx={{ fontSize: TITULO }}>
-        Tu tiempo,{" "}
-        <Box component="span" color="primary.main">
-          a tu manera
+      >
+        <Box display="flex" gap={0.75} px={2} py={1.25} bgcolor="grey.100">
+          {["error.main", "warning.main", "success.main"].map((c) => (
+            <Box key={c} width={10} height={10} borderRadius="50%" bgcolor={c} />
+          ))}
         </Box>
-      </Typography>
-
-      <Typography
-        color="textSecondary"
-        mt={3}
-        mb={5}
-        mx="auto"
-        maxWidth={640}
-        sx={{ fontSize: { xs: "16px", md: "19px" }, lineHeight: 1.6 }}
-      >
-        Reservas 24/7, recordatorios automáticos, pagos y control de caja. Todo para
-        peluquerías, barberías, spas, clínicas y más.
-      </Typography>
-
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        justifyContent="center"
-        alignItems={{ xs: "stretch", sm: "center" }}
-      >
-        <Button component={Link} color="primary" size="large" variant="contained" href="/register">
-          Prueba gratis 7 días
-        </Button>
-        <Button component={Link} variant="outlined" color="inherit" size="large" href="#planes">
-          Ver planes
-        </Button>
-      </Stack>
+        <Image
+          src="/images/landing/panel.png"
+          alt="El panel de tivu"
+          width={1440}
+          height={900}
+          style={{ width: "100%", height: "auto", display: "block" }}
+          priority
+        />
+      </Box>
     </Container>
   </Box>
 );
