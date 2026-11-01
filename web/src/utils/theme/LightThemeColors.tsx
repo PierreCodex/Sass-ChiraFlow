@@ -101,6 +101,29 @@ const LightThemeColors = [
       },
     },
   },
+  {
+    /*
+     * La marca tivu, sacada del logo: violeta azulado #4A2CF5 y menta
+     * #33F3CE. El menta de marca es demasiado claro para llevar texto blanco
+     * encima o para ser texto sobre blanco, así que el `main` es su versión
+     * con cuerpo y el claro queda para fondos suaves.
+     */
+    name: 'TIVU_THEME',
+    palette: {
+      primary: {
+        main: '#4A2CF5',
+        light: '#EEEBFF',
+        dark: '#3A1FD6',
+        contrastText: '#ffffff',
+      },
+      secondary: {
+        main: '#1EC4A2',
+        light: '#E3FCF6',
+        dark: '#159E83',
+        contrastText: '#ffffff',
+      },
+    },
+  },
 ];
 
 export { LightThemeColors };
