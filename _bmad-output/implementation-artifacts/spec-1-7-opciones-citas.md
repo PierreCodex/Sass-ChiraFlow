@@ -2,7 +2,7 @@
 title: 'Story 1.7 — Quien puede agendar, puede abrir el formulario'
 type: 'feature'
 created: '2026-10-20'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'quick'
 baseline_commit: 'sandro/develop'
