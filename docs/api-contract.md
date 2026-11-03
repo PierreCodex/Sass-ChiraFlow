@@ -538,6 +538,8 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | `empleado` | `{ id, nombre }` | no nullable |
 | `local_id` | int? | la sede. Con una sola la pone el backend |
 | `productos` | `{ producto_id, nombre, cantidad, precio_unitario }[]` | vendidos en la cita |
+| `canal` | `"panel"` \| `"tienda"` | de dónde vino. Lo pone el backend: el panel no lo manda (Story 1.13) |
+| `creada_por` | `{ id, nombre }?` | la cuenta del negocio que la registró. **`null`** si la puso el cliente desde la tienda, o si es anterior a la 1.13 |
 
 `LineaServicio` es `{ id, nombre, duracion_min, precio, cantidad, color }`, y
 **`duracion_min` y `precio` salen de la pivote, no del servicio**: son los que
@@ -551,6 +553,39 @@ dejaría reservar 20 minutos de un servicio de 60.
 
 > Ojo con la asimetría: el payload manda `productos[i].id`, la entidad devuelve
 > `productos[i].producto_id`.
+
+#### Historial de la cita (Story 1.13)
+
+```
+GET /citas/{id}/historial?page&per_page   → { data: EventoCita[], meta }
+```
+
+Mismo permiso y mismo alcance que `GET /citas/{id}`: quien no ve la cita
+recibe 404. Va del más antiguo al más reciente.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | int | |
+| `tipo` | `"creada"` \| `"modificada"` | |
+| `momento` | ISO 8601 | cuándo pasó |
+| `actor` | `{ tipo, nombre }` | `tipo`: `usuario` · `cliente` · `sistema` · `plataforma`. `nombre` es el de ese momento (si luego se renombra, el historial no cambia); `null` si no hay a quién nombrar |
+| `cambios` | `{ [campo]: { antes, despues } }` | solo en `modificada`. Vacío en `creada` |
+
+Los campos que se anotan, y solo cuando cambian: `estado` (clave de los seis),
+`fecha`, `hora_inicio`, `empleado`, `servicio` y `local` (por **nombre**, el de
+ese momento) y `monto` (number). Cambiar solo las notas, el cliente o los
+productos no deja evento. Etiquetas y colores los pone el frontend.
+
+```jsonc
+{ "id": 7, "tipo": "modificada", "momento": "2026-09-07T10:15:00-05:00",
+  "actor": { "tipo": "usuario", "nombre": "Ana Torres" },
+  "cambios": { "estado": { "antes": "pendiente", "despues": "confirmada" },
+               "hora_inicio": { "antes": "10:00", "despues": "11:00" } } }
+```
+
+Borrar una cita también se anota, pero ya no hay ficha desde la que leerlo.
+Los eventos viven en `eventos_dominio` (AD-8), la misma tabla de la que
+leerán los avisos.
 
 #### Los seis estados
 
@@ -1009,7 +1044,8 @@ propuesto está en `vistas/tienda-publica.md`. `resenas: null` es válido.
   profesional, duración sumada.
 - `modo: "separada"` → una cita por servicio, cada una con su profesional,
   fecha y hora.
-- Las citas entran como `estado: "pendiente"` y `fuente: "publica"`.
+- Las citas entran como `estado: "pendiente"`, `canal: "tienda"` y sin
+  `creada_por` (Story 1.13; sustituye a la antigua `fuente: "publica"`).
 
 ---
 
@@ -1118,6 +1154,7 @@ abrir form   GET /clientes?per_page=200 · /servicios · /profesionales · /inve
              GET /citas?fecha=…            (huecos ocupados de ese día)
 guardar      POST /citas  |  PUT /citas/{id}          ↻ citas
 eliminar     DELETE /citas/{id}                        ↻ citas
+historial    GET /citas/{id}/historial                 al abrir la ficha
 ```
 
 El selector de horas no deja elegir un hueco que no esté en la lista: agendar

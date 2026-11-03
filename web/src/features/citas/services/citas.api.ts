@@ -5,7 +5,7 @@ import { crearRecurso } from "@/lib/api/recurso";
 import { serviciosMock } from "@/features/servicios/mocks";
 import { profesionalesMock } from "@/features/profesionales/mocks";
 import { productosMock } from "@/features/inventario/mocks";
-import type { Cita, CitaPayload, LineaServicio } from "../types";
+import type { Cita, CitaPayload, EventoCita, LineaServicio } from "../types";
 import { citasMock } from "../mocks";
 
 /** hora_inicio + duración -> hora_fin. Con el backend real lo calcula Laravel. */
@@ -68,6 +68,9 @@ const recurso = crearRecurso<Cita, CitaPayload>({
       monto_total:
         payload.monto +
         productos.reduce((suma, p) => suma + p.precio_unitario * p.cantidad, 0),
+      // Lo pone el backend; desde el panel siempre es el panel.
+      canal: "panel" as const,
+      creada_por: { id: 1, nombre: "Manuel Ganoza" },
     };
   },
 });
@@ -85,6 +88,45 @@ export const citasApi = {
     }
     const { data } = await api.get<{ data: Cita[] }>("/citas", {
       params: { fecha, per_page: 200 },
+    });
+    return data.data;
+  },
+
+  /**
+   * El historial de la cita (Story 1.13), del más antiguo al más reciente.
+   * Una cita no acumula cientos de cambios: una página de 100 basta.
+   */
+  historial: async (id: number): Promise<EventoCita[]> => {
+    if (usarMocksPara("citas")) {
+      await delay(250);
+      const cita = recurso.mockItems().find((c) => c.id === id);
+      if (!cita) return [];
+
+      const creada: EventoCita = {
+        id: id * 10,
+        tipo: "creada",
+        momento: `${cita.fecha}T08:00:00-05:00`,
+        actor: cita.creada_por
+          ? { tipo: "usuario", nombre: cita.creada_por.nombre }
+          : { tipo: "cliente", nombre: cita.cliente_nombre },
+        cambios: {},
+      };
+      if (cita.estado === "pendiente") return [creada];
+
+      // Con datos ficticios: si ya no está pendiente, alguien la movió.
+      return [
+        creada,
+        {
+          id: id * 10 + 1,
+          tipo: "modificada",
+          momento: `${cita.fecha}T08:30:00-05:00`,
+          actor: { tipo: "usuario", nombre: "Ana Torres" },
+          cambios: { estado: { antes: "pendiente", despues: cita.estado } },
+        },
+      ];
+    }
+    const { data } = await api.get<{ data: EventoCita[] }>(`/citas/${id}/historial`, {
+      params: { per_page: 100 },
     });
     return data.data;
   },
