@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 11-03-2026 07:00
+last_updated: 11-03-2026 14:30
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
@@ -51,7 +51,7 @@ development_status:
   1-12-el-onboarding-se-marca-solo: done
   1-13-cada-cita-dice-de-dónde-vino-y-quién-la-registró: backlog
   1-14-los-grupos-dejan-de-estorbar: backlog
-  1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: review
+  1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: done
   epic-1-retrospective: optional
 
   epic-2: backlog
