@@ -46,6 +46,7 @@ import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
+import HistorialCita from "./HistorialCita";
 import SelectorHuecos from "./SelectorHuecos";
 import {
   citaSchema,
@@ -664,6 +665,14 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
               </Stack>
             </Grid>
           </Grid>
+
+          {/* Solo al editar: una cita nueva aún no tiene historia (Story 1.13). */}
+          {cita ? (
+            <>
+              <Divider sx={{ my: 3 }} />
+              <HistorialCita cita={cita} />
+            </>
+          ) : null}
         </DialogContent>
 
         <Divider />

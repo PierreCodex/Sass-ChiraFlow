@@ -16,6 +16,18 @@ export const {
   femenino: true,
 });
 
+/**
+ * El historial de una cita (Story 1.13). Cuelga de `citasKeys.all`, así que
+ * guardar la cita lo vuelve a pedir: el evento nuevo aparece sin recargar.
+ */
+export function useHistorialCita(id: number | null) {
+  return useQuery({
+    queryKey: [...citasKeys.all, "historial", id],
+    queryFn: () => citasApi.historial(id!),
+    enabled: id !== null,
+  });
+}
+
 /** Citas de un día concreto, para el calendario. */
 export function useCitasDelDia(fecha: string) {
   return useQuery({

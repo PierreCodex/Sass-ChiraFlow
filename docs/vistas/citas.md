@@ -265,6 +265,22 @@ distintas con el mismo aspecto de «quitar esto de en medio».
 
 Si la cita estaba completada, su stock vuelve antes de borrarla.
 
+### `GET /api/citas/{id}/historial` (Story 1.13)
+
+Lo pide la ficha al abrir una cita para editarla. Al final del formulario,
+bajo **Historial**, se ve:
+
+- **De dónde vino**: «Registrada desde el panel por Ana Torres», «El cliente
+  la reservó desde la tienda en línea», o solo «Registrada desde el panel» si
+  es anterior a que se anotara el autor.
+- **Qué le pasó**: un evento por línea, del más antiguo al más reciente, con
+  fecha, hora y quién. «Creó la cita», o cada cambio como
+  «Estado: Pendiente → **Confirmada**», «Hora: 10:00 → **11:00**».
+
+Se anotan estado, fecha, hora, profesional, servicio, sede y monto. Las notas,
+el cliente y los productos no dejan evento. La forma exacta está en el
+contrato (§ Cita → Historial de la cita).
+
 ---
 
 ## Campos
@@ -288,6 +304,8 @@ Si la cita estaba completada, su stock vuelve antes de borrarla.
 | `empleado` | objeto | ✅ | **Obligatorio**: `citas.profesional_id` no es nullable |
 | `local_id` | int \| null | ✅ | La sede |
 | `productos` | array | ✅ | Puede venir vacío |
+| `canal` | `panel` \| `tienda` | ✅ | De dónde vino. Lo pone el backend (Story 1.13) |
+| `creada_por` | `{ id, nombre }` \| null | ✅ | Quién la registró. `null` si la puso el cliente o es anterior a la 1.13 |
 
 ### Estados de la cita
 
@@ -387,8 +405,9 @@ Existen la tabla `cita_servicio` (varios servicios por cita) y las columnas
 formulario envía un solo `servicio_id` y no pide apellido ni documento. Son
 para la página pública de reservas.
 
-La columna `citas.fuente` (`web` · `panel` · `publica`) registra de dónde vino
-cada reserva. Todavía no se muestra en ninguna vista.
+La columna `citas.fuente` **dejó de usarse** en la Story 1.13: de dónde vino
+la cita lo dice ahora `canal` (`panel` · `tienda`), con `creada_por` al lado,
+y la ficha lo muestra en su historial.
 
 **`cita_servicio` dejó de ser «para la página pública»**: es la única fuente de
 verdad de los servicios de una cita, también para el panel. No existe
