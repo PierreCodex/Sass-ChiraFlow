@@ -31,12 +31,7 @@ import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
-import { useTodosLosClientes } from "@/features/clientes/hooks/useClientes";
-import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
-import { saleEnAgenda } from "@/features/profesionales/types";
-import { useTodosLosServicios } from "@/features/servicios/hooks/useServicios";
-import { useTodosLosProductos } from "@/features/inventario/hooks/useProductos";
-import { useTodosLosLocales } from "@/features/locales/hooks/useLocales";
+import { usePermisos } from "@/features/capacidades/hooks/useCapacidades";
 import {
   huecosDisponibles,
   jornadaDelDia,
@@ -46,8 +41,10 @@ import { useNegocio } from "@/features/configuracion/hooks/useConfiguracion";
 import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
+import { useConRetardo, useOpcionesCita } from "../hooks/useOpcionesCita";
 import HistorialCita from "./HistorialCita";
 import SelectorHuecos from "./SelectorHuecos";
+import SelectorOpcion from "./SelectorOpcion";
 import {
   citaSchema,
   valoresIniciales,
@@ -78,11 +75,16 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const actualizar = useActualizarCita();
   const mutacion = esEdicion ? actualizar : crear;
 
-  const { data: clientes = [] } = useTodosLosClientes();
-  const { data: todosLosProfesionales = [] } = useTodosLosProfesionales();
-  const { data: servicios = [] } = useTodosLosServicios();
-  const { data: productos = [] } = useTodosLosProductos();
-  const { data: locales = [] } = useTodosLosLocales();
+  /*
+    Story 1.10: nada de listas enteras. Cada selector busca en
+    `/citas/opciones` (que además respeta el alcance y los permisos de quien
+    agenda), y lo elegido se pide por id para usar sus datos: el horario del
+    profesional, la duración del servicio, el precio de cada producto.
+
+    Las sedes son pocas —las limita el plan— y se piden de una vez.
+  */
+  const { data: locales = [] } = useOpcionesCita("locales", {}, abierto);
+  const { puedeVer: puedeVerInventario } = usePermisos("inventario");
 
   /*
     El selector de sede solo aparece con mas de una.
@@ -94,9 +96,6 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   */
   const hayVariasSedes = locales.length > 1;
   const sedePrincipal = locales.find((local) => local.es_principal) ?? locales[0];
-
-  // El selector de profesional lista a quien sale en la agenda.
-  const profesionales = todosLosProfesionales.filter(saleEnAgenda);
 
   const {
     control,
@@ -119,7 +118,22 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   const servicioId = useWatch({ control, name: "servicio_id" });
   const empleadoId = useWatch({ control, name: "empleado_id" });
   const fechaElegida = useWatch({ control, name: "fecha" });
-  const servicioElegido = servicios.find((s) => s.id === servicioId);
+  const { data: servicioPorId = [] } = useOpcionesCita("servicios", {
+    ids: servicioId ? [servicioId] : [],
+  });
+  const servicioElegido = servicioPorId[0];
+  const { data: profesionalPorId = [] } = useOpcionesCita("profesionales", {
+    ids: empleadoId ? [empleadoId] : [],
+  });
+  const profesionalElegido = profesionalPorId[0];
+
+  // El cliente se escribe a mano o se busca entre los registrados.
+  const clienteEscrito = useWatch({ control, name: "cliente_nombre" }) ?? "";
+  const { data: clientes = [] } = useOpcionesCita(
+    "clientes",
+    { search: useConRetardo(clienteEscrito) },
+    abierto
+  );
 
   /*
     `monto` es lo del SERVICIO, y es lo unico que se envia: reenviarlo con el
@@ -132,6 +146,8 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
   */
   const montoServicio = useWatch({ control, name: "monto" });
   const filasVigiladas = useWatch({ control, name: "productos" });
+  const idsProductos = (filasVigiladas ?? []).map((f) => Number(f?.id)).filter(Boolean);
+  const { data: productos = [] } = useOpcionesCita("productos", { ids: idsProductos });
   const importeProductos = (filasVigiladas ?? []).reduce((suma, fila) => {
     const producto = productos.find((p) => p.id === Number(fila?.id));
     if (!producto) return suma;
@@ -158,7 +174,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
       };
     }
 
-    const profesional = todosLosProfesionales.find((p) => p.id === empleadoId);
+    const profesional = profesionalElegido;
     if (!profesional) return { huecos: [], motivoVacio: null };
 
     const jornada = jornadaDelDia(
@@ -197,7 +213,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     };
   }, [
     empleadoId,
-    todosLosProfesionales,
+    profesionalElegido,
     fechaElegida,
     citasDelDia,
     servicioElegido,
@@ -315,24 +331,16 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 name="empleado_id"
                 control={control}
                 render={({ field }) => (
-                  <CustomTextField
-                    {...field}
-                    value={field.value || ""}
-                    onChange={(e: any) => field.onChange(Number(e.target.value))}
-                    select
+                  <SelectorOpcion
+                    coleccion="profesionales"
                     id="empleado_id"
-                    fullWidth
+                    valor={field.value}
+                    onChange={(opcion) => field.onChange(opcion?.id ?? 0)}
+                    conocida={cita?.empleado ?? null}
+                    placeholder="Buscar profesional"
                     error={!!errors.empleado_id}
                     helperText={errors.empleado_id?.message}
-                    slotProps={{ select: { displayEmpty: true } }}
-                  >
-                    <MenuItem value="">-- Elegir profesional --</MenuItem>
-                    {profesionales.map((empleado) => (
-                      <MenuItem key={empleado.id} value={empleado.id}>
-                        {empleado.nombre}
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
+                  />
                 )}
               />
             </Grid>
@@ -345,30 +353,21 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 name="servicio_id"
                 control={control}
                 render={({ field }) => (
-                  <CustomTextField
-                    {...field}
-                    value={field.value || ""}
-                    onChange={(e: any) => {
-                      const id = Number(e.target.value);
-                      field.onChange(id);
+                  <SelectorOpcion
+                    coleccion="servicios"
+                    id="servicio_id"
+                    valor={field.value}
+                    onChange={(servicio) => {
+                      field.onChange(servicio?.id ?? 0);
                       // El monto arranca del precio del servicio; luego es editable.
-                      const servicio = servicios.find((s) => s.id === id);
                       if (servicio) setValue("monto", servicio.precio);
                     }}
-                    select
-                    id="servicio_id"
-                    fullWidth
+                    etiqueta={(servicio) => `${servicio.nombre} (${formatMoneda(servicio.precio)})`}
+                    conocida={cita ? (servicioPrincipal(cita) ?? null) : null}
+                    placeholder="Buscar servicio"
                     error={!!errors.servicio_id}
                     helperText={errors.servicio_id?.message}
-                    slotProps={{ select: { displayEmpty: true } }}
-                  >
-                    <MenuItem value="">-- Seleccionar servicio --</MenuItem>
-                    {servicios.map((servicio) => (
-                      <MenuItem key={servicio.id} value={servicio.id}>
-                        {servicio.nombre} ({formatMoneda(servicio.precio)})
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
+                  />
                 )}
               />
             </Grid>
@@ -481,6 +480,18 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     getOptionLabel={(opcion) =>
                       typeof opcion === "string" ? opcion : opcion.nombre
                     }
+                    // El filtrado lo hace el servidor (Story 1.10).
+                    filterOptions={(x) => x}
+                    // Por id y con el teléfono: dos clientes pueden llamarse igual.
+                    renderOption={(props, opcion) => {
+                      const { key: _key, ...resto } = props as typeof props & { key: string };
+                      return (
+                        <li key={opcion.id} {...resto}>
+                          {opcion.nombre}
+                          {opcion.telefono ? ` · ${opcion.telefono}` : ""}
+                        </li>
+                      );
+                    }}
                     inputValue={field.value ?? ""}
                     onInputChange={(_, valor, motivo) => {
                       field.onChange(valor);
@@ -592,6 +603,8 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
             </Grid>
 
             {/* -------------------------------- Productos comprados */}
+            {/* Sin permiso de inventario, `/citas/opciones` no manda productos. */}
+            {puedeVerInventario ? (
             <Grid size={12}>
               <Divider sx={{ mb: 2 }} />
               <Typography variant="h6" fontWeight={600} mb={1}>
@@ -605,24 +618,23 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                       name={`productos.${i}.id`}
                       control={control}
                       render={({ field }) => (
-                        <CustomTextField
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e: any) => field.onChange(Number(e.target.value))}
-                          select
-                          fullWidth
-                          size="small"
-                          error={!!errors.productos?.[i]?.id}
-                          helperText={errors.productos?.[i]?.id?.message}
-                          slotProps={{ select: { displayEmpty: true } }}
-                        >
-                          <MenuItem value="">-- Seleccionar producto --</MenuItem>
-                          {productos.map((producto) => (
-                            <MenuItem key={producto.id} value={producto.id}>
-                              {producto.nombre} ({formatMoneda(producto.precio_venta)})
-                            </MenuItem>
-                          ))}
-                        </CustomTextField>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <SelectorOpcion
+                            coleccion="productos"
+                            size="small"
+                            valor={field.value}
+                            onChange={(producto) => field.onChange(producto?.id ?? 0)}
+                            etiqueta={(producto) => `${producto.nombre} (${formatMoneda(producto.precio_venta)})`}
+                            conocida={
+                              cita?.productos
+                                .filter((p) => p.producto_id === field.value)
+                                .map((p) => ({ id: p.producto_id, nombre: p.nombre }))[0] ?? null
+                            }
+                            placeholder="Buscar producto"
+                            error={!!errors.productos?.[i]?.id}
+                            helperText={errors.productos?.[i]?.id?.message}
+                          />
+                        </Box>
                       )}
                     />
 
@@ -664,6 +676,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 </Box>
               </Stack>
             </Grid>
+            ) : null}
           </Grid>
 
           {/* Solo al editar: una cita nueva aún no tiene historia (Story 1.13). */}

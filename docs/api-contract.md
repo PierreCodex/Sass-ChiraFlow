@@ -632,9 +632,9 @@ formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
 { "data": {
   "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": null, "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
-  "locales": {"data": [{"id": 3, "nombre": "Principal"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "locales": {"data": [{"id": 3, "nombre": "Principal", "es_principal": true}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
-  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999", "email": "luis@correo.pe"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
 } }
 ```
@@ -644,6 +644,19 @@ formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
 permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
 devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
 información de pago, comisión ni cuentas de profesionales.
+
+**Búsqueda, ids y `solo` (Story 1.10).** Los selectores del formulario
+buscan aquí en vez de traer listas enteras:
+
+| Parámetro | Qué hace |
+|---|---|
+| `{coleccion}_search` | filtra esa colección por nombre (`profesionales`, `servicios`, `productos`, `clientes`). En clientes busca también apellido y teléfono; `search` a secas se sigue aceptando |
+| `{coleccion}_ids` | `1,2,3`: solo esos. Para enseñar lo ya elegido aunque no esté en la primera página |
+| `solo` | `profesionales,clientes`: solo esas colecciones. Lo usa cada búsqueda, para no recalcular las demás |
+
+`profesionales` lista solo a quien **atiende** (`atiende = true`), igual que
+la agenda del panel. `locales` trae `es_principal`, y `clientes` trae
+`email`, para rellenarlo en la cita al elegir uno.
 
 En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
 llegan todos los profesionales activos y sus servicios, y `locales` viene
