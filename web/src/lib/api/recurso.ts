@@ -86,16 +86,31 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
       return data;
     },
 
-    /** Colección completa sin paginar (para selects y filtros). */
+    /**
+     * La colección COMPLETA, recorriendo todas las páginas (Story 1.10).
+     *
+     * Antes pedía una sola página de 200 y lo que pasaba de ahí desaparecía
+     * en silencio: con 250 clientes, 50 no existían para el panel. Para un
+     * selector que puede crecer sin límite no hay que usar esto sino buscar
+     * en el servidor (`SelectorRemoto`); esto queda para lo que se pinta
+     * entero, como las columnas del calendario o las sedes.
+     */
     all: async (): Promise<T[]> => {
       if (usarMocksPara(modulo)) {
         await delay(200);
         return memoria;
       }
-      const { data } = await api.get<ApiResource<T[]>>(`/${path}`, {
-        params: { per_page: 200 },
-      });
-      return data.data;
+      const todos: T[] = [];
+      for (let pagina = 1; ; pagina++) {
+        const { data } = await api.get<Paginated<T>>(`/${path}`, {
+          // 200 es el máximo que acepta el backend por página.
+          params: { per_page: 200, page: pagina },
+        });
+        todos.push(...data.data);
+        // Sin `meta` no es un índice paginado: lo que vino es todo.
+        if (!data.meta || data.meta.current_page >= data.meta.last_page) break;
+      }
+      return todos;
     },
 
     get: async (id: number): Promise<T> => {

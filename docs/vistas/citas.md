@@ -266,6 +266,19 @@ distintas con el mismo aspecto de «quitar esto de en medio».
 
 Si la cita estaba completada, su stock vuelve antes de borrarla.
 
+### Los selectores buscan en el servidor (Story 1.10)
+
+Profesional, servicio, cliente y producto ya no cargan la colección entera
+(antes, hasta 200 filas: lo que pasaba de ahí desaparecía del selector sin
+aviso). Cada uno pide 20 a `GET /api/citas/opciones` y vuelve a preguntar
+mientras se escribe, con 300 ms de retardo (`SelectorOpcion`). Lo ya elegido
+se pide por id, así que al editar se ve aunque no esté entre los 20. Las sedes
+se piden de una vez: las limita el plan.
+
+`/citas/opciones` respeta el alcance y los permisos de quien agenda: sin
+`clientes: ver` el cliente se escribe a mano, y sin `inventario: ver` la
+sección de productos no aparece.
+
 ### `GET /api/citas/{id}/historial` (Story 1.13)
 
 Lo pide la ficha al abrir una cita para editarla. Al final del formulario,
