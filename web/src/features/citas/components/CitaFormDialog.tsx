@@ -398,6 +398,13 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                   )}
                 />
               </Grid>
+            ) : errors.local_id ? (
+              // Con una sola sede el selector no se pinta, pero el backend
+              // puede rechazarla igual (p. ej. está desactivada): sin esto el
+              // 422 de `local_id` no se vería en ningún sitio.
+              <Grid size={12}>
+                <Alert severity="error">{errors.local_id.message}</Alert>
+              </Grid>
             ) : null}
 
             <Grid size={{ xs: 12, sm: 6 }}>

@@ -2,7 +2,7 @@
 title: 'Story 2.2 — Una sola regla decide si algo es reservable'
 type: 'feature'
 created: '2026-11-03'
-status: 'ready-for-dev'
+status: 'review'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
@@ -89,3 +89,24 @@ En un negocio **sin sedes** solo cuentan 1 a 3, como hoy.
 ## Depende de
 
 - **2.1** (`local_servicio`). Se empieza cuando la 2.1 esté en `develop`.
+
+## Cómo quedó (2026-11-03)
+
+- `App\Services\Reservabilidad` (`evaluar`, `exigirParaPublico`,
+  `restringirProfesionales`, `restringirServicios`,
+  `restringirServiciosDelProfesional`) y `App\Support\Veredicto`. Las
+  restricciones son UNA subconsulta de ternas (servicio + profesional + sede
+  en la misma sede), no `whereHas` sueltos.
+- Orden de motivos: baja → servicio inactivo → no atiende → sede inactiva →
+  profesional no habilitado en la sede → la sede no ofrece el servicio → no
+  presta. Los tres mensajes de la 1.3 no cambian.
+- `Disponibilidad::huecosReservables()` pregunta a la regla; `huecos()` queda
+  como cálculo de horario puro para el anti-solape, que ya aplicó la regla
+  (o la salta a propósito al cerrar la cita de un profesional de baja).
+- `/citas/opciones` ya no lista profesionales sin nada agendable.
+- Pruebas: `tests/Feature/Agenda/ReservabilidadTest.php` (25, con la matriz de
+  coherencia). En `CitasTest` solo cambió la preparación: las sedes creadas con
+  el modelo ahora también ofrecen los servicios (`ofrecerServiciosEnSedes`).
+- Panel: con una sola sede el selector no se pinta, así que un 422 en
+  `local_id` sale como aviso en el formulario.
+- Suite completa 487 + Concurrencia 2, en verde.
