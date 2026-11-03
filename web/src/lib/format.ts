@@ -26,6 +26,22 @@ export function formatFecha(fechaISO: string) {
   );
 }
 
+/**
+ * "2026-11-04T04:30:00+00:00" -> "03/11/2026" (en Lima)
+ *
+ * Para un INSTANTE con hora y zona, como el `momento` del historial. No vale
+ * `formatFecha`, que corta los diez primeros caracteres: ese texto viene en
+ * UTC, y de noche en Perú ya es el día siguiente, mientras `formatHora` sí
+ * convierte a la hora local. Saldría «04/11 · 23:30».
+ */
+export function formatFechaDeMomento(momentoISO: string) {
+  return new Date(momentoISO).toLocaleDateString(env.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 /** "2026-08-10" -> "lunes, 10 de agosto de 2026" */
 export function formatFechaLarga(fechaISO: string) {
   return new Date(`${fechaISO.slice(0, 10)}T00:00:00`).toLocaleDateString(
