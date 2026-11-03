@@ -2,7 +2,7 @@
 title: 'Story 1.13 — Cada cita dice de dónde vino y quién la registró'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
