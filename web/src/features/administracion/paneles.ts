@@ -7,6 +7,7 @@ import SeccionNegocio from "@/features/configuracion/components/secciones/Seccio
 import SeccionSitioPublico from "@/features/configuracion/components/secciones/SeccionSitioPublico";
 import PantallaSedes from "@/features/locales/components/PantallaSedes";
 import ProfesionalesPorLocal from "@/features/locales/components/ProfesionalesPorLocal";
+import ServiciosPorLocal from "@/features/locales/components/ServiciosPorLocal";
 import PantallaRoles from "@/features/roles/components/PantallaRoles";
 import PantallaUsuarios from "@/features/usuarios/components/PantallaUsuarios";
 
@@ -31,6 +32,7 @@ const PANELES: Record<string, ComponentType> = {
   "equipo/roles": PantallaRoles,
   "locales/sedes": PantallaSedes,
   "locales/profesionales": ProfesionalesPorLocal,
+  "locales/servicios": ServiciosPorLocal,
 };
 
 export function panelDeSeccion(

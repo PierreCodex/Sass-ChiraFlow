@@ -154,11 +154,9 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
        *   par de campos DENTRO del formulario del local, así que la sección
        *   prometía una pantalla que nunca hubo.
        * - La pestaña «Servicios» era un espejo de solo lectura del catálogo,
-       *   sin filtrar por local ni permitir editar. Lo suyo sería «qué
-       *   servicios se ofrecen en cada sede», pero no hay tabla
-       *   `local_servicio` que lo represente (ver `vistas/locales.md`), así
-       *   que se queda fuera en vez de duplicar el módulo Servicios dentro de
-       *   una pantalla que va de locales.
+       *   sin filtrar por local ni permitir editar. Volvió en la Story 2.1
+       *   como «Servicios de cada sede», ya con efecto: la tabla
+       *   `local_servicio` decide qué ofrece cada sede.
        */
       {
         slug: "sedes",
@@ -172,6 +170,14 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
         titulo: "Quién atiende en cada sede",
         descripcion:
           "Quién trabaja en cada local, con qué nombre aparece en la tienda pública y en qué horario.",
+        modulo: "locales",
+      },
+      {
+        // Story 2.1: la pestaña «Servicios» vuelve, ahora con efecto.
+        slug: "servicios",
+        titulo: "Servicios de cada sede",
+        descripcion:
+          "Qué servicios del catálogo ofrece cada sede. Un servicio apagado no se ofrece al agendar en ella.",
         modulo: "locales",
       },
       /*
