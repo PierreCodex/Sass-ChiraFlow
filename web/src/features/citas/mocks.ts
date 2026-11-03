@@ -71,8 +71,12 @@ export const citasMock: Cita[] = citasBase.map((cita) => {
     monto_total: cita.monto + productos,
     // Una de cada cinco la reservó el cliente desde la tienda; el resto, el
     // panel. Así la ficha enseña los dos casos con datos ficticios.
+    // Y una de cada siete, del panel por alguien a quien luego le quitaron el
+    // acceso: `creada_por` vacío, pero su nombre en el historial.
     ...(cita.id % 5 === 0
       ? { canal: "tienda" as const, creada_por: null }
-      : { canal: "panel" as const, creada_por: { id: 1, nombre: "Manuel Ganoza" } }),
+      : cita.id % 7 === 0
+        ? { canal: "panel" as const, creada_por: null }
+        : { canal: "panel" as const, creada_por: { id: 1, nombre: "Manuel Ganoza" } }),
   };
 });

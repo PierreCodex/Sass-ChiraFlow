@@ -539,7 +539,7 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | `local_id` | int? | la sede. Con una sola la pone el backend |
 | `productos` | `{ producto_id, nombre, cantidad, precio_unitario }[]` | vendidos en la cita |
 | `canal` | `"panel"` \| `"tienda"` | de dónde vino. Lo pone el backend: el panel no lo manda (Story 1.13) |
-| `creada_por` | `{ id, nombre }?` | la cuenta del negocio que la registró. **`null`** si la puso el cliente desde la tienda, o si es anterior a la 1.13 |
+| `creada_por` | `{ id, nombre }?` | la cuenta del negocio que la registró. **`null`** si la puso el cliente desde la tienda, si es anterior a la 1.13, **o si esa cuenta se eliminó** (p. ej. al quitarle el acceso). En ese último caso el nombre sigue en el evento `creada` del historial, y la ficha lo toma de ahí |
 
 `LineaServicio` es `{ id, nombre, duracion_min, precio, cantidad, color }`, y
 **`duracion_min` y `precio` salen de la pivote, no del servicio**: son los que

@@ -306,7 +306,7 @@ contrato (§ Cita → Historial de la cita).
 | `local_id` | int \| null | ✅ | La sede |
 | `productos` | array | ✅ | Puede venir vacío |
 | `canal` | `panel` \| `tienda` | ✅ | De dónde vino. Lo pone el backend (Story 1.13) |
-| `creada_por` | `{ id, nombre }` \| null | ✅ | Quién la registró. `null` si la puso el cliente o es anterior a la 1.13 |
+| `creada_por` | `{ id, nombre }` \| null | ✅ | Quién la registró. `null` si la puso el cliente, es anterior a la 1.13 o su cuenta se eliminó. En ese caso la ficha toma el nombre del evento «creada» y dice «… por Ana Torres (ya no tiene acceso)» |
 
 ### Estados de la cita
 
