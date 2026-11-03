@@ -90,6 +90,44 @@ export interface Cita {
   /** La sede. Con un solo local lo pone el backend. */
   local_id: number | null;
   productos: ProductoCita[];
+
+  /** De dónde vino (Story 1.13). Lo pone el backend: el panel no lo manda. */
+  canal: CanalCita;
+  /**
+   * La cuenta del negocio que la registró. `null` si la puso el cliente desde
+   * la tienda, o si es anterior a que se anotara. `nombre` puede venir `null`
+   * si la cuenta ya no existe.
+   */
+  creada_por: { id: number; nombre: string | null } | null;
+}
+
+export type CanalCita = "panel" | "tienda";
+
+/** Los campos que el historial vigila, y solo esos (contrato § Historial). */
+export type CampoHistorial =
+  | "estado"
+  | "fecha"
+  | "hora_inicio"
+  | "empleado"
+  | "servicio"
+  | "local"
+  | "monto";
+
+/** Un evento de `GET /citas/{id}/historial` (Story 1.13). */
+export interface EventoCita {
+  id: number;
+  tipo: "creada" | "modificada";
+  /** ISO 8601. */
+  momento: string;
+  actor: {
+    tipo: "usuario" | "cliente" | "sistema" | "plataforma";
+    /** El nombre de ese momento. `null` si no hay a quién nombrar. */
+    nombre: string | null;
+  };
+  /** Solo en `modificada`; vacío en `creada`. */
+  cambios: Partial<
+    Record<CampoHistorial, { antes: string | number | null; despues: string | number | null }>
+  >;
 }
 
 export interface CitaPayload {

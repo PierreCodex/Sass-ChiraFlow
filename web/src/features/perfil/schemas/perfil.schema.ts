@@ -1,18 +1,25 @@
 import * as yup from "yup";
 
+import { soloDigitos } from "@/features/auth/types";
+
 export const perfilSchema = yup.object({
-  nombre: yup.string().trim().required("Escribe tu nombre.").max(150),
-  apellido: yup.string().trim().required("Escribe tu apellido.").max(150),
-  telefono: yup.string().trim().max(30).default(""),
-  // Sin `matches` de 8 dígitos: el DNI es peruano, pero un extranjero con
-  // carné de extranjería tiene 9 o 12. Que el backend decida el formato.
-  documento: yup.string().trim().max(30).default(""),
-  // Igual que en Configuración: CampoImagenes trabaja con un array aunque el
-  // máximo sea uno.
-  foto: yup
-    .array()
-    .of(yup.object({ url: yup.string().required() }))
-    .default([]),
+  nombre: yup.string().trim().required("Escribe tu nombre.").max(150, "El nombre admite hasta 150 caracteres."),
+  apellido: yup.string().trim().required("Escribe tu apellido.").max(150, "El apellido admite hasta 150 caracteres."),
+  // Como en el registro: el +51 es fijo y no se escribe; se piden los 9
+  // dígitos y al guardar se manda +51987654321, que es lo que valida el backend.
+  telefono: yup
+    .string()
+    .trim()
+    .test(
+      "nueve-digitos",
+      "El teléfono debe tener 9 dígitos.",
+      (valor) => !valor || soloDigitos(valor).length === 9,
+    )
+    .default(""),
+  documento: yup.string().trim().max(20, "El documento admite hasta 20 caracteres.").matches(/^[A-Za-z0-9-]+$/, {
+    message: "El documento solo admite letras, números y guiones.",
+    excludeEmptyString: true,
+  }).default(""),
 });
 
 export type PerfilFormValues = yup.InferType<typeof perfilSchema>;
@@ -22,7 +29,8 @@ export const passwordSchema = yup.object({
   password: yup
     .string()
     .required("Escribe la nueva contraseña.")
-    .min(8, "Mínimo 8 caracteres."),
+    .min(8, "Mínimo 8 caracteres.")
+    .notOneOf([yup.ref("password_actual")], "La nueva contraseña debe ser distinta de la actual."),
   password_confirmation: yup
     .string()
     .required("Repite la nueva contraseña.")

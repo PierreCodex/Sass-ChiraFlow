@@ -1,6 +1,6 @@
 # Locales
 
-**Ruta:** `/administracion/locales/{sedes,profesionales,grupos}`
+**Ruta:** `/administracion/locales/{sedes,profesionales}` (Grupos, oculto desde la Story 1.14)
 (`/locales` redirige a la primera)
 **Estado:** ✅ **Conectada al backend** (2026-09-05). Las 4 pestañas pasaron a
 **3 secciones** — ver abajo
@@ -42,7 +42,7 @@ Cuatro pestañas, las mismas de `admin/recursos/index.blade.php`:
 |---|---|---|
 | Sedes | `locales/sedes` | ✅ conectada |
 | Quién atiende en cada sede | `locales/profesionales` | ✅ conectada |
-| Grupos | `locales/grupos` | ✅ conectada, **con aviso: no las consulta nadie** |
+| Grupos | ~~`locales/grupos`~~ | **Oculta desde la Story 1.14**: fuera del índice, sin pantalla. Los endpoints y los datos siguen; decidir su uso es F-8 |
 
 **De cuatro pestañas a tres secciones** (2026-09-05). Las dos que faltan:
 
@@ -340,6 +340,8 @@ app actual.
 ---
 
 ## Pestaña "Grupos"
+
+> **Oculta desde la Story 1.14 (2026-11-03).** No sale en el índice de Administración ni se puede abrir por su URL. El componente y los endpoints se conservan tal cual para cuando se decida F-8 (usar los grupos o retirarlos). Lo de abajo describe la pantalla tal como era.
 
 `web/src/features/locales/components/GruposTable.tsx` ·
 `GrupoFormDialog.tsx`

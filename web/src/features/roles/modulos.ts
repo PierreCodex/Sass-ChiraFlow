@@ -25,7 +25,7 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
   caja: "Caja",
   pagos: "Pagos de citas",
   reportes: "Reportes",
-  locales: "Locales y grupos",
+  locales: "Locales",
   empleados: "Profesionales",
   whatsapp: "WhatsApp",
   configuracion: "Configuración del negocio",

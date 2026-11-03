@@ -20,7 +20,8 @@ import {
 } from "@tabler/icons-react";
 
 import { useLogout, useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { etiquetaRol, inicialesDe } from "@/features/auth/types";
+import { inicialesDe } from "@/features/auth/types";
+import { useNombreDelRol } from "@/features/capacidades/hooks/useCapacidades";
 
 /** Los tres destinos que existen de verdad en el panel. */
 const ENLACES = [
@@ -56,6 +57,7 @@ const ENLACES = [
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const { data: usuario, isPending } = useUsuarioActual();
+  const rol = useNombreDelRol();
   const logout = useLogout();
 
   const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
@@ -121,7 +123,7 @@ const Profile = () => {
             </Typography>
             {usuario?.rol ? (
               <Typography variant="subtitle2" color="textSecondary">
-                {etiquetaRol(usuario.rol)}
+                {rol}
                 {usuario.negocio?.nombre ? ` · ${usuario.negocio.nombre}` : ""}
               </Typography>
             ) : null}

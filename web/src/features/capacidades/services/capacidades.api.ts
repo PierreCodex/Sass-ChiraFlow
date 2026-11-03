@@ -14,6 +14,7 @@ const capacidadesMock: Capacidades = {
   permisos: Object.fromEntries(MODULOS.map((m) => [m, "gestionar"])),
   solo_propios: false,
   locales: null,
+  rol: { clave: "admin_general", nombre: "Administrador general" },
 };
 
 export const capacidadesApi = {

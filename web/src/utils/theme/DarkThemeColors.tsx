@@ -106,6 +106,24 @@ const DarkThemeColors = [
       },
     },
   },
+  {
+    // La marca tivu sobre fondo oscuro: el violeta sube un tono para leerse.
+    name: 'TIVU_THEME',
+    palette: {
+      primary: {
+        main: '#6A50FA',
+        light: '#221B52',
+        dark: '#4A2CF5',
+        contrastText: '#ffffff',
+      },
+      secondary: {
+        main: '#4FE8C8',
+        light: '#0F3B33',
+        dark: '#1EC4A2',
+        contrastText: '#ffffff',
+      },
+    },
+  },
 ];
 
 export { DarkThemeColors };

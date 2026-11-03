@@ -101,6 +101,12 @@ Manda un objeto opcional:
   caso, así que en su lugar se dice con qué correo entra y se enlaza a
   Usuarios. Un formulario que acepta cambios y no los guarda es peor que uno
   que no los ofrece.
+- **Solo la ve el administrador general** (Story 1.4, G-4). A cualquier otro
+  el backend le responde 403 `sin_permiso` sin crear nada, así que en su lugar
+  se le dice «No entra al panel» y que se lo pida al general. Quién es el
+  general sale de `usuario.rol` de `GET /user`. Por la misma razón, a quien no
+  es el general no se le manda a Usuarios para cambiar una cuenta, sino a
+  pedírselo.
 
 ### Pago
 

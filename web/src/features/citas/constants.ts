@@ -29,6 +29,23 @@ export const ESTADOS_CITA: Record<
   no_asistio: { label: "No asistió", color: "error" },
 };
 
+/** De dónde vino la cita (`canal`, Story 1.13). */
+export const CANALES_CITA: Record<string, string> = {
+  panel: "el panel",
+  tienda: "la tienda en línea",
+};
+
+/** Cómo se nombra cada campo en el historial de la cita. */
+export const CAMPOS_HISTORIAL: Record<string, string> = {
+  estado: "Estado",
+  fecha: "Fecha",
+  hora_inicio: "Hora",
+  empleado: "Profesional",
+  servicio: "Servicio",
+  local: "Sede",
+  monto: "Monto",
+};
+
 /** De dónde salió la reserva (columna `fuente` de la tabla `citas`). */
 export const FUENTES_CITA: Record<string, string> = {
   web: "Web",

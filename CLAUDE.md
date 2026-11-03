@@ -45,7 +45,10 @@ Estas no son preferencias de estilo, son decisiones tomadas. Respetarlas.
 tema y su paleta. De un diseño anterior se replica el **contenido** (campos,
 reglas, textos), **nunca** el diseño.
 
-El tema es `AQUA_THEME` (`context/config.ts`); no tocarlo. Los colores se
+El tema es `TIVU_THEME` (`context/config.ts`), con la paleta de la marca
+tivu (violeta `#4A2CF5`, menta `#33F3CE`, sacados del logo) en `utils/theme/LightThemeColors.tsx`
+y `DarkThemeColors.tsx`; no tocarlo. Sustituyó a `AQUA_THEME` el 2026-10-26,
+cuando llegó la marca. El logo es `layout/shared/logo/Logo.tsx`. Los colores se
 piden siempre al tema —`primary.main`, `secondary.light`— y nunca a mano en
 hexadecimal: así cambiar de paleta sigue siendo cambiar una línea.
 
@@ -87,8 +90,9 @@ Varias veces en este proyecto lo que parecía correcto no lo era.
 
 | Ruta | Qué es |
 |---|---|
-| `F:\PERSONAL_JEAN\mi-saas` | **Este proyecto.** Trabajar aquí. |
-| `F:\PERSONAL_JEAN\mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo |
+| `D:\PERSONAL_JEAN\Sass-ChiraFlow` | **Este proyecto.** Trabajar aquí. |
+| `D:\PERSONAL_JEAN\Backend-Sass` | El backend Laravel, **solo lectura desde aquí** |
+| `mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo. ⚠️ La ruta absoluta se perdió en la mudanza de `F:` a `D:`; hay que volver a apuntarla |
 | `C:\laragon\www\SAAS_LINEA_BIEN` | El Laravel anterior, **solo lectura** |
 
 ### Sobre el Laravel anterior

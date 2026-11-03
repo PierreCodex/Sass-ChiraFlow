@@ -46,7 +46,8 @@ function noTrabaja(origen: OrigenJornada, nota: string | null = null): JornadaDi
  *    recién creado atiende en el horario general, no queda sin agenda.
  */
 export function jornadaDelDia(
-  empleado: Profesional,
+  // Solo su horario: también sirve la proyección de `/citas/opciones`.
+  empleado: Pick<Profesional, "horario" | "excepciones">,
   fechaISO: string,
   horarioNegocio?: HorarioNegocio
 ): JornadaDia {

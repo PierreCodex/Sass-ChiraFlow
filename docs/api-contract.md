@@ -171,6 +171,7 @@ registro, verificación y recuperación viajan **sin** sesión):
 | Método | Ruta | Payload | Respuesta |
 |---|---|---|---|
 | GET | `/publico/categorias-negocio` | — | `{ data: {id,nombre}[] }` · el select "Tipo de negocio" del registro |
+| GET | `/publico/planes` | — | `{ data: Plan[] }` · los mismos que `GET /planes`, ordenados por `precio_mensual`, para la sección de precios de la landing. **Sin sesión.** `planes` pasa a ser un slug reservado (`OnboardingService::SLUGS_RESERVADOS`) para que no choque con `/publico/{slug}` |
 | POST | `/register` | ver abajo | `{ data: Usuario }` · **no abre sesión** |
 | POST | `/email/verificar` | `{ id, hash, expires, signature }` (del enlace del correo) | 200 · **dispara el provisioning** |
 | POST | `/email/reenviar` | `{ email }` | 200 `{ message, retry_after }` · 429 si hay cooldown |
@@ -179,6 +180,19 @@ registro, verificación y recuperación viajan **sin** sesión):
 | POST | `/reset-password` | `{ token, email, password, password_confirmation }` | 200 |
 | PUT | `/user` | `{ nombre, apellido, telefono?, documento?, foto? }` | `{ data: Usuario }` · Mi perfil |
 | PUT | `/user/password` | `{ password_actual, password, password_confirmation }` | 200 · 422 `errors.password_actual` si no cuadra |
+
+**Validación de Mi perfil:** `nombre` y `apellido` son obligatorios, de hasta
+150 caracteres cada uno; se conservan íntegros y nunca se deducen de `name`.
+Un apellido nulo al leer se muestra vacío. `telefono` es opcional/null y,
+cuando se informa, tiene formato `+51` seguido de nueve dígitos. `documento`
+es opcional/null, alfanumérico con guiones, de hasta 20 caracteres. La nueva
+contraseña exige al menos ocho caracteres, confirmación y ser distinta de la actual.
+
+**Foto — decisión A, 2026-09-28 (FR-6 parcial):** el panel muestra el avatar
+existente solo en lectura y explica que la subida está pendiente. Al guardar
+otros datos **omite `foto`**, conservando su valor actual. El endpoint acepta
+una cadena de hasta 255 caracteres o null, pero no ofrece aún una subida de
+archivo. No se envían URLs temporales `blob:`. La subida queda pendiente.
 
 **Los dos "restablecer contraseña" no son el mismo.** `/forgot-password` +
 `/reset-password` son para quien **no puede entrar**: van por correo y no
@@ -252,9 +266,19 @@ registro. Payload:
   "email": "maria@correo.pe",
   "telefono": "+51987654321",    // el frontend normaliza al formato internacional
   "password": "…",
-  "password_confirmation": "…"
+  "password_confirmation": "…",
+  "acepta_terminos": true,       // la casilla obligatoria del formulario
+  "terminos_version": "1.0"      // VERSION de web/src/features/legal/terminos.ts
 }
 ```
+
+**La constancia de los términos.** `acepta_terminos` se valida `accepted` y
+`terminos_version` `required|string|max:20`; si falta cualquiera de los dos →
+422 con `errors` en ese campo (el formulario los pinta bajo la casilla). Se
+guarda en el `users` dueño: `terminos_version`, `terminos_aceptados_at` (la hora
+del servidor, no una que mande el cliente) y `terminos_ip`. Es lo que prueba
+qué versión aceptó cada negocio y cuándo; cuando el texto cambie de fondo, sube
+la versión y queda claro quién aceptó cuál.
 
 Crea en la misma transacción el `tenants` (`slug NULL`, plan de prueba,
 `estado='registrada'`) y el `users` dueño, y envía el correo de verificación.
@@ -296,7 +320,7 @@ DELETE /{path}/{id}                                              → 204
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
-| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` |
+| Profesionales | `profesionales` | **sí** | nombre, cargo, email de su cuenta | — | soft delete; el listado adjunta `resumen` y respeta el alcance de sedes. Con alcance por sedes, el `DELETE` de alguien habilitado también en una sede ajena da **403 `sin_permiso`**: la baja se lo lleva de todas, y eso lo decide el administrador general; en la suya se apaga con el interruptor (1.8, decidido el 2026-10-31) |
 | Roles | `roles` | no | nombre | — | leer: cualquiera; escribir: solo el administrador general. El listado adjunta `modulos` |
 | Locales | `locales` | **sí** | nombre, dirección | — | `es_principal` NO se acepta en el payload |
 | Grupos | `grupos` | no | nombre | — | |
@@ -322,8 +346,8 @@ duplicarla.
 | GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
 | POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
-| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación |
-| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas |
+| GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación. Con alcance por sedes, solo los que ya tienen fila en alguna de sus sedes (1.8) |
+| PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
 | POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
@@ -527,6 +551,8 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | `empleado` | `{ id, nombre }` | no nullable |
 | `local_id` | int? | la sede. Con una sola la pone el backend |
 | `productos` | `{ producto_id, nombre, cantidad, precio_unitario }[]` | vendidos en la cita |
+| `canal` | `"panel"` \| `"tienda"` | de dónde vino. Lo pone el backend: el panel no lo manda (Story 1.13) |
+| `creada_por` | `{ id, nombre }?` | la cuenta del negocio que la registró. **`null`** si la puso el cliente desde la tienda, si es anterior a la 1.13, **o si esa cuenta se eliminó** (p. ej. al quitarle el acceso). En ese último caso el nombre sigue en el evento `creada` del historial, y la ficha lo toma de ahí |
 
 `LineaServicio` es `{ id, nombre, duracion_min, precio, cantidad, color }`, y
 **`duracion_min` y `precio` salen de la pivote, no del servicio**: son los que
@@ -540,6 +566,39 @@ dejaría reservar 20 minutos de un servicio de 60.
 
 > Ojo con la asimetría: el payload manda `productos[i].id`, la entidad devuelve
 > `productos[i].producto_id`.
+
+#### Historial de la cita (Story 1.13)
+
+```
+GET /citas/{id}/historial?page&per_page   → { data: EventoCita[], meta }
+```
+
+Mismo permiso y mismo alcance que `GET /citas/{id}`: quien no ve la cita
+recibe 404. Va del más antiguo al más reciente.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | int | |
+| `tipo` | `"creada"` \| `"modificada"` | |
+| `momento` | ISO 8601 | cuándo pasó |
+| `actor` | `{ tipo, nombre }` | `tipo`: `usuario` · `cliente` · `sistema` · `plataforma`. `nombre` es el de ese momento (si luego se renombra, el historial no cambia); `null` si no hay a quién nombrar |
+| `cambios` | `{ [campo]: { antes, despues } }` | solo en `modificada`. Vacío en `creada` |
+
+Los campos que se anotan, y solo cuando cambian: `estado` (clave de los seis),
+`fecha`, `hora_inicio`, `empleado`, `servicio` y `local` (por **nombre**, el de
+ese momento) y `monto` (number). Cambiar solo las notas, el cliente o los
+productos no deja evento. Etiquetas y colores los pone el frontend.
+
+```jsonc
+{ "id": 7, "tipo": "modificada", "momento": "2026-09-07T10:15:00-05:00",
+  "actor": { "tipo": "usuario", "nombre": "Ana Torres" },
+  "cambios": { "estado": { "antes": "pendiente", "despues": "confirmada" },
+               "hora_inicio": { "antes": "10:00", "despues": "11:00" } } }
+```
+
+Borrar una cita también se anota, pero ya no hay ficha desde la que leerlo.
+Los eventos viven en `eventos_dominio` (AD-8), la misma tabla de la que
+leerán los avisos.
 
 #### Los seis estados
 
@@ -564,6 +623,45 @@ reenvía `monto` al guardar, así que pintar ahí el total **subiría el precio 
 servicio con el importe de lo vendido**. Para mostrar, `monto_total`; para el
 campo editable, `monto`.
 
+#### Opciones para agendar (`GET /citas/opciones`)
+
+Requiere `citas: gestionar` y devuelve las proyecciones que necesita el
+formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
+
+```json
+{ "data": {
+  "profesionales": {"data": [{"id": 1, "nombre": "Ana", "color": null, "horario": [], "excepciones": [], "servicios": [{"id": 2, "nombre": "Corte"}]}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "locales": {"data": [{"id": 3, "nombre": "Principal", "es_principal": true}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999", "email": "luis@correo.pe"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
+} }
+```
+
+`productos` solo se incluye con `inventario: ver`; `clientes` solo con
+`clientes: ver` y acepta `?search=`. Los índices de gestión conservan sus
+permisos propios. Todas las colecciones aceptan `?per_page=` (máximo 50) y
+devuelven `meta`; clientes además acepta `?search=`. La respuesta no incluye
+información de pago, comisión ni cuentas de profesionales.
+
+**Búsqueda, ids y `solo` (Story 1.10).** Los selectores del formulario
+buscan aquí en vez de traer listas enteras:
+
+| Parámetro | Qué hace |
+|---|---|
+| `{coleccion}_search` | filtra esa colección por nombre (`profesionales`, `servicios`, `productos`, `clientes`). En clientes busca también apellido y teléfono; `search` a secas se sigue aceptando |
+| `{coleccion}_ids` | `1,2,3`: solo esos. Para enseñar lo ya elegido aunque no esté en la primera página |
+| `solo` | `profesionales,clientes`: solo esas colecciones. Lo usa cada búsqueda, para no recalcular las demás |
+
+`profesionales` lista solo a quien **atiende** (`atiende = true`), igual que
+la agenda del panel. `locales` trae `es_principal`, y `clientes` trae
+`email`, para rellenarlo en la cita al elegir uno.
+
+En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
+llegan todos los profesionales activos y sus servicios, y `locales` viene
+vacío. `color` de cada profesional es `null` hasta que la ficha lo tenga.
+
 #### `DELETE` borra de verdad
 
 `citas` no lleva soft delete y las líneas caen en cascada. **Cancelar es un
@@ -583,7 +681,8 @@ ve ninguna**: quien no atiende no tiene citas propias.
 { "data": {
     "permisos": { "citas": "gestionar", "caja": null, "…": "los 15 siempre" },
     "solo_propios": true,
-    "locales": null
+    "locales": null,
+    "rol": { "clave": "recepcion", "nombre": "Recepción" }
 } }
 ```
 
@@ -599,6 +698,11 @@ negocio y el login se resuelve entero en la central.
 - `locales`: `null` = todas las sedes; una lista de ids = solo esas. `null` y
   no la lista completa, para que una lista **vacía** signifique de verdad
   ninguna.
+- `rol`: `{ clave, nombre }` del rol **del negocio** (Story 1.11), o `null` sin
+  cuenta en él. Es solo para mostrarlo —Mi perfil lo enseña—, nunca para
+  decidir: lo que se puede hacer lo dicen `permisos`. Hace falta porque
+  `Usuario.rol` es el rol **central**, que convierte a Recepción y a los roles
+  propios en `profesional`. `nombre` es el que el negocio le haya puesto.
 
 **Cualquier endpoint de un módulo sin acceso responde `403` con
 `codigo: "sin_permiso"`.** Es 403 y no 404 a propósito: el recurso existe y
@@ -972,7 +1076,8 @@ propuesto está en `vistas/tienda-publica.md`. `resenas: null` es válido.
   profesional, duración sumada.
 - `modo: "separada"` → una cita por servicio, cada una con su profesional,
   fecha y hora.
-- Las citas entran como `estado: "pendiente"` y `fuente: "publica"`.
+- Las citas entran como `estado: "pendiente"`, `canal: "tienda"` y sin
+  `creada_por` (Story 1.13; sustituye a la antigua `fuente: "publica"`).
 
 ---
 
@@ -1081,7 +1186,13 @@ abrir form   GET /clientes?per_page=200 · /servicios · /profesionales · /inve
              GET /citas?fecha=…            (huecos ocupados de ese día)
 guardar      POST /citas  |  PUT /citas/{id}          ↻ citas
 eliminar     DELETE /citas/{id}                        ↻ citas
+historial    GET /citas/{id}/historial                 al abrir la ficha
 ```
+
+`search` busca por nombre, apellido o teléfono del cliente, **o por el código
+exacto de la cita**, sin distinguir mayúsculas: es lo que dicta por teléfono
+quien la tiene apuntada (Story 3.1). Respeta el alcance: con `solo_propios`, el
+código de una cita ajena no la encuentra.
 
 El selector de horas no deja elegir un hueco que no esté en la lista: agendar
 fuera de horario deja de ser algo que validar después.

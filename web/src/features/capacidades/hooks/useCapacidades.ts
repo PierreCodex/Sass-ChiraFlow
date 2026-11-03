@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
+import { etiquetaRol } from "@/features/auth/types";
 import { capacidadesApi } from "../services/capacidades.api";
 import { puedeGestionar, puedeVer, type Modulo } from "../types";
 
@@ -23,6 +25,20 @@ export function useCapacidades() {
     staleTime: 10 * 60 * 1000,
     retry: false,
   });
+}
+
+/**
+ * El nombre del rol de quien mira, para MOSTRARLO (Story 1.11).
+ *
+ * El del negocio, de `GET /capacidades`: `usuario.rol` es el central y dice
+ * «Profesional» a una recepcionista y a cualquier rol propio. Mientras las
+ * capacidades no llegan, o sin backend que las mande, cae al central.
+ */
+export function useNombreDelRol(): string {
+  const { data: capacidades } = useCapacidades();
+  const { data: usuario } = useUsuarioActual();
+
+  return capacidades?.rol?.nombre ?? etiquetaRol(usuario?.rol);
 }
 
 /**

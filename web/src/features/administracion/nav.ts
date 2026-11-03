@@ -174,13 +174,13 @@ export const GRUPOS_ADMIN: GrupoAdmin[] = [
           "Quién trabaja en cada local, con qué nombre aparece en la tienda pública y en qué horario.",
         modulo: "locales",
       },
-      {
-        slug: "grupos",
-        titulo: "Grupos",
-        descripcion:
-          "Agrupa locales, profesionales y servicios que van juntos. Todavía no cambian nada en la reserva.",
-        modulo: "locales",
-      },
+      /*
+       * «Grupos» se quitó del índice en la Story 1.14: nada del sistema los
+       * usa todavía, y una pantalla que no cambia nada solo hace preguntas.
+       * Los endpoints `/grupos` siguen respondiendo y los datos se conservan;
+       * la pantalla (`PantallaGrupos`) sigue en el código. Usarlos o
+       * retirarlos es la decisión F-8 del PRD, que sigue abierta.
+       */
     ],
   },
   {

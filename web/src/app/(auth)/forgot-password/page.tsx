@@ -39,8 +39,8 @@ export default function ForgotPassword2(){
               xl: 3
             }}>
             <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '500px' }}>
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <Logo />
+              <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
+                <Logo alto={52} />
               </Box>
               <Typography
                 color="textSecondary"

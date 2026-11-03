@@ -45,6 +45,7 @@ por primera vez, su BD ya existe.
 | 4 | Email | Email | Sí | Único **global** (§2.10 de discrepancias) |
 | 5 | Teléfono | Texto con prefijo fijo `+51` | Sí | Se normaliza a `+51987654321` **antes de enviar** |
 | 6 | Contraseña | Password con ojo de mostrar/ocultar | Sí | Mínimo 8 |
+| 7 | Acepto los términos | Casilla, enlace a `/terminos` en pestaña nueva | Sí | Sin marcarla no se envía. Viaja como `acepta_terminos: true` + `terminos_version` |
 
 ### Un campo en pantalla, dos en el contrato
 
@@ -96,7 +97,9 @@ Sin sesión. Alimenta el select del tipo de negocio (tabla
   "email": "maria@correo.pe",
   "telefono": "+51987654321",
   "password": "secreta123",
-  "password_confirmation": "secreta123"
+  "password_confirmation": "secreta123",
+  "acepta_terminos": true,
+  "terminos_version": "1.0"
 }
 ```
 
@@ -108,11 +111,15 @@ Sin sesión. Alimenta el select del tipo de negocio (tabla
 | `email` | requerido, email, **único global** |
 | `telefono` | requerido, formato `+51` + 9 dígitos |
 | `password` | requerida, mín. 8, confirmada |
+| `acepta_terminos` | `accepted` |
+| `terminos_version` | requerida, texto, máx. 20 · la `VERSION` de `features/legal/terminos.ts` |
 
 **Qué hace el backend** (una sola transacción): crea `tenants` con `slug NULL`,
 plan de prueba del seeder y `estado='registrada'`; crea el
 `users` dueño (con fila en `profesionales` del tenant al provisionar,
-`atiende=1`); envía el correo de verificación.
+`atiende=1`); guarda en el dueño la constancia de los términos
+(`terminos_version`, `terminos_aceptados_at` con la hora del servidor y
+`terminos_ip`); envía el correo de verificación.
 
 **Respuesta (201):** `{ "data": Usuario }` — sin token, sin cookie.
 
@@ -220,6 +227,10 @@ la ilustración se oculta y queda solo el logo con el formulario.
 ---
 
 ## Pendiente
+
+- [ ] Backend: guardar la constancia de los términos (columnas
+      `terminos_version`, `terminos_aceptados_at`, `terminos_ip` en `users`).
+      Hasta entonces el formulario la envía y Laravel la ignora
 
 - [ ] El seeder tiene la categoría **"Otro"**, que según su comentario debería
       pedir un detalle libre (`tenants.categoria_otro_detalle`), pero

@@ -51,6 +51,13 @@ export const registroSchema = yup.object({
     .string()
     .required("Crea tu contraseña.")
     .min(8, "Mínimo 8 caracteres."),
+
+  // Marcado a mano: sin él no hay cuenta. Un texto de «al crear tu cuenta
+  // aceptas…» no deja constancia de que la persona lo aceptó.
+  acepta_terminos: yup
+    .boolean()
+    .oneOf([true], "Debes aceptar los términos y condiciones para crear tu cuenta.")
+    .required("Debes aceptar los términos y condiciones para crear tu cuenta."),
 });
 
 export type RegistroFormValues = yup.InferType<typeof registroSchema>;
@@ -66,4 +73,5 @@ export const valoresIniciales: RegistroFormValues = {
   email: "",
   telefono: "",
   password: "",
+  acepta_terminos: false,
 };

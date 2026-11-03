@@ -326,7 +326,7 @@ migraciones de cada historia.
 | FR-10..FR-14, FR-62..FR-66 equipo y permisos | `UsuarioService`, `ProfesionalService`, `Capacidades`, `Rango` | AD-2, AD-4 |
 | FR-15..FR-26 catálogo, clientes, sedes, configuración, inventario | Services de cada módulo | AD-2, AD-4, AD-14 |
 | FR-21, FR-27, FR-67 servicios por sede, huecos, reservabilidad | `Disponibilidad` + service de reservabilidad | AD-6, AD-19 |
-| FR-28..FR-35, FR-68 citas, calendario, historial | `CitaService`, `cita_eventos` | AD-4, AD-6, AD-7, AD-8 |
+| FR-28..FR-35, FR-68 citas, calendario, historial | `CitaService`, `eventos_dominio` (AD-8) | AD-4, AD-6, AD-7, AD-8 |
 | FR-36..FR-43, FR-81 tienda y dirección de sede | Zona pública, Resources públicos, `locales.slug` + historial | AD-3, AD-11, AD-14, AD-15 |
 | FR-77..FR-79, FR-82 identidad del negocio y editor | `ConfiguracionService`, `ImagenService` (variantes), función de contraste en `app/Support` | AD-2, AD-11, AD-14, AD-19 |
 | FR-44..FR-46, FR-71, FR-72 pago QR | Service de pagos, disco privado | AD-7, AD-9, AD-11 |

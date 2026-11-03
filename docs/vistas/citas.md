@@ -169,7 +169,8 @@ Por eso el payload lleva `cliente_id`:
 ### `GET /api/citas`
 
 Parámetros: `page`, `per_page`, `search` (nombre, **apellido** o teléfono del
-cliente), `fecha`, `estado`.
+cliente, o el **código** exacto de la cita sin distinguir mayúsculas — Story
+3.1), `fecha`, `estado`.
 
 ```json
 {
@@ -265,6 +266,35 @@ distintas con el mismo aspecto de «quitar esto de en medio».
 
 Si la cita estaba completada, su stock vuelve antes de borrarla.
 
+### Los selectores buscan en el servidor (Story 1.10)
+
+Profesional, servicio, cliente y producto ya no cargan la colección entera
+(antes, hasta 200 filas: lo que pasaba de ahí desaparecía del selector sin
+aviso). Cada uno pide 20 a `GET /api/citas/opciones` y vuelve a preguntar
+mientras se escribe, con 300 ms de retardo (`SelectorOpcion`). Lo ya elegido
+se pide por id, así que al editar se ve aunque no esté entre los 20. Las sedes
+se piden de una vez: las limita el plan.
+
+`/citas/opciones` respeta el alcance y los permisos de quien agenda: sin
+`clientes: ver` el cliente se escribe a mano, y sin `inventario: ver` la
+sección de productos no aparece.
+
+### `GET /api/citas/{id}/historial` (Story 1.13)
+
+Lo pide la ficha al abrir una cita para editarla. Al final del formulario,
+bajo **Historial**, se ve:
+
+- **De dónde vino**: «Registrada desde el panel por Ana Torres», «El cliente
+  la reservó desde la tienda en línea», o solo «Registrada desde el panel» si
+  es anterior a que se anotara el autor.
+- **Qué le pasó**: un evento por línea, del más antiguo al más reciente, con
+  fecha, hora y quién. «Creó la cita», o cada cambio como
+  «Estado: Pendiente → **Confirmada**», «Hora: 10:00 → **11:00**».
+
+Se anotan estado, fecha, hora, profesional, servicio, sede y monto. Las notas,
+el cliente y los productos no dejan evento. La forma exacta está en el
+contrato (§ Cita → Historial de la cita).
+
 ---
 
 ## Campos
@@ -288,6 +318,8 @@ Si la cita estaba completada, su stock vuelve antes de borrarla.
 | `empleado` | objeto | ✅ | **Obligatorio**: `citas.profesional_id` no es nullable |
 | `local_id` | int \| null | ✅ | La sede |
 | `productos` | array | ✅ | Puede venir vacío |
+| `canal` | `panel` \| `tienda` | ✅ | De dónde vino. Lo pone el backend (Story 1.13) |
+| `creada_por` | `{ id, nombre }` \| null | ✅ | Quién la registró. `null` si la puso el cliente, es anterior a la 1.13 o su cuenta se eliminó. En ese caso la ficha toma el nombre del evento «creada» y dice «… por Ana Torres (ya no tiene acceso)» |
 
 ### Estados de la cita
 
@@ -387,8 +419,9 @@ Existen la tabla `cita_servicio` (varios servicios por cita) y las columnas
 formulario envía un solo `servicio_id` y no pide apellido ni documento. Son
 para la página pública de reservas.
 
-La columna `citas.fuente` (`web` · `panel` · `publica`) registra de dónde vino
-cada reserva. Todavía no se muestra en ninguna vista.
+La columna `citas.fuente` **dejó de usarse** en la Story 1.13: de dónde vino
+la cita lo dice ahora `canal` (`panel` · `tienda`), con `creada_por` al lado,
+y la ficha lo muestra en su historial.
 
 **`cita_servicio` dejó de ser «para la página pública»**: es la única fuente de
 verdad de los servicios de una cita, también para el panel. No existe
