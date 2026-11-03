@@ -31,6 +31,7 @@ import { dialogoResponsive, formularioCompacto } from "@/components/shared/estil
 import { toApiError } from "@/lib/api/client";
 import { normalizarTelefono, PREFIJO_TELEFONO, soloDigitos } from "@/features/auth/types";
 import { useRoles } from "@/features/roles/hooks/useRoles";
+import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
 import {
   PAGO_INCLUYE_COMISION,
   PAGO_INCLUYE_SUELDO,
@@ -86,6 +87,14 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
     caso. Ofrecerlo sería un formulario que acepta cambios y no los guarda.
   */
   const tieneCuenta = !!profesional?.usuario;
+
+  /*
+    Dar acceso al panel es cosa del administrador general (Story 1.4, G-4): a
+    cualquier otro el backend le responde 403 sin crear nada. Se esconde en vez
+    de dejar que lo marque y se encuentre el error al guardar.
+  */
+  const { data: sesion } = useUsuarioActual();
+  const puedeDarAcceso = sesion?.rol === "admin_general";
 
   /*
     Los roles se piden para RESOLVER uno, no para ofrecerlos.
@@ -533,8 +542,19 @@ const ProfesionalFormDialog = ({ abierto, profesional, onCerrar }: Props) => {
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
                         Su rol es «{profesional!.usuario!.rol?.nombre ?? "—"}».
-                        Para cambiarle el correo, el rol o quitarle el acceso,
-                        ve a Usuarios.
+                        {puedeDarAcceso
+                          ? " Para cambiarle el correo, el rol o quitarle el acceso, ve a Usuarios."
+                          : " Para cambiarle el correo, el rol o quitarle el acceso, pídeselo al administrador general."}
+                      </Typography>
+                    </Stack>
+                  ) : !puedeDarAcceso ? (
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        No entra al panel
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Darle acceso al panel lo hace el administrador general.
+                        Si esta persona necesita ver su agenda, pídeselo.
                       </Typography>
                     </Stack>
                   ) : (
