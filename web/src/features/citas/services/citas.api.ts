@@ -108,7 +108,9 @@ export const citasApi = {
         momento: `${cita.fecha}T08:00:00-05:00`,
         actor: cita.creada_por
           ? { tipo: "usuario", nombre: cita.creada_por.nombre }
-          : { tipo: "cliente", nombre: cita.cliente_nombre },
+          : cita.canal === "panel"
+            ? { tipo: "usuario", nombre: "Ana Torres" }
+            : { tipo: "cliente", nombre: cita.cliente_nombre },
         cambios: {},
       };
       if (cita.estado === "pendiente") return [creada];

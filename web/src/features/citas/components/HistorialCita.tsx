@@ -19,13 +19,25 @@ function valorLegible(campo: string, valor: string | number | null) {
   return String(valor);
 }
 
-/** «Registrada desde el panel por Ana Torres», o lo que se sepa. */
-function origen(cita: Cita) {
+/**
+ * «Registrada desde el panel por Ana Torres», o lo que se sepa.
+ *
+ * Si `creada_por` viene vacío en una cita del panel puede ser por dos cosas:
+ * que sea anterior a la Story 1.13, o que a esa persona le quitaran el acceso
+ * y su cuenta se borrara. En el segundo caso el evento «creada» del historial
+ * conserva su nombre, y es justo cuando más falta hace: quien la puso ya no
+ * está en el negocio para preguntarle.
+ */
+function origen(cita: Cita, eventos: EventoCita[] | undefined) {
   if (cita.canal === "tienda") {
     return `El cliente la reservó desde ${CANALES_CITA.tienda}.`;
   }
   const desde = `Registrada desde ${CANALES_CITA[cita.canal] ?? "el panel"}`;
   if (!cita.creada_por) {
+    const creada = eventos?.find((e) => e.tipo === "creada" && e.actor.tipo === "usuario");
+    if (creada?.actor.nombre) {
+      return `${desde} por ${creada.actor.nombre} (ya no tiene acceso).`;
+    }
     // Anterior a la Story 1.13: nadie anotó quién fue, y no se inventa.
     return `${desde}.`;
   }
@@ -74,7 +86,7 @@ const HistorialCita = ({ cita }: { cita: Cita }) => {
           Historial
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          {origen(cita)}
+          {origen(cita, eventos)}
         </Typography>
       </Box>
 
