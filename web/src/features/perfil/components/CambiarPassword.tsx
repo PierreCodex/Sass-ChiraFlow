@@ -48,6 +48,7 @@ const CambiarPassword = () => {
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<PasswordFormValues>({
     resolver: yupResolver(passwordSchema),
@@ -59,6 +60,7 @@ const CambiarPassword = () => {
   });
 
   const onSubmit = handleSubmit((valores) => {
+    clearErrors("root");
     cambiar.mutate(valores, {
       onSuccess: () =>
         reset({
@@ -68,18 +70,19 @@ const CambiarPassword = () => {
         }),
       onError: (error) => {
         const apiError = toApiError(error);
-        Object.entries(apiError.errors ?? {}).forEach(([campo, mensajes]) => {
-          if (campo in valores) {
+        const campos = Object.entries(apiError.errors ?? {});
+        let necesitaMensajeGeneral = campos.length === 0;
+        campos.forEach(([campo, mensajes]) => {
+          if (Object.hasOwn(valores, campo) && mensajes[0]) {
             setError(campo as keyof PasswordFormValues, {
               message: mensajes[0],
             });
-          }
+          } else necesitaMensajeGeneral = true;
         });
+        if (necesitaMensajeGeneral) setError("root", { message: apiError.message });
       },
     });
   });
-
-  const errorGeneral = cambiar.isError ? toApiError(cambiar.error) : null;
 
   return (
     <DashboardCard
@@ -87,15 +90,9 @@ const CambiarPassword = () => {
       subtitle="Al cambiarla se cierran tus sesiones en otros dispositivos"
     >
       <Box component="form" onSubmit={onSubmit} noValidate sx={formularioCompacto}>
-        {cambiar.isSuccess ? (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            Contraseña actualizada.
-          </Alert>
-        ) : null}
-
-        {errorGeneral && !errorGeneral.errors ? (
+        {errors.root ? (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {errorGeneral.message}
+            {errors.root.message}
           </Alert>
         ) : null}
 
@@ -112,6 +109,7 @@ const CambiarPassword = () => {
                   <CustomTextField
                     {...field}
                     id={name}
+                    disabled={cambiar.isPending}
                     type={visibles[name] ? "text" : "password"}
                     fullWidth
                     autoComplete={

@@ -181,6 +181,19 @@ registro, verificación y recuperación viajan **sin** sesión):
 | PUT | `/user` | `{ nombre, apellido, telefono?, documento?, foto? }` | `{ data: Usuario }` · Mi perfil |
 | PUT | `/user/password` | `{ password_actual, password, password_confirmation }` | 200 · 422 `errors.password_actual` si no cuadra |
 
+**Validación de Mi perfil:** `nombre` y `apellido` son obligatorios, de hasta
+150 caracteres cada uno; se conservan íntegros y nunca se deducen de `name`.
+Un apellido nulo al leer se muestra vacío. `telefono` es opcional/null y,
+cuando se informa, tiene formato `+51` seguido de nueve dígitos. `documento`
+es opcional/null, alfanumérico con guiones, de hasta 20 caracteres. La nueva
+contraseña exige al menos ocho caracteres, confirmación y ser distinta de la actual.
+
+**Foto — decisión A, 2026-09-28 (FR-6 parcial):** el panel muestra el avatar
+existente solo en lectura y explica que la subida está pendiente. Al guardar
+otros datos **omite `foto`**, conservando su valor actual. El endpoint acepta
+una cadena de hasta 255 caracteres o null, pero no ofrece aún una subida de
+archivo. No se envían URLs temporales `blob:`. La subida queda pendiente.
+
 **Los dos "restablecer contraseña" no son el mismo.** `/forgot-password` +
 `/reset-password` son para quien **no puede entrar**: van por correo y no
 piden nada más. `PUT /user/password` es para quien **ya está dentro** y exige
@@ -655,7 +668,8 @@ ve ninguna**: quien no atiende no tiene citas propias.
 { "data": {
     "permisos": { "citas": "gestionar", "caja": null, "…": "los 15 siempre" },
     "solo_propios": true,
-    "locales": null
+    "locales": null,
+    "rol": { "clave": "recepcion", "nombre": "Recepción" }
 } }
 ```
 
@@ -671,6 +685,11 @@ negocio y el login se resuelve entero en la central.
 - `locales`: `null` = todas las sedes; una lista de ids = solo esas. `null` y
   no la lista completa, para que una lista **vacía** signifique de verdad
   ninguna.
+- `rol`: `{ clave, nombre }` del rol **del negocio** (Story 1.11), o `null` sin
+  cuenta en él. Es solo para mostrarlo —Mi perfil lo enseña—, nunca para
+  decidir: lo que se puede hacer lo dicen `permisos`. Hace falta porque
+  `Usuario.rol` es el rol **central**, que convierte a Recepción y a los roles
+  propios en `profesional`. `nombre` es el que el negocio le haya puesto.
 
 **Cualquier endpoint de un módulo sin acceso responde `403` con
 `codigo: "sin_permiso"`.** Es 403 y no 404 a propósito: el recurso existe y

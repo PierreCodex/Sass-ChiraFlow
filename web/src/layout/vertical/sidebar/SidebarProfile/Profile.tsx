@@ -11,7 +11,8 @@ import { IconPower } from "@tabler/icons-react";
 
 import { CustomizerContext } from "@/context/customizerContext";
 import { useLogout, useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { etiquetaRol, inicialesDe } from "@/features/auth/types";
+import { inicialesDe } from "@/features/auth/types";
+import { useNombreDelRol } from "@/features/capacidades/hooks/useCapacidades";
 
 /**
  * Tarjeta del usuario al pie del sidebar.
@@ -26,6 +27,7 @@ export const Profile = () => {
   const hideMenu = lgUp ? isCollapse == "mini-sidebar" && !isSidebarHover : "";
 
   const { data: usuario, isPending } = useUsuarioActual();
+  const rol = useNombreDelRol();
   const logout = useLogout();
 
   const nombre = usuario?.name ?? "";
@@ -59,7 +61,7 @@ export const Profile = () => {
               {isPending ? <Skeleton width={70} /> : nombreCorto}
             </Typography>
             <Typography variant="caption" noWrap>
-              {isPending ? <Skeleton width={50} /> : etiquetaRol(usuario?.rol)}
+              {isPending ? <Skeleton width={50} /> : rol}
             </Typography>
           </Box>
 

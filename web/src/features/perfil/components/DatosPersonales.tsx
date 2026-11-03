@@ -4,9 +4,11 @@ import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
+import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
+import InputAdornment from "@mui/material/InputAdornment";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
@@ -15,11 +17,11 @@ import { IconHelpCircle } from "@tabler/icons-react";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import CampoImagenes from "@/components/shared/CampoImagenes";
 import DashboardCard from "@/components/shared/DashboardCard";
 import { formularioCompacto } from "@/components/shared/estilos-formulario";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { separarNombre } from "@/features/auth/types";
+import { inicialesDe, normalizarTelefono, PREFIJO_TELEFONO, soloDigitos } from "@/features/auth/types";
+import type { Usuario } from "@/features/auth/services/auth.api";
 import { toApiError } from "@/lib/api/client";
 
 import { useActualizarPerfil } from "../hooks/usePerfil";
@@ -28,8 +30,19 @@ import {
   type PerfilFormValues,
 } from "../schemas/perfil.schema";
 
+/** `+51987654321` → `987654321`: el campo pinta el prefijo aparte. */
+const sinPrefijo = (telefono: string | null | undefined) =>
+  telefono?.startsWith(PREFIJO_TELEFONO) ? telefono.slice(PREFIJO_TELEFONO.length) : (telefono ?? "");
+
+const valoresDe = (usuario: Usuario): PerfilFormValues => ({
+  nombre: usuario.nombre ?? "",
+  apellido: usuario.apellido ?? "",
+  telefono: sinPrefijo(usuario.telefono),
+  documento: usuario.documento ?? "",
+});
+
 const DatosPersonales = () => {
-  const { data: usuario, isPending } = useUsuarioActual();
+  const { data: usuario, isPending, isError, error, refetch, isFetching } = useUsuarioActual();
   const guardar = useActualizarPerfil();
 
   const {
@@ -37,6 +50,7 @@ const DatosPersonales = () => {
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     formState: { errors, isDirty },
   } = useForm<PerfilFormValues>({
     resolver: yupResolver(perfilSchema),
@@ -45,54 +59,54 @@ const DatosPersonales = () => {
       apellido: "",
       telefono: "",
       documento: "",
-      foto: [],
     },
   });
 
   useEffect(() => {
-    if (!usuario) return;
-    // `nombre`/`apellido` sueltos cuando el backend los mande; mientras tanto
-    // se parten de `name`, igual que hace el registro al revés.
-    const partido = separarNombre(usuario.name ?? "");
-    reset({
-      nombre: usuario.nombre ?? partido.nombre,
-      apellido: usuario.apellido ?? partido.apellido,
-      telefono: usuario.telefono ?? "",
-      documento: usuario.documento ?? "",
-      foto: usuario.avatar_url ? [{ url: usuario.avatar_url }] : [],
-    });
-  }, [usuario, reset]);
+    if (usuario && !isDirty && !guardar.isPending) reset(valoresDe(usuario));
+  }, [usuario, reset, isDirty, guardar.isPending]);
 
   const onSubmit = handleSubmit((valores) => {
+    clearErrors("root");
     guardar.mutate(
       {
         nombre: valores.nombre,
         apellido: valores.apellido,
-        telefono: valores.telefono || null,
+        telefono: valores.telefono ? normalizarTelefono(valores.telefono) : null,
         documento: valores.documento || null,
-        foto: valores.foto[0]?.url ?? null,
       },
       {
-        onSuccess: () => reset(valores),
+        onSuccess: (actualizado) => reset(valoresDe(actualizado)),
         onError: (error) => {
           const apiError = toApiError(error);
-          Object.entries(apiError.errors ?? {}).forEach(([campo, mensajes]) => {
-            if (campo in valores) {
+          const campos = Object.entries(apiError.errors ?? {});
+          let necesitaMensajeGeneral = campos.length === 0;
+          campos.forEach(([campo, mensajes]) => {
+            if (Object.hasOwn(valores, campo) && mensajes[0]) {
               setError(campo as keyof PerfilFormValues, {
                 message: mensajes[0],
               });
-            }
+            } else necesitaMensajeGeneral = true;
           });
+          if (necesitaMensajeGeneral) setError("root", { message: apiError.message });
         },
       },
     );
   });
 
-  const errorGeneral = guardar.isError ? toApiError(guardar.error) : null;
-
   if (isPending) {
     return <Skeleton variant="rounded" height={420} />;
   }
+
+  const errorLectura = isError ? (
+    <Alert severity="error" sx={{ mb: 2 }} action={
+      <Button color="inherit" disabled={isFetching} onClick={() => void refetch()}>Reintentar</Button>
+    }>
+      No se pudo cargar tu perfil. {toApiError(error).message}
+    </Alert>
+  ) : null;
+
+  if (!usuario) return errorLectura;
 
   return (
     <DashboardCard
@@ -100,35 +114,26 @@ const DatosPersonales = () => {
       subtitle="Los datos de tu cuenta, no los de tu negocio"
     >
       <Box component="form" onSubmit={onSubmit} noValidate sx={formularioCompacto}>
-        {guardar.isSuccess && !isDirty ? (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            Datos guardados.
-          </Alert>
-        ) : null}
-
-        {errorGeneral && !errorGeneral.errors ? (
+        {errorLectura}
+        {errors.root ? (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {errorGeneral.message}
+            {errors.root.message}
           </Alert>
         ) : null}
 
         <Grid container spacing={2}>
           <Grid size={12}>
-            <CustomFormLabel htmlFor="foto" sx={{ mt: 0 }}>
+            <Typography variant="subtitle2" mb={1}>
               Tu foto
-            </CustomFormLabel>
-            <Controller
-              name="foto"
-              control={control}
-              render={({ field }) => (
-                <CampoImagenes
-                  valor={field.value ?? []}
-                  onChange={field.onChange}
-                  max={1}
-                  ayuda="Se ve en el panel y, si atiendes, en tu ficha pública."
-                />
-              )}
-            />
+            </Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar src={usuario.avatar_url ?? undefined} alt={usuario.name} sx={{ width: 64, height: 64 }}>
+                {inicialesDe(usuario.name)}
+              </Avatar>
+              <Typography variant="body2" color="textSecondary">
+                Tu foto es de solo lectura por ahora. La subida de una nueva foto está pendiente; al guardar tus datos conservamos la actual.
+              </Typography>
+            </Stack>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -142,6 +147,7 @@ const DatosPersonales = () => {
                 <CustomTextField
                   {...field}
                   id="nombre"
+                  disabled={guardar.isPending}
                   fullWidth
                   error={!!errors.nombre}
                   helperText={errors.nombre?.message}
@@ -161,6 +167,7 @@ const DatosPersonales = () => {
                 <CustomTextField
                   {...field}
                   id="apellido"
+                  disabled={guardar.isPending}
                   fullWidth
                   error={!!errors.apellido}
                   helperText={errors.apellido?.message}
@@ -200,17 +207,31 @@ const DatosPersonales = () => {
               render={({ field }) => (
                 <CustomTextField
                   {...field}
+                  // Solo Perú por ahora: el prefijo es fijo y no se escribe.
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    field.onChange(soloDigitos(e.target.value).slice(0, 9))
+                  }
                   id="telefono"
+                  type="tel"
+                  disabled={guardar.isPending}
                   fullWidth
+                  placeholder="987654321"
                   error={!!errors.telefono}
-                  helperText={errors.telefono?.message}
+                  helperText={errors.telefono?.message ?? "Opcional."}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">{PREFIJO_TELEFONO}</InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               )}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
-            <CustomFormLabel htmlFor="documento">DNI</CustomFormLabel>
+            <CustomFormLabel htmlFor="documento">Documento</CustomFormLabel>
             <Controller
               name="documento"
               control={control}
@@ -218,6 +239,7 @@ const DatosPersonales = () => {
                 <CustomTextField
                   {...field}
                   id="documento"
+                  disabled={guardar.isPending}
                   fullWidth
                   placeholder="Opcional"
                   error={!!errors.documento}
@@ -240,7 +262,7 @@ const DatosPersonales = () => {
             {guardar.isPending ? "Guardando…" : "Guardar cambios"}
           </Button>
           {isDirty ? (
-            <Button color="inherit" onClick={() => reset()} disabled={guardar.isPending}>
+            <Button color="inherit" onClick={() => reset(valoresDe(usuario))} disabled={guardar.isPending}>
               Descartar
             </Button>
           ) : null}

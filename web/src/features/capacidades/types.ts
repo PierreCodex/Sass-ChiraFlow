@@ -57,6 +57,12 @@ export interface Capacidades {
    * significa de verdad «ninguna» y se distingue de «sin restricción».
    */
   locales: number[] | null;
+  /**
+   * El rol del negocio, para MOSTRARLO (Mi perfil). Nunca para decidir: eso
+   * lo dicen `permisos`. `usuario.rol` es el central, que convierte a
+   * Recepción en «profesional». `null` sin cuenta en el negocio.
+   */
+  rol: { clave: string | null; nombre: string } | null;
 }
 
 /** ¿Puede al menos ver este módulo? */
