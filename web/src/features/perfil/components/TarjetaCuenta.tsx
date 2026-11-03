@@ -6,27 +6,21 @@ import Divider from "@mui/material/Divider";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
 import { IconBuildingStore, IconShieldCheck } from "@tabler/icons-react";
 
 import BlankCard from "@/components/shared/BlankCard";
 import { useUsuarioActual } from "@/features/auth/hooks/useAuth";
-import { etiquetaRol, inicialesDe } from "@/features/auth/types";
+import { inicialesDe } from "@/features/auth/types";
+import { useNombreDelRol } from "@/features/capacidades/hooks/useCapacidades";
 
-import { permisosDelRol } from "../types";
-
-/**
- * Quién eres y qué puedes hacer.
- *
- * El rol no se edita desde aquí —nadie se asciende a sí mismo— pero saberlo
- * evita la pregunta de soporte más repetida: "¿por qué no me deja entrar a
- * X?". Los permisos se explican en una línea, en vez de dejar la etiqueta
- * suelta.
- */
+/** Identidad y rol informativo; las capacidades del servidor deciden el acceso. */
 const TarjetaCuenta = () => {
   const { data: usuario, isPending } = useUsuarioActual();
+  // El rol del NEGOCIO (Story 1.11), no el central.
+  const rol = useNombreDelRol();
 
   if (isPending) return <Skeleton variant="rounded" height={280} />;
+  if (!usuario) return null;
 
   return (
     <BlankCard>
@@ -51,27 +45,12 @@ const TarjetaCuenta = () => {
 
           <Chip
             icon={<IconShieldCheck size={16} />}
-            label={etiquetaRol(usuario?.rol)}
+            label={rol}
             color="primary"
             size="small"
             sx={{ fontWeight: 600 }}
           />
         </Stack>
-
-        {permisosDelRol(usuario?.rol) ? (
-          <Box
-            sx={(theme) => ({
-              mt: 3,
-              p: 2,
-              borderRadius: 2,
-              bgcolor: alpha(theme.palette.primary.main, 0.06),
-            })}
-          >
-            <Typography variant="body2" color="textSecondary">
-              {permisosDelRol(usuario?.rol)}
-            </Typography>
-          </Box>
-        ) : null}
 
         {usuario?.negocio?.nombre ? (
           <>
