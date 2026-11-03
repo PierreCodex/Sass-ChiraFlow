@@ -419,7 +419,10 @@ por enlace (FR-69).
 
 #### FR-22: Grupos — 🟡
 Se pueden crear grupos de sedes, profesionales y servicios. 🟡 Ninguna otra
-parte del sistema los usa: propósito [POR DEFINIR] (Q-08).
+parte del sistema los usa: propósito [POR DEFINIR] (Q-08). **Ocultos del panel
+desde la Story 1.14 (2026-11-03)**: ninguna pantalla los enlaza, pero los
+endpoints siguen respondiendo y no se borra ningún dato. Decidir su uso o
+retirarlos sigue abierto (F-8).
 
 ### 4.7 Configuración del negocio — ✅
 
@@ -1221,7 +1224,7 @@ Aprobadas y ya incorporadas: **A-1 a A-7** (2026-09-19). Quedan
 | F-5 | Nombres, precios, cuotas y complementos de los planes | §6, FR-56 |
 | F-6 | Días de prueba (7 o 14) y uso de la promo S/9 | FR-58 |
 | F-7 | Días de gracia por vencimiento o exceso | §6, FR-58 |
-| F-8 | Grupos: ocultar hasta decidir su uso | FR-22 |
+| F-8 | Grupos: decidir su uso o retirarlos. **Ocultos desde la 1.14** (los datos se conservan) | FR-22 |
 | Q-03 / L-4 | Tu disponibilidad semanal y el piloto → fecha | Lanzamiento |
 | L-1 | **Nombre comercial y dominio** (remitente, enlaces, subdominios) | FR-73, lanzamiento |
 | L-2 | Dominio de las tiendas (comodín) | Lanzamiento |
