@@ -169,7 +169,8 @@ Por eso el payload lleva `cliente_id`:
 ### `GET /api/citas`
 
 Parámetros: `page`, `per_page`, `search` (nombre, **apellido** o teléfono del
-cliente), `fecha`, `estado`.
+cliente, o el **código** exacto de la cita sin distinguir mayúsculas — Story
+3.1), `fecha`, `estado`.
 
 ```json
 {

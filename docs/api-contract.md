@@ -1157,6 +1157,11 @@ eliminar     DELETE /citas/{id}                        ↻ citas
 historial    GET /citas/{id}/historial                 al abrir la ficha
 ```
 
+`search` busca por nombre, apellido o teléfono del cliente, **o por el código
+exacto de la cita**, sin distinguir mayúsculas: es lo que dicta por teléfono
+quien la tiene apuntada (Story 3.1). Respeta el alcance: con `solo_propios`, el
+código de una cita ajena no la encuentra.
+
 El selector de horas no deja elegir un hueco que no esté en la lista: agendar
 fuera de horario deja de ser algo que validar después.
 
