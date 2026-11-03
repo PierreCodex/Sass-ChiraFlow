@@ -29,14 +29,14 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 11-03-2026 18:00
+last_updated: 11-03-2026 21:00
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
 story_location: 
   D:/PERSONAL_JEAN/Sass-ChiraFlow/_bmad-output/implementation-artifacts
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-un-profesional-no-agenda-a-nombre-de-otro: done
   1-2-las-citas-no-salen-del-alcance-de-sedes: done
   1-3-no-se-pueden-agendar-citas-imposibles: done
@@ -55,8 +55,8 @@ development_status:
   epic-1-retrospective: optional
 
   epic-2: backlog
-  2-1-elegir-qué-servicios-se-ofrecen-en-cada-sede: backlog
-  2-2-una-sola-regla-decide-si-algo-es-reservable: backlog
+  2-1-elegir-qué-servicios-se-ofrecen-en-cada-sede: ready-for-dev
+  2-2-una-sola-regla-decide-si-algo-es-reservable: ready-for-dev
   2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: backlog
   epic-2-retrospective: optional
 
@@ -357,3 +357,39 @@ sprint_1:
     - "bmad-code-review antes de mergear cada historia que toque CitaService"
     - "Una rama por historia (sprint-N/historia) salida de develop y de vuelta a develop por PR con merge commit; develop pasa a main por PR al cerrar el sprint (desde 2026-10-31)"
   fuera_de_este_sprint: ["1.8", "1.10", "1.12", "1.13", "1.15", "3.2", "3.3"]
+  cerrado: "2026-11-03"
+  cierre: >-
+    Las 15 historias en develop y develop pasado a main (Backend-Sass #16,
+    Sass-ChiraFlow #34). Suite completa en verde (448 + las 2 de
+    Concurrencia). Revisión de 1.13 y 1.15 hecha a mano (no bmad-code-review):
+    encontró un deadlock entre profesionales distintos (#13) y la fecha del
+    historial en UTC (#29), los dos arreglados con prueba.
+
+sprint_2:
+  nombre: "Cada sede ofrece lo que de verdad ofrece"
+  objetivo: >-
+    Que el negocio decida qué servicios da cada sede y que una sola regla,
+    en un solo sitio, diga qué se puede reservar en el panel, en la tienda y
+    en el enlace del cliente. Desbloquea la tienda pública (épica 6).
+  abierto: "2026-11-03"
+  historias: ["2.1", "2.2", "2.3", "3.1"]
+  backend_claude:
+    en_orden: ["2.1", "2.2"]
+    motivo_del_orden: "la regla de la 2.2 necesita local_servicio, que crea la 2.1"
+    apoyo: ["2.3 (el dato del aviso en la API)"]
+  frontend:
+    "2.1": "claude: sección «Servicios de cada sede» en Administración → Locales"
+    "2.3": "codex: el aviso en el servicio y en la sede, despues de 2.1 y 2.2"
+    "3.1": "codex: mostrar y copiar el código en la ficha y buscar por él; el backend ya está (Backend-Sass #12)"
+  fichas: ["spec-2-1-servicios-por-sede.md", "spec-2-2-regla-unica-reservable.md"]
+  pruebas_que_no_se_tocan:
+    - "La suite completa en verde antes de cada merge, incluida Concurrencia"
+    - "Las pruebas de la 1.3 (reservabilidad en citas) siguen en verde sin tocarlas"
+    - "Cada condición de la regla única tiene su prueba, y una de coherencia entre la consulta y la evaluación"
+  criterio_de_cierre:
+    - "Ningún camino ofrece o acepta una combinación que la regla única rechaza"
+    - "Migración de local_servicio probada sobre un negocio existente (todo habilitado)"
+    - "Contrato primero en api-contract.md (AD-13)"
+    - "develop pasa a main por PR al cerrar, con la suite completa en verde"
+  decisiones_pendientes_que_no_bloquean:
+    - "Formato de la dirección de las tiendas (pepito.tivuapp.com): hace falta en la épica 6 y la 9.5, no en este sprint"
