@@ -51,7 +51,7 @@ development_status:
   1-12-el-onboarding-se-marca-solo: done
   1-13-cada-cita-dice-de-dónde-vino-y-quién-la-registró: backlog
   1-14-los-grupos-dejan-de-estorbar: backlog
-  1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: backlog
+  1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: review
   epic-1-retrospective: optional
 
   epic-2: backlog
