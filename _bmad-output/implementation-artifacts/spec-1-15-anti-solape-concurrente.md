@@ -2,7 +2,7 @@
 title: 'Story 1.15 — El anti-solape aguanta dos reservas a la vez'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
