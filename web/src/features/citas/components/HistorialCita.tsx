@@ -5,7 +5,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import { formatFecha, formatHora, formatMoneda } from "@/lib/format";
+import { formatFecha, formatFechaDeMomento, formatHora, formatMoneda } from "@/lib/format";
 import { CAMPOS_HISTORIAL, CANALES_CITA, ESTADOS_CITA } from "../constants";
 import { useHistorialCita } from "../hooks/useCitas";
 import type { Cita, EstadoCita, EventoCita } from "../types";
@@ -41,7 +41,7 @@ function Evento({ evento }: { evento: EventoCita }) {
   return (
     <Box sx={{ pl: 2, borderLeft: "2px solid", borderColor: "divider" }}>
       <Typography variant="caption" color="textSecondary">
-        {formatFecha(evento.momento)} · {formatHora(evento.momento)} · {quien}
+        {formatFechaDeMomento(evento.momento)} · {formatHora(evento.momento)} · {quien}
       </Typography>
       {evento.tipo === "creada" ? (
         <Typography variant="body2">Creó la cita.</Typography>
