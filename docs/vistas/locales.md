@@ -1,6 +1,6 @@
 # Locales
 
-**Ruta:** `/administracion/locales/{sedes,profesionales}` (Grupos, oculto desde la Story 1.14)
+**Ruta:** `/administracion/locales/{sedes,profesionales,servicios}` (Grupos, oculto desde la Story 1.14)
 (`/locales` redirige a la primera)
 **Estado:** ✅ **Conectada al backend** (2026-09-05). Las 4 pestañas pasaron a
 **3 secciones** — ver abajo
@@ -42,6 +42,7 @@ Cuatro pestañas, las mismas de `admin/recursos/index.blade.php`:
 |---|---|---|
 | Sedes | `locales/sedes` | ✅ conectada |
 | Quién atiende en cada sede | `locales/profesionales` | ✅ conectada |
+| Servicios de cada sede | `locales/servicios` | ✅ **nueva en la Story 2.1** |
 | Grupos | ~~`locales/grupos`~~ | **Oculta desde la Story 1.14**: fuera del índice, sin pantalla. Los endpoints y los datos siguen; decidir su uso es F-8 |
 
 **De cuatro pestañas a tres secciones** (2026-09-05). Las dos que faltan:
@@ -320,22 +321,38 @@ manda el resto de la fila tal cual, sin duplicar el estado en el DOM.
 
 ---
 
-## Pestaña "Servicios"
+## Sección "Servicios de cada sede" (Story 2.1)
 
-`web/src/features/locales/components/ServiciosDelNegocio.tsx`
+`web/src/features/locales/components/ServiciosPorLocal.tsx` ·
+`servicios-por-sede.ts`
 
-Tabla de solo lectura: punto de color, nombre, duración y precio, más un botón
-**Gestionar servicios** que lleva a `/servicios`. Idéntico en contenido a la
-app actual.
+El catálogo es **del negocio** y aquí cada sede elige cuáles **ofrece**
+(FR-21, decisión A-7). Mismo aspecto que «Quién atiende en cada sede»: las
+sedes como chips arriba (la principal elegida al entrar) y una tabla con
+buscador y paginación —el catálogo puede crecer— con un interruptor
+**«Se ofrece aquí»** por servicio que guarda al momento.
 
-> **Esta pestaña no hace nada que no haga el módulo Servicios.** No filtra por
-> local ni permite editar: es un espejo del catálogo dentro de una pantalla
-> que va de locales.
->
-> Lo lógico sería que fuese **"qué servicios se ofrecen en cada local"**, igual
-> que la pestaña de profesionales. Pero **no existe tabla `local_servicio`**,
-> así que hoy eso no se puede representar. Decisión pendiente: convertirla en
-> eso (con su migración) o quitarla.
+```jsonc
+// GET /api/locales/{id}/servicios?search&page&per_page
+{ "data": [{ "id": 3, "nombre": "Corte", "categoria": { "id": 1, "nombre": "Cabello" }, "habilitado": true }],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 10, "total": 1 } }
+
+// PUT /api/locales/{id}/servicios/{servicioId}  { "habilitado": false }
+```
+
+- **Nadie pierde nada**: la migración deja todos los servicios habilitados en
+  todas las sedes que ya existían.
+- **Lo nuevo nace habilitado**: una sede nueva ofrece todo el catálogo vivo, y
+  un servicio nuevo (o restaurado) se ofrece en todas las sedes.
+- Apagar **no borra** la fila: la sede recuerda que lo tuvo.
+- Quien solo tiene `locales: ver` ve la tabla con los interruptores
+  desactivados (el backend le respondería 403 `sin_permiso`).
+- Al agendar, `/citas/opciones` ya no ofrece en una sede un servicio que esa
+  sede no da. La regla completa de «reservable» es la de la Story 2.2.
+- Precio y duración son los del catálogo (v1).
+
+> Antes era una pestaña de solo lectura que copiaba el catálogo sin efecto, y se
+> quitó porque no existía `local_servicio`. Volvió con la tabla.
 
 ---
 

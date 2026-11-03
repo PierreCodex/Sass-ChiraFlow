@@ -347,6 +347,8 @@ duplicarla.
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
 | POST | `/invitacion/aceptar` | `{ token, email, password, password_confirmation }` | `{ message }` | **público**. Broker propio, 7 días — NO es `/reset-password` |
 | GET | `/locales/{localId}/profesionales` | — | `{ data: LocalProfesional[] }` | una fila por CADA profesional del negocio, tenga o no asignación. Con alcance por sedes, solo los que ya tienen fila en alguna de sus sedes (1.8) |
+| GET | `/locales/{localId}/servicios` | `?search&page&per_page` | `{ data: LocalServicio[], meta }` | **Story 2.1.** Todo el catálogo vivo, cada servicio con su estado en **esta** sede. `locales: ver`; sede fuera del alcance → 404 |
+| PUT | `/locales/{localId}/servicios/{servicioId}` | `{ habilitado: bool }` | `{ data: LocalServicio }` | **Story 2.1.** Habilita o deshabilita el servicio en esta sede. `locales: gestionar` (sin él, 403 `sin_permiso`); sede fuera del alcance → 404 |
 | PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
 | GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
@@ -804,6 +806,27 @@ emitirse y de aceptarse**: la identidad visual es del negocio (ver
 Configuración → apariencia). Sus valores se trasladan al negocio según FR-82 y
 se conservan sin uso hasta la portada por sede (FR-80, posterior).
 
+`LocalServicio` — un servicio del catálogo y su estado en una sede (Story 2.1,
+FR-21). El catálogo es **del negocio**; cada sede **habilita** los suyos.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | int | id del **servicio**, no de la pivote |
+| `nombre` | string | |
+| `categoria` | `{ id, nombre }?` | para agrupar en la tabla |
+| `habilitado` | bool | si esta sede lo ofrece |
+
+- **Nadie pierde nada**: al introducirlo, todos los servicios quedan
+  habilitados en todas las sedes existentes.
+- **Lo nuevo nace habilitado**: una sede nueva ofrece todo el catálogo vivo, y
+  un servicio nuevo (o restaurado) se ofrece en todas las sedes. El negocio
+  recorta después.
+- Para sacar un servicio de una sede **se apaga**, no se borra la fila.
+- Precio y duración son los del catálogo (v1): no hay diferencias por sede.
+- En `GET /citas/opciones`, `servicios` solo trae los habilitados en las sedes
+  del alcance (cuando se filtra por sede). La regla completa de «reservable» es
+  la de la Story 2.2.
+
 `LocalProfesional` — fila de `local_profesional`. El `index` devuelve **una fila
 por cada profesional del negocio**, tenga o no fila en la pivote; si no la
 tiene, `habilitado: false` y el resto en null.
@@ -1245,8 +1268,8 @@ roles        GET /roles                    (+ `modulos` fuera de `data`)
 |---|---|
 | Sedes | `GET/POST/PUT/DELETE /locales` (multipart: banner y logo) |
 | Profesionales por local | `GET /locales/{id}/profesionales` · `PUT /locales/{id}/profesionales/{profId}` — el interruptor de la tabla y el modal llaman al mismo endpoint |
-| Servicios | reutiliza `GET /servicios` |
-| Grupos | `GET/POST/PUT/DELETE /grupos` |
+| Servicios de cada sede (Story 2.1) | `GET /locales/{id}/servicios?search&page` · `PUT /locales/{id}/servicios/{servicioId}` — el interruptor guarda al momento |
+| ~~Grupos~~ | oculto desde la Story 1.14; los endpoints `/grupos` siguen |
 
 ### Caja (`/caja`)
 

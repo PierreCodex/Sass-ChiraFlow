@@ -2,7 +2,7 @@
 title: 'Story 2.1 — Elegir qué servicios se ofrecen en cada sede'
 type: 'feature'
 created: '2026-11-03'
-status: 'ready-for-dev'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
