@@ -28,6 +28,8 @@ interface ConfigRecurso<T> {
    * Solo modo mock: con el backend real esto lo resuelve el API Resource.
    */
   alGuardarMock?: (payload: any) => Partial<T>;
+  /** Recalcula datos derivados al leer o guardar, usando el estado mock actual. */
+  alLeerMock?: (item: T) => T;
   /**
    * El formulario incluye archivos: create/update se envían como
    * multipart/form-data en vez de JSON.
@@ -59,6 +61,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     camposBusqueda = [],
     valoresPorDefecto = {},
     alGuardarMock,
+    alLeerMock = (item: T) => item,
     enviarComoFormData = false,
     filtrosMock,
   } = config;
@@ -72,7 +75,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
      * endpoints derivados (contadores, resúmenes) reflejen las altas y bajas
      * de la sesión. Con el backend real esto lo calcula Laravel.
      */
-    mockItems: () => memoria,
+    mockItems: () => memoria.map(alLeerMock),
 
     list: async (params: ListParams = {}): Promise<Paginated<T>> => {
       if (usarMocksPara(modulo)) {
@@ -80,7 +83,8 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
         const filtrados = filtrosMock
           ? memoria.filter((item) => filtrosMock(item, params))
           : memoria;
-        return paginar(filtrados, params, camposBusqueda);
+        const pagina = paginar(filtrados, params, camposBusqueda);
+        return { ...pagina, data: pagina.data.map(alLeerMock) };
       }
       const { data } = await api.get<Paginated<T>>(`/${path}`, { params });
       return data;
@@ -98,7 +102,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
     all: async (): Promise<T[]> => {
       if (usarMocksPara(modulo)) {
         await delay(200);
-        return memoria;
+        return memoria.map(alLeerMock);
       }
       const todos: T[] = [];
       for (let pagina = 1; ; pagina++) {
@@ -118,7 +122,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
         await delay(200);
         const encontrado = memoria.find((item) => item.id === id);
         if (!encontrado) throw new Error("No encontrado");
-        return encontrado;
+        return alLeerMock(encontrado);
       }
       const { data } = await api.get<ApiResource<T>>(`/${path}/${id}`);
       return data.data;
@@ -134,7 +138,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
           id: Math.max(0, ...memoria.map((i) => i.id)) + 1,
         } as T;
         memoria = [nuevo, ...memoria];
-        return nuevo;
+        return alLeerMock(nuevo);
       }
       if (enviarComoFormData) {
         const { data } = await api.post<ApiResource<T>>(
@@ -161,7 +165,7 @@ export function crearRecurso<T extends { id: number }, P = Partial<T>>(
               } as T)
             : item
         );
-        return memoria.find((item) => item.id === id)!;
+        return alLeerMock(memoria.find((item) => item.id === id)!);
       }
       if (enviarComoFormData) {
         // PHP no parsea multipart en PUT: se envía POST con _method=PUT.

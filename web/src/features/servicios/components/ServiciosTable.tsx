@@ -1,6 +1,7 @@
 "use client";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Switch from "@mui/material/Switch";
 import Stack from "@mui/material/Stack";
@@ -16,6 +17,7 @@ import { formatMoneda } from "@/lib/format";
 import { TIPOS_SERVICIO } from "../constants";
 import { useActualizarServicio, useServicios } from "../hooks/useServicios";
 import type { Servicio, ServicioPayload } from "../types";
+import { avisoReservabilidad } from "../reservabilidad";
 
 /**
  * Lo que hay que reenviar para cambiar solo `activo`.
@@ -62,22 +64,36 @@ const ServiciosTable = ({ onEditar, onEliminar }: Props) => {
     {
       id: "nombre",
       label: "Nombre",
-      render: (servicio) => (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              bgcolor: servicio.color,
-              flexShrink: 0,
-            }}
-          />
-          <Typography variant="subtitle2" fontWeight={600}>
-            {servicio.nombre}
-          </Typography>
-        </Stack>
-      ),
+      render: (servicio) => {
+        const aviso = avisoReservabilidad(servicio);
+        return (
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box
+              sx={{
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                bgcolor: servicio.color,
+                flexShrink: 0,
+              }}
+            />
+            <Typography variant="subtitle2" fontWeight={600}>
+              {servicio.nombre}
+            </Typography>
+            {aviso ? (
+              <Tooltip title={`${aviso.titulo}. ${aviso.detalle}`} arrow>
+                <Chip
+                  label={aviso.etiqueta}
+                  color="warning"
+                  size="small"
+                  variant="outlined"
+                  tabIndex={0}
+                />
+              </Tooltip>
+            ) : null}
+          </Stack>
+        );
+      },
     },
     {
       id: "categoria",

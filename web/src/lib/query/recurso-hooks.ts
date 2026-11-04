@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ListParams } from "@/lib/api/types";
+import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import type { ListParams, Paginated } from "@/lib/api/types";
 import type { Recurso } from "@/lib/api/recurso";
 import { useAvisos } from "@/context/avisos";
 
@@ -22,11 +22,13 @@ export interface EtiquetaRecurso {
  * El aviso vive **aquí** y no en cada pantalla a propósito: guardar sin
  * respuesta visible es lo que hace dudar de si se guardó, y un módulo nuevo
  * lo hereda sin tener que acordarse.
+ * `invalidarTambien` refresca las consultas de otros módulos que dependen del recurso.
  */
 export function crearHooksRecurso<T extends { id: number }, P = Partial<T>>(
   clave: string,
   recurso: Recurso<T, P>,
-  etiqueta: EtiquetaRecurso = { singular: "Registro" }
+  etiqueta: EtiquetaRecurso = { singular: "Registro" },
+  invalidarTambien: readonly QueryKey[] = []
 ) {
   const participio = (verbo: "cre" | "actualiz" | "elimin") =>
     `${etiqueta.singular} ${verbo}${etiqueta.femenino ? "ada" : "ado"}`;
@@ -72,8 +74,11 @@ export function crearHooksRecurso<T extends { id: number }, P = Partial<T>>(
     const { avisar } = useAvisos();
     return useMutation({
       mutationFn: (payload: P) => recurso.create(payload),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: keys.all });
+      onSuccess: async (creado) => {
+        queryClient.setQueryData(keys.detail(creado.id), creado);
+        void Promise.all(
+          [keys.all, ...invalidarTambien].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
+        );
         avisar(`${participio("cre")} correctamente`);
       },
     });
@@ -85,8 +90,17 @@ export function crearHooksRecurso<T extends { id: number }, P = Partial<T>>(
     return useMutation({
       mutationFn: ({ id, payload }: { id: number; payload: Partial<P> }) =>
         recurso.update(id, payload),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: keys.all });
+      onSuccess: async (actualizado) => {
+        queryClient.setQueryData(keys.detail(actualizado.id), actualizado);
+        // La respuesta guardada ya es válida, incluso si el refresco posterior falla.
+        const reemplazar = (item: T) => item.id === actualizado.id ? actualizado : item;
+        queryClient.setQueriesData<Paginated<T>>({ queryKey: [clave, "list"] }, (pagina) =>
+          pagina ? { ...pagina, data: pagina.data.map(reemplazar) } : pagina
+        );
+        queryClient.setQueryData<T[]>(keys.todos, (items) => items?.map(reemplazar));
+        void Promise.all(
+          [keys.all, ...invalidarTambien].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
+        );
         avisar(`${participio("actualiz")} correctamente`);
       },
     });
@@ -97,8 +111,10 @@ export function crearHooksRecurso<T extends { id: number }, P = Partial<T>>(
     const { avisar } = useAvisos();
     return useMutation({
       mutationFn: (id: number) => recurso.remove(id),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: keys.all });
+      onSuccess: async () => {
+        void Promise.all(
+          [keys.all, ...invalidarTambien].map((queryKey) => queryClient.invalidateQueries({ queryKey }))
+        );
         avisar(`${participio("elimin")} correctamente`);
       },
     });

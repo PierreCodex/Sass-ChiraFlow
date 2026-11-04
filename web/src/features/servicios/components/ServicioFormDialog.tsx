@@ -4,6 +4,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -29,13 +30,14 @@ import { toApiError } from "@/lib/api/client";
 import { useTodasLasCategorias } from "@/features/categorias/hooks/useCategorias";
 import { useTodosLosProfesionales } from "@/features/profesionales/hooks/useProfesionales";
 import { TIPOS_CON_SESIONES, TIPOS_SERVICIO } from "../constants";
-import { useActualizarServicio, useCrearServicio } from "../hooks/useServicios";
+import { useActualizarServicio, useCrearServicio, useServicio } from "../hooks/useServicios";
 import {
   servicioSchema,
   valoresIniciales,
   type ServicioFormValues,
 } from "../schemas/servicio.schema";
 import { MAX_GALERIA, type Servicio, type ServicioPayload } from "../types";
+import { avisoReservabilidad } from "../reservabilidad";
 
 interface Props {
   abierto: boolean;
@@ -50,6 +52,7 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
   const esEdicion = !!servicio;
   const crear = useCrearServicio();
   const actualizar = useActualizarServicio();
+  const { data: detalleServicio } = useServicio(abierto && servicio ? servicio.id : NaN);
   const mutacion = esEdicion ? actualizar : crear;
 
   const { data: categorias = [] } = useTodasLasCategorias();
@@ -154,6 +157,8 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
   });
 
   const errorGeneral = mutacion.isError ? toApiError(mutacion.error) : null;
+  const servicioDelAviso = detalleServicio ?? servicio;
+  const aviso = servicioDelAviso ? avisoReservabilidad(servicioDelAviso) : null;
 
   return (
     <Dialog
@@ -187,6 +192,12 @@ const ServicioFormDialog = ({ abierto, servicio, onCerrar }: Props) => {
         <Divider />
 
         <DialogContent sx={formularioCompacto}>
+          {aviso ? (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <AlertTitle>{aviso.titulo}</AlertTitle>
+              {aviso.detalle}
+            </Alert>
+          ) : null}
           {errorGeneral && !errorGeneral.errors ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorGeneral.message}

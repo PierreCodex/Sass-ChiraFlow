@@ -343,7 +343,11 @@ buscador y paginación —el catálogo puede crecer— con un interruptor
 - **`sin_quien_lo_preste`** (Story 2.3): la sede lo ofrece pero ningún
   profesional puede prestarlo aquí (nadie lo presta, o quien lo presta no está
   habilitado en esta sede, está de baja o no atiende). Es el aviso de la fila;
-  el texto lo pone el panel. Pendiente de pintar (Codex).
+  el texto lo pone el panel. La fila muestra un aviso de que no se puede
+  reservar aquí e indica asignar un profesional o habilitarlo en esta sede.
+  Desaparece tras guardar la asignación o habilitación, sin recargar. No se
+  muestra para servicios inactivos, sedes inactivas ni servicios que la sede
+  no ofrece (Story 2.3).
 
 - **Nadie pierde nada**: la migración deja todos los servicios habilitados en
   todas las sedes que ya existían.

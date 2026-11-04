@@ -12,4 +12,4 @@ export const {
   useEliminar: useEliminarServicio,
 } = crearHooksRecurso<Servicio, ServicioPayload>("servicios", serviciosApi, {
   singular: "Servicio",
-});
+}, [["locales", "servicios"], ["citas"]]);

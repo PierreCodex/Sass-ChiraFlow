@@ -57,7 +57,7 @@ development_status:
   epic-2: in-progress
   2-1-elegir-qué-servicios-se-ofrecen-en-cada-sede: done
   2-2-una-sola-regla-decide-si-algo-es-reservable: done
-  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: in-progress
+  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: review
   epic-2-retrospective: optional
 
   epic-3: backlog

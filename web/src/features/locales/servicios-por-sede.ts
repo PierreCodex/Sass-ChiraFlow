@@ -6,7 +6,8 @@ import { usarMocksPara } from "@/lib/api/mocks";
 import type { ListParams, Paginated } from "@/lib/api/types";
 import { delay, paginar } from "@/lib/mock-utils";
 import { citasKeys } from "@/features/citas/hooks/useCitas";
-import { serviciosMock } from "@/features/servicios/mocks";
+import { serviciosApi } from "@/features/servicios/services/servicios.api";
+import { seOfreceMock, serviciosHabilitadosMock } from "@/features/servicios/reservabilidad-mock";
 
 /**
  * Qué servicios ofrece cada sede (Story 2.1, FR-21).
@@ -19,21 +20,19 @@ export interface LocalServicio {
   nombre: string;
   categoria: { id: number; nombre: string } | null;
   habilitado: boolean;
+  sin_quien_lo_preste: boolean;
 }
-
-// Con datos ficticios: todo habilitado al empezar, como tras la migración.
-const habilitadoMock: Record<string, boolean> = {};
-const claveMock = (localId: number, servicioId: number) => `${localId}:${servicioId}`;
 
 export const localServicioApi = {
   lista: async (localId: number, params: ListParams = {}): Promise<Paginated<LocalServicio>> => {
     if (usarMocksPara("locales")) {
       await delay(250);
-      const filas = serviciosMock.map((s) => ({
+      const filas = serviciosApi.mockItems().map((s) => ({
         id: s.id,
         nombre: s.nombre,
         categoria: s.categoria,
-        habilitado: habilitadoMock[claveMock(localId, s.id)] ?? true,
+        habilitado: seOfreceMock(localId, s.id),
+        sin_quien_lo_preste: s.reservabilidad.sedes_sin_quien_lo_preste.some((sede) => sede.id === localId),
       }));
       return paginar(filas, params, ["nombre"]);
     }
@@ -46,9 +45,15 @@ export const localServicioApi = {
   actualizar: async (localId: number, servicioId: number, habilitado: boolean): Promise<LocalServicio> => {
     if (usarMocksPara("locales")) {
       await delay();
-      habilitadoMock[claveMock(localId, servicioId)] = habilitado;
-      const s = serviciosMock.find((x) => x.id === servicioId)!;
-      return { id: s.id, nombre: s.nombre, categoria: s.categoria, habilitado };
+      const s = serviciosApi.mockItems().find((x) => x.id === servicioId);
+      if (!s) throw new Error("Servicio no encontrado");
+      serviciosHabilitadosMock[`${localId}:${servicioId}`] = habilitado;
+      return {
+        id: s.id, nombre: s.nombre, categoria: s.categoria, habilitado,
+        sin_quien_lo_preste: serviciosApi.mockItems().some((servicio) =>
+          servicio.id === servicioId && servicio.reservabilidad.sedes_sin_quien_lo_preste.some((sede) => sede.id === localId)
+        ),
+      };
     }
     const { data } = await api.put<{ data: LocalServicio }>(
       `/locales/${localId}/servicios/${servicioId}`,
@@ -82,6 +87,7 @@ export function useActualizarLocalServicio(localId: number | undefined) {
       localServicioApi.actualizar(localId!, servicioId, habilitado),
     onSuccess: (servicio) => {
       queryClient.invalidateQueries({ queryKey: localServicioKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["servicios"] });
       // Lo que se ofrece al agendar depende de esto.
       queryClient.invalidateQueries({ queryKey: citasKeys.all });
       avisar(servicio.habilitado ? `«${servicio.nombre}» se ofrece en esta sede` : `«${servicio.nombre}» ya no se ofrece en esta sede`);
