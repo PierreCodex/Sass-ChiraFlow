@@ -65,7 +65,11 @@ Parámetros: `page`, `per_page`, `search` (filtra por nombre)
       "tipo": "normal",
       "duracion_min": 45,
       "precio": 90,
-      "activo": true
+      "activo": true,
+      "reservabilidad": {
+        "reservable": true,
+        "sedes_sin_quien_lo_preste": [{ "id": 3, "nombre": "Sur" }]
+      }
     }
   ],
   "meta": { "current_page": 1, "per_page": 10, "total": 12, "last_page": 2 }
@@ -147,6 +151,7 @@ eliminado restaura aquella fila** en vez de fallar.
 | `imagen_principal` | string URL \| null | ✅ | |
 | `galeria` | `{id, url}[]` | ✅ | Máximo 4. Objetos desde el 2026-08-27 |
 | `empleados` | objeto[] | ✅ | Profesionales que ofrecen el servicio |
+| `reservabilidad` | `{ reservable, sedes_sin_quien_lo_preste: {id, nombre}[] }` | ✅ | Story 2.3: el aviso de «nadie puede prestarlo» (ver `docs/api-contract.md` → Servicio). En `index`, `show`, `POST` y `PUT` |
 
 ### `activo` — resuelto: el switch de la tabla
 
@@ -277,9 +282,13 @@ componente se reutiliza tal cual: solo cambia dónde se monta.
 
 ## Pendiente
 
-- [ ] **¿El servicio se asigna también a locales concretos?** No en la v1: no
-      hay pivote servicio↔local, así que un servicio es del negocio entero. Se
-      revisa en el Sprint 3, con Locales
+- [ ] **Aviso de «nadie puede prestarlo» (Story 2.3, Codex).** El dato ya
+      llega en `reservabilidad`: pintar en la tabla y en el formulario que el
+      servicio no es reservable, o en qué sedes nadie puede prestarlo. Los
+      textos los pone el panel: «Nadie que lo preste atiende en Sur»
+
+- [x] **¿El servicio se asigna también a locales concretos?** Sí, desde la
+      Story 2.1: `local_servicio` y la sección «Servicios de cada sede»
 - [ ] **Vaciar la galería en multipart** necesita hoy el truco del id 0.
       Traspaso abierto al backend
 - [ ] `visible_publico` lo emite el backend pero el formulario todavía no lo
