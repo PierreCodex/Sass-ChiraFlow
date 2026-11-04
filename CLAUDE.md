@@ -92,7 +92,7 @@ Varias veces en este proyecto lo que parecía correcto no lo era.
 |---|---|
 | `D:\PERSONAL_JEAN\Sass-ChiraFlow` | **Este proyecto.** Trabajar aquí. |
 | `D:\PERSONAL_JEAN\Backend-Sass` | El backend Laravel, **solo lectura desde aquí** |
-| `mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo. ⚠️ La ruta absoluta se perdió en la mudanza de `F:` a `D:`; hay que volver a apuntarla |
+| `D:\PERSONAL_JEAN\mi-modernize-app\mi-modernize-app\packages\typescript\main` | La plantilla Modernize, **solo consulta**: mirar cómo resuelve algo antes de inventarlo. Los componentes están en `src/app/components/` (forms, tables, ui-components, landingpage…). Ojo con la carpeta repetida `mi-modernize-app\mi-modernize-app` |
 | `C:\laragon\www\SAAS_LINEA_BIEN` | El Laravel anterior, **solo lectura** |
 
 ### Sobre el Laravel anterior
