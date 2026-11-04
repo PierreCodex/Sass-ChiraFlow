@@ -334,11 +334,16 @@ buscador y paginación —el catálogo puede crecer— con un interruptor
 
 ```jsonc
 // GET /api/locales/{id}/servicios?search&page&per_page
-{ "data": [{ "id": 3, "nombre": "Corte", "categoria": { "id": 1, "nombre": "Cabello" }, "habilitado": true }],
+{ "data": [{ "id": 3, "nombre": "Corte", "categoria": { "id": 1, "nombre": "Cabello" }, "habilitado": true, "sin_quien_lo_preste": false }],
   "meta": { "current_page": 1, "last_page": 1, "per_page": 10, "total": 1 } }
 
 // PUT /api/locales/{id}/servicios/{servicioId}  { "habilitado": false }
 ```
+
+- **`sin_quien_lo_preste`** (Story 2.3): la sede lo ofrece pero ningún
+  profesional puede prestarlo aquí (nadie lo presta, o quien lo presta no está
+  habilitado en esta sede, está de baja o no atiende). Es el aviso de la fila;
+  el texto lo pone el panel. Pendiente de pintar (Codex).
 
 - **Nadie pierde nada**: la migración deja todos los servicios habilitados en
   todas las sedes que ya existían.

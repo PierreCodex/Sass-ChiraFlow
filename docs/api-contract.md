@@ -510,6 +510,28 @@ declarado: el backend manda claves). Quién marca cada paso:
 | `imagen_principal` | string? | URL |
 | `galeria` | `{ id, url }[]` | máximo 4 |
 | `empleados` | `{ id, nombre }[]` | quién lo ofrece |
+| `reservabilidad` | `{ reservable, sedes_sin_quien_lo_preste }` | Story 2.3, ver abajo. Solo de lectura |
+
+`reservabilidad` dice si el servicio se puede reservar y, si no en todas sus
+sedes, dónde falla — para que el dueño lo vea venir en vez de descubrirlo
+porque un cliente no encuentra hueco (FR-21). Lo calcula la regla de
+«reservable» (Story 2.2), en el mismo sitio que el guardado de citas:
+
+```json
+"reservabilidad": {
+  "reservable": true,
+  "sedes_sin_quien_lo_preste": [{ "id": 3, "nombre": "Sur" }]
+}
+```
+
+| Campo | Notas |
+|---|---|
+| `reservable` | se puede reservar con al menos un profesional en al menos una sede (sin sedes: alguien activo, que atiende, lo presta). `false` también si el servicio está inactivo |
+| `sedes_sin_quien_lo_preste` | sedes **activas** donde el servicio está **habilitado** pero ningún profesional puede prestarlo allí (nadie que lo preste, o quien lo presta no está habilitado, está de baja o no atiende). Vacío si el servicio está inactivo —su aviso es otro— o si el negocio no tiene sedes |
+
+Al asignar un profesional que lo preste (o habilitarlo en la sede), el dato
+cambia en la siguiente lectura: no hay que «activar» nada. Llega en el
+`index`, el `show` y la respuesta de `POST`/`PUT`.
 
 **Payload (multipart)**: `{ nombre, descripcion, color, categoria_id, tipo,
 max_sesiones, duracion_min, precio, activo?, imagen_principal: File|null,
@@ -851,6 +873,7 @@ FR-21). El catálogo es **del negocio**; cada sede **habilita** los suyos.
 | `nombre` | string | |
 | `categoria` | `{ id, nombre }?` | para agrupar en la tabla |
 | `habilitado` | bool | si esta sede lo ofrece |
+| `sin_quien_lo_preste` | bool | Story 2.3: **habilitado** aquí, servicio activo y sede activa, pero ningún profesional puede prestarlo **en esta sede**. Es el aviso de la fila |
 
 - **Nadie pierde nada**: al introducirlo, todos los servicios quedan
   habilitados en todas las sedes existentes.
