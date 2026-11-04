@@ -143,13 +143,13 @@ De la arquitectura (AD-1..AD-21). No hay plantilla de inicio: el proyecto existe
 - Guard de `platform_admins` con 2FA; zona plataforma sin tenancy; auditoría en `soporte_acciones` (AD-12).
 - Contrato primero en cada historia que cambie la API; `pendientes-contrato.md` cerrado (AD-13).
 - Migraciones solo se añaden; de tenant con `tenants:migrar-provisionados` (AD-14).
-- Dominios `app.`, `admin.`, `api.`, `{slug}.site.`; cookies `__Host-`; BFF enruta por host y valida `Origin` (AD-15).
+- Dominios `tivuapp.com`, `app.`, `admin.`, `api.tivuapp.com` y tiendas en `{slug}.tivuapp.store`; cookies `__Host-`; BFF enruta por host y valida `Origin` (AD-15, actualizado 2026-11-03).
 - UTC para lo programado; hora local del negocio para citas (AD-16).
 - Sin mocks en producción; menú solo desde `/capacidades` (AD-17).
 - `sprint-status.yaml` único; git solo en el propio repo; worktree por agente (AD-18).
 - Vitest en `web/`, caso dorado JSON compartido en `docs/fixtures/` leído por Vitest y Pest, Playwright con 4–5 recorridos (AD-19).
 - Entornos local, pruebas y producción separados; worker y programador por minuto; copias diarias central + cada negocio a R2 con restauración mensual; MySQL 8.4 LTS; monitor de disponibilidad y alertas X-1/X-2; logs 14 días (AD-20).
-- Despliegue: Contabo VPS 6 con Forge, Vercel Pro en `iad1`, Resend Pro, Cloudflare DNS/R2/Turnstile (memlog de arquitectura).
+- Despliegue (2026-11-03): Contabo Cloud VPS 8 con Coolify (Next y Laravel en el mismo servidor), Resend Pro, Cloudflare DNS/proxy/R2/Turnstile; dominios registrados en Donweb (`docs/infra/cloudflare-dns.md`).
 - Provisioning al verificar correo; ciclo de vida diario vía `SuscripcionService`; métricas nocturnas (posterior) (AD-21).
 - Correo remitente con SPF, DKIM y DMARC en el dominio del producto (L-1 pendiente).
 - Coordinación con Codex: `AGENTS.md` en cada repo y BMAD instalado para Codex antes de repartir historias.
@@ -295,7 +295,7 @@ El producto se puede enseñar y contratar: landing con los planes, textos
 legales, ninguna pantalla con datos ficticios y el sistema corriendo en
 producción con copias probadas.
 **FRs cubiertos:** FR9, FR61 · **NFR:** NFR9, NFR10 · **AD:** AD-17, AD-20.
-**Notas:** incluye apagar los mocks, ocultar del menú los módulos no lanzados, el despliegue en Contabo y Vercel con entorno de pruebas, y el piloto con 2–3 negocios. Agente sugerido: **Codex** (landing) + **Claude** (despliegue y cierre).
+**Notas:** incluye apagar los mocks, ocultar del menú los módulos no lanzados, el despliegue en el VPS con Coolify y entorno de pruebas, y el piloto con 2–3 negocios. Agente sugerido: **Codex** (landing) + **Claude** (despliegue y cierre).
 
 ### Fuera del lanzamiento (siguen en el alcance general)
 FR18, FR26, FR41, FR42, FR47–FR50, FR52–FR54, FR59, FR80: importación de
@@ -1294,9 +1294,18 @@ So that mis clientes lleguen a mi página de reservas y no a una genérica.
 
 **Acceptance Criteria:**
 
-**Given** una petición a `{slug}.site.{dominio}` o `/{slug}`
+**Given** una petición a `{slug}.tivuapp.store` o `/reservar/{slug}`
 **When** el slug existe y el negocio está activo
-**Then** se resuelve su tienda sin necesidad de sesión.
+**Then** se resuelve su tienda sin necesidad de sesión, con el negocio
+deducido **en el servidor** a partir del host.
+
+**Given** un subdominio de `tivuapp.store` que no es de ningún negocio, o uno reservado
+**When** se pide
+**Then** responde la página de negocio no encontrado, sin datos de ningún otro.
+
+**Given** un negocio que cambia su slug
+**When** se pide la dirección antigua
+**Then** redirige con 301 a la nueva (historial de slugs), sin bucles.
 
 **Given** un slug inexistente, un negocio sin nombre fijado, suspendido o eliminado
 **When** se pide
@@ -1594,7 +1603,47 @@ So that no quedarme mirando un error.
 > **Agente:** codex · **Referencias:** PRD FR-43, CLAUDE.md («la tienda pública
 > responde 404 mientras el paso 1 del onboarding no haya fijado nombre/slug»).
 
-**Resumen de la Épica 6:** 11 historias. La tienda abre con reserva,
+### Story 6.12: El negocio usa su propio dominio
+
+As a dueño con plan Pro,
+I want conectar una dirección que ya controlo, como `reservas.pepito.com`,
+So that mis clientes reserven en mi dominio sin perder mi web actual.
+
+**Acceptance Criteria:**
+
+**Given** Configuración → Dominio personalizado
+**When** el dueño escribe `reservas.pepito.com`
+**Then** el panel muestra los registros DNS que tiene que crear (CNAME y el de verificación) y un botón para comprobarlos.
+
+**Given** el dominio
+**When** se comprueba
+**Then** pasa por estados comprensibles: pendiente de configuración, verificando, activo, requiere atención; con HTTPS emitido por Cloudflare for SaaS.
+
+**Given** un dominio que ya usa otro negocio
+**When** se intenta conectar
+**Then** se rechaza: una dirección pertenece a un solo negocio.
+
+**Given** que la conexión está en curso o falla
+**When** un cliente entra por `{slug}.tivuapp.store`
+**Then** la tienda sigue funcionando: la dirección incluida nunca deja de servir.
+
+**Given** el dominio activo y con HTTPS
+**When** el dueño lo marca como principal
+**Then** los enlaces que genera el sistema (compartir, correos, gestionar cita) usan esa dirección, y la `.store` redirige con 301 a ella sin bucles ni contenido duplicado.
+
+**Given** que el dueño lo desconecta o lo cambia
+**When** se guarda
+**Then** la dirección principal vuelve a ser la `.store` en el mismo acto, y los enlaces ya enviados siguen llegando.
+
+**Given** un dominio raíz (`pepito.com`)
+**When** se intenta conectar
+**Then** el panel explica sus requisitos (CNAME en la raíz o redirección desde su proveedor) antes de aceptarlo.
+
+> **Agente:** claude (backend, Cloudflare for SaaS) + codex (pantalla) ·
+> **Referencias:** AD-15, plan Pro. Confirmar precios y límites vigentes de
+> Cloudflare for SaaS antes de empezar. Después del lanzamiento.
+
+**Resumen de la Épica 6:** 12 historias. La tienda abre con reserva,
 confirmación por correo y gestión por enlace, sin cuentas de cliente.
 
 ---
@@ -2123,7 +2172,11 @@ So that poder dormir tranquilo el día que algo se rompa.
 
 **Given** producción
 **When** se despliega
-**Then** corre en Contabo con Forge (API, worker y programador por minuto), la web en Vercel, y los dominios `app.`, `admin.`, `api.` y `{slug}.site.` resuelven con sus cookies `__Host-`.
+**Then** corre en el VPS de Contabo con Coolify (Next, Laravel, worker y programador por minuto, MySQL), detrás de Cloudflare en «Full (strict)» con certificado de origen, el firewall solo acepta 80/443 desde Cloudflare, y `tivuapp.com`, `app.`, `admin.`, `api.tivuapp.com` y `{slug}.tivuapp.store` resuelven con sus cookies `__Host-` (guía: `docs/infra/cloudflare-dns.md`).
+
+**Given** que el VPS se comparte con otro proyecto
+**When** se configura Coolify
+**Then** cada proyecto tiene su base, su usuario, sus límites de recursos y sus copias, y uno no puede tumbar al otro.
 
 **Given** las copias
 **When** corren a diario

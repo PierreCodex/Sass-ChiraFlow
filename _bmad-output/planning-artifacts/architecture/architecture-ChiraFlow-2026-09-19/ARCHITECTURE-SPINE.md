@@ -175,7 +175,7 @@ Laravel directamente.
 
 - **Binds:** DNS, BFF, cookies · FR-36, FR-60, FR-69
 - **Prevents:** que la sesión del panel viaje a una tienda, o que una tienda lance acciones del panel.
-- **Rule:** `app.<marca>` panel, `admin.<marca>` plataforma, `api.<marca>` Laravel, `{slug}.site.<marca>` tienda y página de cita (sin sufijo de país). Las cookies de sesión son **solo del host** y llevan el prefijo `__Host-`; el panel y la plataforma usan cookies distintas. **El BFF decide por el host** qué cookie lee y a qué zona reenvía: desde `app.` solo a la zona panel y la pública; desde `admin.` solo a la zona plataforma; desde `*.site.` solo a la pública y sin credencial. El BFF rechaza toda petición que cambie datos si su `Origin` no es su propio host. Las tiendas **no aceptan HTML ni scripts** del negocio: solo datos. Subdominios reservados: `www`, `api`, `admin`, `app`, `mail`, `ftp`, `site` y los del remitente.
+- **Rule (actualizada 2026-11-03):** `tivuapp.com` landing, `app.tivuapp.com` panel, `admin.tivuapp.com` plataforma, `api.tivuapp.com` Laravel —el BFF le habla por la red interna del servidor; desde fuera solo entran los webhooks (Resend, proveedor de WhatsApp)—, y **`{slug}.tivuapp.store`** tienda y página de cita, en un **dominio registrable aparte** (un solo nivel de comodín: lo cubre el certificado de Cloudflare). Dominio propio opcional del negocio (`reservas.pepito.com`) con Cloudflare for SaaS (Story 6.12); la dirección `.store` sigue funcionando siempre. Un subdominio desconocido responde «no encontrado» sin revelar nada. El negocio se resuelve **en el servidor** a partir del host, nunca por un dato del navegador. Cambiar el slug deja el anterior redirigiendo con 301 (historial de slugs, como las sedes). Las cookies de sesión son **solo del host** y llevan el prefijo `__Host-`; el panel y la plataforma usan cookies distintas. **El BFF decide por el host** qué cookie lee y a qué zona reenvía: desde `app.` solo a la zona panel y la pública; desde `admin.` solo a la zona plataforma; desde `*.site.` solo a la pública y sin credencial. El BFF rechaza toda petición que cambie datos si su `Origin` no es su propio host. Las tiendas **no aceptan HTML ni scripts** del negocio: solo datos. Subdominios reservados en los dos dominios: `www`, `api`, `admin`, `app`, `mail`, `ftp`, `site`, `coolify`, `status` y los del remitente. En `.store` las cookies son también solo del host: todas las tiendas comparten dominio registrable, y una cookie de `.tivuapp.store` la leerían las demás.
 
 ### AD-16 — Tiempo y dinero
 
@@ -205,7 +205,7 @@ Laravel directamente.
 
 - **Binds:** despliegue · NFR-9
 - **Prevents:** entornos que comparten datos o remitentes, o un servidor sin copias recuperables.
-- **Rule:** tres entornos (local, pruebas y producción) con **bases, usuario MySQL, remitente de correo y dominios propios**; nunca datos reales en pruebas. En cada entorno de servidor: worker de cola siempre activo y programador **cada minuto** (AD-9 lo exige). MySQL con permiso para crear bases solo para el usuario que provisiona. Copia diaria de la base central **y de cada negocio**, más los archivos de cada negocio, fuera del servidor (Cloudflare R2), con una **restauración de prueba mensual**. Los secretos solo en variables de entorno del proveedor. **MySQL 8.4 LTS** en pruebas y producción, y la misma versión en local (hoy Laragon trae 8.0.30, sin soporte desde abril de 2026); PostgreSQL descartado. **Sin contenedores en producción**: Forge instala el stack nativo en el VPS. Operación mínima: monitor externo de disponibilidad de `api.` y `app.`, alertas de la plataforma X-1/X-2 (rebotes, trabajos fallidos, cola atascada) y logs rotados 14 días.
+- **Rule:** tres entornos (local, pruebas y producción) con **bases, usuario MySQL, remitente de correo y dominios propios**; nunca datos reales en pruebas. En cada entorno de servidor: worker de cola siempre activo y programador **cada minuto** (AD-9 lo exige). MySQL con permiso para crear bases solo para el usuario que provisiona. Copia diaria de la base central **y de cada negocio**, más los archivos de cada negocio, fuera del servidor (Cloudflare R2), con una **restauración de prueba mensual**. Los secretos solo en variables de entorno del proveedor. **MySQL 8.4 LTS** en pruebas y producción, y la misma versión en local (hoy Laragon trae 8.0.30, sin soporte desde abril de 2026); PostgreSQL descartado. **Producción en un VPS con Coolify** (actualizado 2026-11-03, sustituye a Forge + Vercel): Next, Laravel, worker, programador y MySQL en contenedores del mismo servidor, con límites de recursos por contenedor; el VPS se comparte con otro proyecto, separado en su propio proyecto de Coolify con su base y sus copias. Cloudflare delante (proxy, SSL «Full (strict)» con certificado de origen) y el firewall del VPS acepta 80/443 solo desde Cloudflare. Guía: `docs/infra/cloudflare-dns.md`. Operación mínima: monitor externo de disponibilidad de `api.` y `app.`, alertas de la plataforma X-1/X-2 (rebotes, trabajos fallidos, cola atascada) y logs rotados 14 días.
 
 ### AD-21 — Provisioning perezoso y procesos diarios [ADOPTED]
 
@@ -249,11 +249,10 @@ Laravel directamente.
 | Vitest | 5.0 |
 | Playwright | 1.63 |
 | Cloudflare Turnstile | servicio gestionado |
-| Hosting backend | Contabo Cloud VPS 6 (6 vCPU, 12 GB, 200 GB), región EE. UU., con Laravel Forge |
-| Hosting frontend | Vercel Pro, funciones en `iad1` |
+| Hosting | Contabo Cloud VPS 8 (8 vCPU, 24 GB), región EE. UU. Este, con **Coolify** autoalojado; Next y Laravel en el mismo servidor (compartido con otro proyecto) |
 | Correo | Resend Pro |
 | WhatsApp (avisos al personal) | Evolution API v2 en Railway (con PostgreSQL, Redis y volumen persistente), número emisor dedicado de ChiraFlow |
-| DNS y copias | Cloudflare (DNS gratuito, R2) |
+| DNS, HTTPS y copias | Cloudflare (DNS y proxy gratuitos, certificado de origen, R2; Cloudflare for SaaS para dominios propios). Dominios registrados en Donweb |
 
 ## Structural Seed
 
@@ -262,12 +261,10 @@ Laravel directamente.
 ```mermaid
 flowchart TB
   U[Navegadores<br/>negocios, clientes, plataforma]
-  CF[Cloudflare DNS<br/>api con proxy · app, admin, *.site sin proxy]
-  subgraph Vercel [Vercel Pro · iad1]
+  CF[Cloudflare proxy<br/>tivuapp.com · app · admin · api · *.tivuapp.store]
+  subgraph Contabo [Contabo VPS 8 · EE. UU. Este · Coolify]
     NX[Next 16<br/>panel · tiendas · plataforma · BFF]
-  end
-  subgraph Contabo [Contabo VPS · EE. UU. · Forge]
-    LV[Laravel 12<br/>api.marca]
+    LV[Laravel 12<br/>red interna + webhooks]
     WK[Worker de cola]
     SC[Programador cada minuto]
     DB[(MySQL 8<br/>central + tenant_id)]
@@ -292,8 +289,8 @@ flowchart TB
   FS --> R2
 ```
 
-Pruebas: segundo sitio en el mismo VPS (base, usuario MySQL y remitente
-propios) + vistas previas de Vercel. Local: Laragon + `next dev`.
+Pruebas: otro entorno de Coolify en el mismo VPS (base, usuario MySQL,
+remitente y subdominios propios). Local: Laragon + `next dev`.
 
 ### Entidades nuevas y su relación con las existentes
 
@@ -337,7 +334,7 @@ migraciones de cada historia.
 | FR-61, NFR-10 landing y legales | `(publico)` en Next | AD-15 |
 | FR-2, FR-58, FR-59 provisioning, ciclo de vida, métricas | Job de provisioning, comandos diarios | AD-10, AD-21 |
 | FR-47..FR-54 WhatsApp, caja, dashboard, reportes, soporte (posteriores salvo dashboard mínimo) | Services de cada módulo | AD-4 (alcance por sede), AD-8, AD-17 |
-| NFR-9 operación | Forge, Vercel, Cloudflare, R2 | AD-20 |
+| NFR-9 operación | Coolify, Cloudflare, R2 | AD-20 |
 
 ## Deferred
 
@@ -346,7 +343,7 @@ migraciones de cada historia.
 | **Actualizar a Laravel 13** | Decisión del usuario: quedarse en 12 por ahora | **Antes del 2027-02-24**, fin de los parches de seguridad de Laravel 12 |
 | Pasarela de suscripciones (Mercado Pago) | Lanzamiento con activación manual; AD-10 ya deja el hueco | Tras el lanzamiento |
 | Varios negocios por persona | Hoy `users.tenant_id` es único y el email global; cambiarlo toca login y tokens | Cuando un cliente real lo pida |
-| Dominio propio por negocio | Se sirve igual por Vercel; AD-15 ya separa sesión y tiendas | Plan que lo incluya |
+| Dominio propio por negocio | Cloudflare for SaaS (Story 6.12); AD-15 ya separa sesión y tiendas | Plan que lo incluya, tras el lanzamiento |
 | Acceso temporal de soporte a un negocio | Requiere permiso motivado, visible y auditado | Con el módulo Soporte |
 | WhatsApp a clientes, SMS, campañas | Fuera del lanzamiento; el `Notificador` admite canales nuevos | Tras el lanzamiento |
 | Pasar el canal WhatsApp a la API oficial (Kapso) | Requiere la verificación de la empresa en Meta | Cuando Meta verifique la empresa (relacionado con L-6: RUC) |

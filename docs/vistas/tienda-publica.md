@@ -63,10 +63,12 @@ vacío.
 > estándar (`/((?!api|_next/static|_next/image|images|favicon.ico).*)`). Me
 > costó un rato localizarlo porque no hay mensaje de error.
 
-### En producción (Vercel)
+### En producción (VPS + Cloudflare)
 
-Hace falta un **dominio comodín** `*.lienaben.com` apuntando al proyecto. Con
-eso el middleware resuelve el resto; no hay que dar de alta cada negocio.
+Las tiendas viven en `{slug}.tivuapp.store`. Un registro **comodín**
+`*.tivuapp.store` en Cloudflare apunta al VPS, y el certificado de origen cubre
+todos los subdominios: no hay que dar de alta cada negocio. El middleware saca
+el slug del host. Guía: `docs/infra/cloudflare-dns.md`.
 
 ---
 

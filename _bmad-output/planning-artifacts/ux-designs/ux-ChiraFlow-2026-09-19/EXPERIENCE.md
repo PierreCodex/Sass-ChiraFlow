@@ -25,8 +25,8 @@ sources:
 
 | Superficie | Dirección | Pantallas nuevas | Quién |
 |---|---|---|---|
-| Tienda pública | `{negocio}.site.<marca>` y `{negocio}.site.<marca>/{sede}` (sin subdominio: `/reservar/{negocio}/{sede}`) | Selección de sede (si hay varias) · Portada + servicios · Profesional, día y hora · Tus datos · Pago · Confirmación | Cliente final, sin cuenta |
-| Página de la cita | `{negocio}.site.<marca>/cita/{token}` | Ver cita · Subir comprobante · Reprogramar · Cancelar · Enlace no válido | Cliente final, con su enlace |
+| Tienda pública | `{negocio}.tivuapp.store` y `{negocio}.tivuapp.store/{sede}` (sin subdominio: `/reservar/{negocio}/{sede}`) | Selección de sede (si hay varias) · Portada + servicios · Profesional, día y hora · Tus datos · Pago · Confirmación | Cliente final, sin cuenta |
+| Página de la cita | `{negocio}.tivuapp.store/cita/{token}` | Ver cita · Subir comprobante · Reprogramar · Cancelar · Enlace no válido | Cliente final, con su enlace |
 | Panel del negocio | `app.<marca>` | **Configuración → Apariencia de la página de reservas** (UX-DR1 parte visual) · **Configuración → Pagos por QR** (UX-DR1) · **Configuración → Notificaciones** (UX-DR5) · **Citas: pagos por verificar** (UX-DR2) · **Mi Plan de solo lectura** (UX-DR7) · **Dashboard mínimo** (UX-DR8) · **Mi perfil → Avisos** (UX-DR5). *Posterior:* Locales → sede → Portada (FR-80) | Usuarios del negocio, según permisos |
 | Panel de plataforma | `admin.<marca>` | Acceso con 2FA · Negocios (lista) · Ficha del negocio · Activar o cambiar plan · Registrar pago · Suspender / reactivar · Auditoría · Envíos de correo · Equipo de plataforma | Administradores de plataforma |
 | Landing | dominio raíz de la marca | Portada con titular que se escribe · Cinta de rubros · Producto por pestañas · Cómo funciona · Pagos con Yape y avisos · Planes · Preguntas frecuentes · Llamada a registrarse · Términos · Privacidad | Dueños de negocio que aún no son clientes |
@@ -118,7 +118,7 @@ sources:
 - **Corregible** («Pedir otra captura»): captura ilegible, monto incompleto o imagen equivocada; hasta 3 capturas por cita [SUPUESTO]. **Definitivo** («Rechazar y cancelar la cita»): el pago no aparece en el Yape del negocio, o el comprobante es falso o está duplicado.
 
 **Direcciones públicas y enlaces**
-- La sede se identifica por un **slug único dentro de su negocio** (`rosa-estilistas.site.<marca>/balta`), derivado de su nombre, con sufijo si se repite y sin palabras reservadas (`cita`, `reservar`, `publico`).
+- La sede se identifica por un **slug único dentro de su negocio** (`rosa-estilistas.tivuapp.store/balta`), derivado de su nombre, con sufijo si se repite y sin palabras reservadas (`cita`, `reservar`, `publico`).
 - Si el slug de una sede cambia, **el anterior redirige para siempre** al nuevo y no se reutiliza en ese negocio.
 - Los enlaces antiguos con id numérico (`/reservar/{negocio}/sucursal/{id}`) redirigen a la dirección con slug durante la transición.
 - Una sede desactivada o borrada: su dirección lleva a la tienda del negocio con el aviso «Esta sede ya no recibe reservas en línea».
@@ -157,7 +157,7 @@ sources:
 ## Key Flows
 
 **KF-1 · María reserva y paga con Yape (tienda, pago obligatorio).** Cierra UJ-4.
-1. Abre `rosaestilistas.site.<marca>/balta` desde Instagram: la **Sede Balta** aparece preseleccionada.
+1. Abre `rosaestilistas.tivuapp.store/balta` desde Instagram: la **Sede Balta** aparece preseleccionada.
 2. Portada con foto del salón; toca «Reservar cita» y elige «Corte de cabello mujer».
 3. Elige a Rosa Paredes, el sábado 26 y las 10:30.
 4. Deja nombre, celular y correo; acepta términos y privacidad.

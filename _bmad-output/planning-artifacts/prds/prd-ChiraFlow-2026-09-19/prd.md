@@ -539,8 +539,8 @@ Sin sesión. Realiza UJ-4.
 Visitar el enlace de un negocio muestra sus sedes, o salta directo a la única.
 Responde 404 si el negocio no existe, no fijó su nombre o desactivó la tienda;
 si está suspendido, muestra la pantalla de FR-43.
-- Direcciones: `{negocio}.site.<marca>` (tienda) y
-  `{negocio}.site.<marca>/{sede}` (una sede, FR-81). Equivalente sin
+- Direcciones: `{negocio}.tivuapp.store` (tienda) y
+  `{negocio}.tivuapp.store/{sede}` (una sede, FR-81). Equivalente sin
   subdominio: `/reservar/{negocio}/{sede}`, p. ej.
   `/reservar/rosa-estilistas/balta`.
 - **Desde el enlace de una sede**, esa sede llega **preseleccionada y
