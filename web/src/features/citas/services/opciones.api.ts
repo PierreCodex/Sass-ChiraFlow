@@ -85,6 +85,7 @@ export const opcionesCitaApi = {
           per_page: OPCIONES_POR_PAGINA,
           ...(texto ? { [`${coleccion}_search`]: filtro.search!.trim() } : {}),
           ...(filtro.ids?.length ? { [`${coleccion}_ids`]: filtro.ids.join(",") } : {}),
+          ...(filtro.local ? { local_id: filtro.local } : {}),
         },
       }
     );

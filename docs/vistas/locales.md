@@ -348,7 +348,8 @@ buscador y paginación —el catálogo puede crecer— con un interruptor
 - Quien solo tiene `locales: ver` ve la tabla con los interruptores
   desactivados (el backend le respondería 403 `sin_permiso`).
 - Al agendar, `/citas/opciones` ya no ofrece en una sede un servicio que esa
-  sede no da. La regla completa de «reservable» es la de la Story 2.2.
+  sede no da, y guardarlo da 422 en `servicio_id` (la regla de «reservable»
+  de la Story 2.2, en `docs/api-contract.md`).
 - Precio y duración son los del catálogo (v1).
 
 > Antes era una pestaña de solo lectura que copiaba el catálogo sin efecto, y se

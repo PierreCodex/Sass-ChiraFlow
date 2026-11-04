@@ -57,3 +57,9 @@
 - source_spec: `spec-1-4-nadie-concede-lo-que-no-tiene.md`
   summary: Dar de alta un profesional con cuenta no es atómico: la cuenta central, la fila de `usuarios` y la invitación se crean antes de la transacción de la ficha.
   evidence: `ProfesionalService::crear()` y `actualizar()` llaman `cuentaSiSePide()` antes de `DB::transaction(fn () => $this->rellenar(...))`; si `rellenar()` falla (foto, error de base) queda una cuenta huérfana con la invitación ya enviada. Previo a la 1.4, que solo evita que un no general llegue a crearla.
+
+## Deferred from: code review of spec-2-2-regla-unica-reservable.md (2026-11-03)
+
+- source_spec: `spec-2-2-regla-unica-reservable.md`
+  summary: Falta verificar en el navegador el aviso de `local_id` de `CitaFormDialog` cuando el negocio tiene una sola sede.
+  evidence: El selector de sede no se pinta con una sola sede; con datos ficticios no se puede provocar ese 422. Se comprueba al conectar el módulo de citas al backend.

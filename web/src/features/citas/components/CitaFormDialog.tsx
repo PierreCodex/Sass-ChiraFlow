@@ -117,6 +117,8 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
   const servicioId = useWatch({ control, name: "servicio_id" });
   const empleadoId = useWatch({ control, name: "empleado_id" });
+  // Con varias sedes, los selectores ofrecen solo lo reservable en la elegida.
+  const sedeElegida = useWatch({ control, name: "local_id" });
   const fechaElegida = useWatch({ control, name: "fecha" });
   const { data: servicioPorId = [] } = useOpcionesCita("servicios", {
     ids: servicioId ? [servicioId] : [],
@@ -333,6 +335,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 render={({ field }) => (
                   <SelectorOpcion
                     coleccion="profesionales"
+                    local={hayVariasSedes ? sedeElegida : null}
                     id="empleado_id"
                     valor={field.value}
                     onChange={(opcion) => field.onChange(opcion?.id ?? 0)}
@@ -355,6 +358,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                 render={({ field }) => (
                   <SelectorOpcion
                     coleccion="servicios"
+                    local={hayVariasSedes ? sedeElegida : null}
                     id="servicio_id"
                     valor={field.value}
                     onChange={(servicio) => {
@@ -397,6 +401,13 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     </CustomTextField>
                   )}
                 />
+              </Grid>
+            ) : errors.local_id ? (
+              // Con una sola sede el selector no se pinta, pero el backend
+              // puede rechazarla igual (p. ej. está desactivada): sin esto el
+              // 422 de `local_id` no se vería en ningún sitio.
+              <Grid size={12}>
+                <Alert severity="error">{errors.local_id.message}</Alert>
               </Grid>
             ) : null}
 

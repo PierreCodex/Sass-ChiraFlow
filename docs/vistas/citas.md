@@ -279,6 +279,14 @@ se piden de una vez: las limita el plan.
 `clientes: ver` el cliente se escribe a mano, y sin `inventario: ver` la
 sección de productos no aparece.
 
+Desde la Story 2.2 solo ofrece lo **reservable**, con la misma regla que aplica
+el backend al guardar: un servicio sale si alguien puede atenderlo en una sede
+que lo ofrece, no si cada mitad se cumple en sedes distintas. Con varias sedes,
+profesional y servicio buscan **en la sede elegida** (`local_id`); lo ya
+elegido se sigue enseñando al cambiar de sede. Si aun así el
+guardado da 422 (algo cambió mientras el formulario estaba abierto), el motivo
+llega en `empleado_id`, `servicio_id` o `local_id` y se pinta bajo su campo.
+
 ### `GET /api/citas/{id}/historial` (Story 1.13)
 
 Lo pide la ficha al abrir una cita para editarla. Al final del formulario,

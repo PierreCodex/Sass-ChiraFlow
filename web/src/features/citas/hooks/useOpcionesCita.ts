@@ -19,7 +19,14 @@ export function useOpcionesCita<C extends ColeccionOpciones>(
   const habilitado = activo && (!conIds || filtro.ids!.length > 0);
 
   return useQuery({
-    queryKey: [...citasKeys.all, "opciones", coleccion, filtro.search ?? "", filtro.ids ?? null],
+    queryKey: [
+      ...citasKeys.all,
+      "opciones",
+      coleccion,
+      filtro.search ?? "",
+      filtro.ids ?? null,
+      filtro.local ?? null,
+    ],
     queryFn: () => opcionesCitaApi.coleccion(coleccion, filtro),
     enabled: habilitado,
     staleTime: 60 * 1000,

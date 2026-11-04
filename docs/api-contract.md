@@ -655,14 +655,50 @@ buscan aquí en vez de traer listas enteras:
 | `{coleccion}_search` | filtra esa colección por nombre (`profesionales`, `servicios`, `productos`, `clientes`). En clientes busca también apellido y teléfono; `search` a secas se sigue aceptando |
 | `{coleccion}_ids` | `1,2,3`: solo esos. Para enseñar lo ya elegido aunque no esté en la primera página |
 | `solo` | `profesionales,clientes`: solo esas colecciones. Lo usa cada búsqueda, para no recalcular las demás |
+| `local_id` | la sede elegida en el formulario (Story 2.2): `profesionales` y `servicios` traen solo lo reservable **en ella**. Una sede fuera del alcance no da nada. `locales` sigue trayendo todas |
 
-`profesionales` lista solo a quien **atiende** (`atiende = true`), igual que
-la agenda del panel. `locales` trae `es_principal`, y `clientes` trae
-`email`, para rellenarlo en la cita al elegir uno.
+`profesionales` y `servicios` traen **solo lo reservable** (Story 2.2, ver
+abajo): un profesional sale si tiene al menos un servicio que puede agendar en
+alguna sede del alcance (o en la de `local_id`), un servicio si alguien puede
+atenderlo en ella, y
+los `servicios` de cada profesional son los que él puede agendar. `locales`
+trae `es_principal`, y `clientes` trae `email`, para rellenarlo en la cita al
+elegir uno.
 
-En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede:
-llegan todos los profesionales activos y sus servicios, y `locales` viene
-vacío. `color` de cada profesional es `null` hasta que la ficha lo tenga.
+En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede, y
+`locales` viene vacío. `color` de cada profesional es `null` hasta que la ficha
+lo tenga.
+
+#### Qué es reservable (Story 2.2, FR-67)
+
+Una sola regla, la misma para el guardado de citas y las opciones del panel.
+La tienda y el enlace del cliente (épica 6) la usarán igual: ya están listas
+la comprobación para la tienda y las horas libres que la aplican
+(`huecosReservables`), aún sin endpoint. Servicio + profesional + sede es
+reservable si y solo si:
+
+1. el servicio está activo;
+2. el profesional está activo y **atiende**;
+3. el profesional presta ese servicio;
+4. si la cita lleva sede: la sede está activa, ofrece el servicio
+   (`local_servicio`) y tiene al profesional habilitado (`local_profesional`).
+   Las tres cosas en **la misma** sede.
+
+Sin sede, solo 1 a 3. Al crear una cita, o al editarla si cambia quién, qué,
+dónde o cuándo, el panel recibe un **422 con el primer motivo**, en este orden:
+
+| Motivo | Campo | Mensaje |
+|---|---|---|
+| profesional de baja | `empleado_id` | `La ficha de Rosa Paredes está dada de baja: no se le pueden agendar citas.` |
+| servicio inactivo | `servicio_id` | `«Corte» está desactivado: no se puede agendar.` |
+| profesional que no atiende | `empleado_id` | `Rosa Paredes no tiene agenda: su ficha no atiende citas.` |
+| sede inactiva | `local_id` | `Esa sede está desactivada: no se le pueden agendar citas.` |
+| profesional no habilitado en la sede | `empleado_id` | `Rosa Paredes no atiende en esa sede.` |
+| la sede no ofrece el servicio | `servicio_id` | `«Corte» no se ofrece en esa sede.` |
+| no presta el servicio | `servicio_id` | `Rosa Paredes no presta «Corte».` |
+
+La tienda pública (épica 6) responde **404** sin decir el motivo: para un
+desconocido, lo que no se puede reservar no existe.
 
 #### `DELETE` borra de verdad
 
@@ -823,9 +859,9 @@ FR-21). El catálogo es **del negocio**; cada sede **habilita** los suyos.
   recorta después.
 - Para sacar un servicio de una sede **se apaga**, no se borra la fila.
 - Precio y duración son los del catálogo (v1): no hay diferencias por sede.
-- En `GET /citas/opciones`, `servicios` solo trae los habilitados en las sedes
-  del alcance (cuando se filtra por sede). La regla completa de «reservable» es
-  la de la Story 2.2.
+- Un servicio apagado en una sede deja de ser reservable en ella (ver «Qué es
+  reservable», Story 2.2): `GET /citas/opciones` no lo ofrece ahí y agendarlo
+  da 422 en `servicio_id`.
 
 `LocalProfesional` — fila de `local_profesional`. El `index` devuelve **una fila
 por cada profesional del negocio**, tenga o no fila en la pivote; si no la
