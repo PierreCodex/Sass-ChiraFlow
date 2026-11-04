@@ -1,25 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { SLUG_INEXISTENTE, esHostDeTienda, slugDelHost } from "@/lib/tienda/host";
 
 /**
- * Dos cosas, en este orden: el enrutado por subdominio de las tiendas públicas
- * y el guardia de sesión del panel.
+ * Dos cosas, en este orden: el enrutado de las tiendas públicas y el guardia
+ * de sesión del panel.
  *
- * Enrutado por subdominio para las tiendas públicas.
+ * Tiendas (Story 6.1): `pepito.tivuapp.store/…` se reescribe a
+ * `/reservar/pepito/…` sin que cambie la barra del navegador. Un host de
+ * tienda **nunca** llega al panel: si no nombra a un negocio (la raíz del
+ * dominio, `a.b.tivuapp.store`) va a una tienda que no existe y se ve
+ * «no encontrado». Los reservados no se filtran aquí: los rechaza el backend.
  *
- * `mademoiselle.lienaben.com/…` se reescribe a `/reservar/mademoiselle/…`
- * sin que la URL cambie en la barra del navegador. Es el equivalente al
- * `Route::domain('{subdomain}.'.$appDomain)` de Laravel más el middleware
- * `ResolveSubdomainNegocio`.
- *
- * Si `NEXT_PUBLIC_APP_DOMAIN` está vacío no se reescribe nada: las tiendas se
- * sirven por ruta, que es el mismo fallback que tiene el backend.
+ * Si `NEXT_PUBLIC_STORE_DOMAIN` está vacío no se reescribe nada: las tiendas
+ * se sirven por ruta (`/reservar/{slug}`).
  */
-
-// Subdominios de infraestructura que nunca son un negocio.
-// Misma lista que `ResolveSubdomainNegocio`.
-const RESERVADOS = ["www", "api", "admin", "app", "mail", "ftp"];
-
-const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "";
 
 /**
  * Cookie httpOnly del token. Se repite el literal en vez de importarlo de
@@ -58,35 +52,27 @@ function esPublica(pathname: string) {
   );
 }
 
-function slugDelHost(host: string): string | null {
-  if (!APP_DOMAIN) return null;
-
-  // El puerto no forma parte del dominio.
-  const limpio = host.split(":")[0].toLowerCase();
-
-  if (limpio === APP_DOMAIN) return null;
-  if (!limpio.endsWith(`.${APP_DOMAIN}`)) return null;
-
-  const slug = limpio.slice(0, -(APP_DOMAIN.length + 1));
-
-  // Solo un nivel: "a.b.dominio.com" no es una tienda.
-  if (!slug || slug.includes(".")) return null;
-  if (RESERVADOS.includes(slug)) return null;
-
-  return slug;
-}
-
 export function middleware(request: NextRequest) {
-  const slug = slugDelHost(request.headers.get("host") ?? "");
+  const host = request.headers.get("host") ?? "";
 
   // La tienda pública va primero y se sirve sin sesión: el guardia no la mira.
-  if (slug) {
+  if (esHostDeTienda(host)) {
+    const slug = slugDelHost(host) ?? SLUG_INEXISTENTE;
     const url = request.nextUrl.clone();
 
-    // Evita reescribir dos veces si ya viene apuntando a la tienda.
-    if (url.pathname.startsWith("/reservar/")) return NextResponse.next();
+    /*
+     * Los enlaces internos de la tienda ya llevan `/reservar/{slug}/…`. Solo
+     * pasan si son de ESTA tienda: `pepito.tivuapp.store/reservar/luna`
+     * serviría la tienda de otro negocio bajo la dirección de Pepito.
+     */
+    const propia = `/reservar/${slug}`;
+    if (url.pathname === propia || url.pathname.startsWith(`${propia}/`)) {
+      return NextResponse.next();
+    }
 
-    url.pathname = `/reservar/${slug}${url.pathname === "/" ? "" : url.pathname}`;
+    url.pathname = url.pathname.startsWith("/reservar/")
+      ? `/reservar/${SLUG_INEXISTENTE}`
+      : `${propia}${url.pathname === "/" ? "" : url.pathname}`;
     return NextResponse.rewrite(url);
   }
 

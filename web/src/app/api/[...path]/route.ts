@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { errorJson, leerSesion, urlUpstream } from "@/lib/auth/sesion";
+import { esHostDeTienda } from "@/lib/tienda/host";
 
 /**
  * BFF: todo lo que el navegador pide a `/api/*` pasa por aquí y sale hacia
@@ -51,9 +52,24 @@ async function proxy(
   contexto: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await contexto.params;
-  const { token, tenant } = await leerSesion();
 
-  const destino = `${urlUpstream()}/${path.join("/")}${request.nextUrl.search}`;
+  /*
+   * El BFF decide por el host (Story 6.1, AD-15). Desde una tienda solo se
+   * habla con la zona pública, y SIN credenciales: aunque el navegador
+   * trajera una cookie del panel, desde aquí no se usa. Lo demás no existe.
+   */
+  const desdeTienda = esHostDeTienda(request.headers.get("host") ?? "");
+  if (desdeTienda && path[0] !== "publico") {
+    return errorJson("No encontrado.", 404);
+  }
+  const { token, tenant } = desdeTienda ? { token: null, tenant: null } : await leerSesion();
+
+  /*
+   * Cada segmento vuelve a codificarse: llegan ya decodificados, y uno como
+   * `publico%2F..%2Fcitas` se convertiría en `/publico/../citas`, que `fetch`
+   * normaliza a `/citas` — saltándose el filtro de la tienda de arriba.
+   */
+  const destino = `${urlUpstream()}/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`;
 
   const cabeceras = new Headers();
   request.headers.forEach((valor, clave) => {

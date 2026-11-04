@@ -20,13 +20,14 @@ export const env = {
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "tivu",
 
   /**
-   * Dominio raíz para las tiendas públicas por subdominio:
-   * `mademoiselle.lienaben.com`. Equivale a `config('app.domain')` en Laravel.
+   * Dominio raíz de las tiendas públicas: `pepito.tivuapp.store` (Story 6.1).
+   * Equivale a `config('tivu.dominio_tiendas')` en Laravel, y es el mismo que
+   * usan el middleware y el BFF (`lib/tienda/host.ts`).
    *
-   * Si queda vacío, el middleware no reescribe nada y las tiendas se sirven
-   * solo por ruta (`/reservar/{slug}`), igual que el fallback del backend.
+   * `NEXT_PUBLIC_APP_DOMAIN` se acepta por compatibilidad. Si queda vacío,
+   * las tiendas se sirven solo por ruta (`/reservar/{slug}`).
    */
-  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN ?? "",
+  appDomain: process.env.NEXT_PUBLIC_STORE_DOMAIN || process.env.NEXT_PUBLIC_APP_DOMAIN || "",
 
   /**
    * Formato de números y fechas.

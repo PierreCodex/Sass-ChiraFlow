@@ -8,7 +8,7 @@
 
 /** Cabecera del negocio en su tienda. */
 export interface NegocioPublico {
-  id: number;
+  // Sin `id` (Story 6.1): el del negocio nombra su base de datos.
   nombre: string;
   slug: string;
   telefono: string | null;

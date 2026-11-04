@@ -23,7 +23,6 @@ import type {
  */
 
 export const negocioMock: NegocioPublico = {
-  id: 1,
   nombre: "Clínica El Rosal",
   slug: "clinica-el-rosal",
   telefono: "976645666",
