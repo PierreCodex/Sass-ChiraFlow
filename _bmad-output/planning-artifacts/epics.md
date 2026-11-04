@@ -1217,6 +1217,13 @@ So that ni una foto de 8 MB ni un archivo disfrazado lleguen a la página públi
 > **Agente:** claude · **Referencias:** PRD FR-79, regla 7 de CLAUDE.md
 > (mismas defensas de subida), AD-20 (almacenamiento en R2).
 
+> **Añadido en la revisión de la 6.1 (2026-11-04):** las imágenes **públicas**
+> pasan a claves opacas sin el id del negocio, guardadas en R2 y servidas por
+> Cloudflare (`img.tivuapp.com/{clave}`), para que la tienda no muestre el id
+> que nombra la base del negocio y las fotos no se rompan si cambia la
+> dirección. Las privadas (comprobantes, épica 7) siguen por Laravel con
+> permiso. **Bloquea** mostrar fotos en la tienda (6.3).
+
 ### Story 5.3: Ver cómo queda antes de que lo vea nadie
 
 As a dueño,
@@ -1375,6 +1382,10 @@ So that elegir sin llamar por teléfono.
 
 > **Agente:** codex con apoyo de claude · **Referencias:** PRD FR-37,
 > DESIGN.md, `docs/vistas/tienda.md` si existe.
+
+> **Añadido en la revisión de la 6.1 (2026-11-04):** antes de mostrar fotos,
+> la 5.2 tiene que haber cambiado las imágenes públicas a claves opacas: hoy su
+> URL lleva el id interno del negocio.
 
 ### Story 6.4: Los huecos que ve el cliente son los de verdad
 

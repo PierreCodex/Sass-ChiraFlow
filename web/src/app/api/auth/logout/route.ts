@@ -1,4 +1,5 @@
-import { borrarSesion, leerSesion, urlUpstream } from "@/lib/auth/sesion";
+import { borrarSesion, errorJson, leerSesion, urlUpstream } from "@/lib/auth/sesion";
+import { esHostDeTienda } from "@/lib/tienda/host";
 
 /**
  * Logout: revoca el token en Laravel y borra la cookie.
@@ -14,7 +15,12 @@ import { borrarSesion, leerSesion, urlUpstream } from "@/lib/auth/sesion";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: Request) {
+  // Desde una tienda no hay sesión que cerrar (Story 6.1).
+  if (esHostDeTienda(request.headers.get("host") ?? "")) {
+    return errorJson("No encontrado.", 404);
+  }
+
   const { token } = await leerSesion();
 
   if (token) {

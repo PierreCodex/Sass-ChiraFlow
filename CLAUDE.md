@@ -308,7 +308,7 @@ puerta de entrada al producto) y el **onboarding** del negocio recién creado.
 |---|---|
 | `tivuapp.com` | landing del SaaS |
 | `app.tivuapp.com` | panel (`admin.` la plataforma) |
-| `api.tivuapp.com` | Laravel: el BFF le habla por la red interna; de fuera solo webhooks |
+| `api.tivuapp.com` | Laravel: el BFF le habla por la red interna; de fuera, webhooks e imágenes públicas (estas, hasta la Story 5.2) |
 | `{slug}.tivuapp.store` | tienda de cada negocio |
 | `reservas.pepito.com` | dominio propio opcional, plan Pro (Story 6.12) |
 

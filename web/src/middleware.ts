@@ -52,6 +52,21 @@ function esPublica(pathname: string) {
   );
 }
 
+/**
+ * Lo que va después de `/reservar/{slug}` (subpágina y consulta), para que el
+ * layout de la tienda pueda redirigir un slug antiguo SIN perder adónde iba el
+ * enlace (`/sucursal/3?fecha=…`). El layout no ve la ruta; esto se la pasa.
+ * Se escribe siempre aquí, así que una cabecera igual que mande el navegador
+ * queda pisada.
+ */
+const CABECERA_RESTO = "x-tienda-resto";
+
+function conResto(request: NextRequest, resto: string) {
+  const cabeceras = new Headers(request.headers);
+  cabeceras.set(CABECERA_RESTO, `${resto}${request.nextUrl.search}`);
+  return { request: { headers: cabeceras } };
+}
+
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
 
@@ -67,16 +82,22 @@ export function middleware(request: NextRequest) {
      */
     const propia = `/reservar/${slug}`;
     if (url.pathname === propia || url.pathname.startsWith(`${propia}/`)) {
-      return NextResponse.next();
+      return NextResponse.next(conResto(request, url.pathname.slice(propia.length)));
     }
 
-    url.pathname = url.pathname.startsWith("/reservar/")
-      ? `/reservar/${SLUG_INEXISTENTE}`
-      : `${propia}${url.pathname === "/" ? "" : url.pathname}`;
-    return NextResponse.rewrite(url);
+    const ajena = url.pathname.startsWith("/reservar/");
+    const resto = ajena || url.pathname === "/" ? "" : url.pathname;
+    url.pathname = ajena ? `/reservar/${SLUG_INEXISTENTE}` : `${propia}${resto}`;
+    return NextResponse.rewrite(url, conResto(request, resto));
   }
 
   const { pathname } = request.nextUrl;
+
+  // La tienda por ruta (`/reservar/{slug}/…`), sin subdominio: también lleva
+  // su resto, para la misma redirección.
+  const porRuta = pathname.match(/^\/reservar\/[^/]+(\/.*)?$/);
+  if (porRuta) return NextResponse.next(conResto(request, porRuta[1] ?? ""));
+
   if (esPublica(pathname)) return NextResponse.next();
 
   // Guardia del panel. **Solo mira que la cookie exista**, no que el token

@@ -21,6 +21,17 @@ import { esHostDeTienda, urlTienda } from "@/lib/tienda/host";
  *
  * Con datos ficticios no hay nada que comprobar.
  */
+/**
+ * La subpágina y la consulta que dejó el middleware (`x-tienda-resto`), solo si
+ * es una ruta relativa de verdad: nada que empiece por `//` ni tenga esquema,
+ * para que la redirección nunca pueda mandar fuera de la tienda.
+ */
+function restoSeguro(resto: string | null): string {
+  if (!resto) return "";
+  if (resto.startsWith("//") || resto.includes("\\") || !/^[/?]/.test(resto)) return "";
+  return resto;
+}
+
 export default async function TiendaLayout({
   children,
   params,
@@ -51,9 +62,11 @@ export default async function TiendaLayout({
   if (estado === 404) notFound();
 
   if (vigente && vigente !== slug) {
-    const host = (await headers()).get("host") ?? "";
+    const cabeceras = await headers();
+    const host = cabeceras.get("host") ?? "";
     // En su subdominio se va a la dirección nueva; por ruta, a la ruta nueva.
-    permanentRedirect(esHostDeTienda(host) ? urlTienda(vigente) : `/reservar/${vigente}`);
+    const base = esHostDeTienda(host) ? urlTienda(vigente) : `/reservar/${vigente}`;
+    permanentRedirect(`${base}${restoSeguro(cabeceras.get("x-tienda-resto"))}`);
   }
 
   return children;

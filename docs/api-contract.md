@@ -404,18 +404,32 @@ tenant no tiene slug.
 |---|---|
 | slug vigente, negocio activo | 200 con la tienda |
 | slug **anterior** del negocio | 200 con la tienda y `negocio.slug` = el **vigente**: la página redirige con 301 a la dirección nueva |
-| inexistente, reservado, negocio sin slug, eliminado o suspendido | **404** con cuerpo idéntico en todos los casos: no revela si el negocio existe. La pantalla «tienda no disponible» del suspendido llega con la Story 6.11 |
+| inexistente, reservado, negocio sin slug, eliminado o purgado, suspendido (cualquier estado que no sea `prueba` ni `activa`), sin base provisionada o con la tienda apagada en Configuración (`sitio_publico_activo`) | **404** con cuerpo idéntico en todos los casos: `{ "message": "No encontramos esta tienda.", "codigo": "tienda_no_encontrada" }`. No revela si el negocio existe. La pantalla «tienda no disponible» del suspendido llega con la Story 6.11 |
 
 **Historial de direcciones.** Un slug que usó un negocio **no lo puede tomar
 ningún otro nunca** (los enlaces viejos de WhatsApp llevarían a la tienda de
 otro); el mismo negocio sí puede volver a uno suyo.
 
-**Formato del slug:** minúsculas, números y guiones; de 3 a 63 caracteres; sin
-guion al principio ni al final. **Reservados** (los de AD-15): `www`, `api`,
+**Formato del slug** (para elegir uno nuevo): minúsculas, números y guiones; de
+3 a 63 caracteres; sin guion al principio ni al final ni dos seguidos. Lo que se
+escribe se recorta y se pasa a minúsculas antes de comprobarlo. Un slug antiguo
+que no lo cumpla (antes se admitían dos letras) **sigue funcionando**: el formato
+es para elegir, no para buscar. **Reservados** (los de AD-15): `www`, `api`,
 `admin`, `app`, `mail`, `ftp`, `site`, `coolify`, `status`, `panel`,
 `dashboard`, `soporte`, `ayuda`, `blog`, `docs`, `login`, `registro`,
 `static`, `cdn`, `publico`, `planes`, `categorias-negocio`, `reservar`,
 `tienda`, `cita`.
+
+⚠️ **`tienda` no se puede quitar de esa lista.** El middleware de Next manda ahí
+todo host de tienda que no nombra a un negocio (`tivuapp.store`,
+`a.b.tivuapp.store`) y toda ruta `/reservar/{otro}` desde la tienda de un
+negocio (`SLUG_INEXISTENTE` en `web/src/lib/tienda/host.ts`): con `tienda`
+reservado eso es siempre «no encontrado».
+
+**Imágenes.** Hoy las URLs de logo y banner van a Laravel
+(`/api/archivos/{id-del-negocio}/…`), así que llevan el id interno. Se cambia en
+la Story 5.2 (claves opacas en R2 detrás de Cloudflare), antes de que la 6.3
+muestre fotos en la tienda.
 
 ---
 

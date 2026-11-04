@@ -7,16 +7,13 @@
 
 /**
  * Dominio raíz de las tiendas: `tivuapp.store` → `pepito.tivuapp.store`.
+ * Vacío en desarrollo: las tiendas se sirven solo por ruta (`/reservar/{slug}`).
  *
- * `NEXT_PUBLIC_APP_DOMAIN` se acepta por compatibilidad con los `.env` de
- * antes. Vacío en desarrollo: las tiendas se sirven solo por ruta
- * (`/reservar/{slug}`).
+ * Sin respaldo en `NEXT_PUBLIC_APP_DOMAIN`: con el esquema anterior ese era el
+ * dominio COMÚN de panel y tiendas (`app.dominio` y `*.dominio`), y con esta
+ * regla el propio panel pasaría a ser una «tienda» sin sesión.
  */
-export const DOMINIO_TIENDAS = (
-  process.env.NEXT_PUBLIC_STORE_DOMAIN ||
-  process.env.NEXT_PUBLIC_APP_DOMAIN ||
-  ""
-).toLowerCase();
+export const DOMINIO_TIENDAS = (process.env.NEXT_PUBLIC_STORE_DOMAIN || "").toLowerCase();
 
 /**
  * Slug reservado al que se manda un host de tienda que no nombra a ningún

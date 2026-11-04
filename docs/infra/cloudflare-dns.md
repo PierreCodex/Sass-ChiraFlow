@@ -65,14 +65,16 @@ Todos **A** a la IP del VPS, con la **nube naranja (Proxied)**:
 | tivuapp.com | `@` | landing |
 | tivuapp.com | `app` | panel |
 | tivuapp.com | `www` | redirige a la raíz (o CNAME a `tivuapp.com`) |
-| tivuapp.com | `api` | Laravel, **solo para webhooks** (Resend, WhatsApp) |
+| tivuapp.com | `api` | Laravel: webhooks (Resend, WhatsApp) y, hasta la Story 5.2, las imágenes públicas |
 | tivuapp.com | `admin` | panel de la plataforma (más adelante) |
 | tivuapp.store | `@` | portada de tiendas o redirección |
 | tivuapp.store | `*` | **todas las tiendas**, sin crear nada por negocio |
 
-- **`api` existe solo para los webhooks** de servicios externos (rebotes de
-  Resend, mensajes del proveedor de WhatsApp). El panel y la tienda **no** lo
-  usan: el BFF de Next le habla a Laravel por la red interna de Coolify.
+- **`api` existe para lo que no pasa por el BFF**: los webhooks de servicios
+  externos (rebotes de Resend, mensajes del proveedor de WhatsApp) y, hasta la
+  Story 5.2, las imágenes públicas (`/api/archivos/…`), que el navegador pide
+  directamente. El resto del panel y de la tienda **no** lo usan: el BFF de
+  Next le habla a Laravel por la red interna de Coolify.
 - El panel de **Coolify**: `coolify.tivuapp.com` o túnel SSH. Nunca el puerto
   8000 abierto.
 

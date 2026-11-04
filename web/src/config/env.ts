@@ -24,10 +24,10 @@ export const env = {
    * Equivale a `config('tivu.dominio_tiendas')` en Laravel, y es el mismo que
    * usan el middleware y el BFF (`lib/tienda/host.ts`).
    *
-   * `NEXT_PUBLIC_APP_DOMAIN` se acepta por compatibilidad. Si queda vacío,
-   * las tiendas se sirven solo por ruta (`/reservar/{slug}`).
+   * Si queda vacío, las tiendas se sirven solo por ruta (`/reservar/{slug}`).
+   * `NEXT_PUBLIC_APP_DOMAIN` ya no se lee: ver `lib/tienda/host.ts`.
    */
-  appDomain: process.env.NEXT_PUBLIC_STORE_DOMAIN || process.env.NEXT_PUBLIC_APP_DOMAIN || "",
+  appDomain: process.env.NEXT_PUBLIC_STORE_DOMAIN || "",
 
   /**
    * Formato de números y fechas.

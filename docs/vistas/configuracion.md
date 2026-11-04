@@ -191,7 +191,30 @@ maquetado ni aparece en el menú**. Habrá que ver si entra en este proyecto.
 
 ---
 
+## Dirección pública (Story 6.1)
+
+Sección nueva de Configuración: la dirección de la tienda, `{slug}.tivuapp.store`.
+Pantalla **pendiente (Codex)**; el backend ya está.
+
+```jsonc
+// GET /api/configuracion/direccion/disponible?slug=pepito-spa   (mientras se escribe, con retardo)
+{ "data": { "disponible": true } }
+{ "data": { "disponible": false, "motivo": "ocupado" } }   // formato | reservado | ocupado
+
+// PUT /api/configuracion/direccion  { "slug": "pepito-spa" }
+{ "data": { "slug": "pepito-spa", "url": "https://pepito-spa.tivuapp.store" } }
+// 422 en `slug` con el motivo en español
+```
+
+- Muestra la URL actual con un botón para copiarla.
+- Al cambiarla, avisa de que **la dirección anterior seguirá llevando a la
+  tienda** (redirige a la nueva) y de que **nadie más podrá usarla**.
+- Los textos de cada `motivo` los pone el panel; el 422 ya trae el mensaje.
+- Requiere `configuracion: gestionar`; con solo «ver», la sección es de lectura.
+
 ## Pendiente
+
+- [ ] **Pantalla «Dirección pública» (Story 6.1, Codex)** — ver arriba
 
 - [ ] **Añadir `modo_intervalo` e `intervalo_min` al backend**
 - [ ] ¿Qué es el **marketplace**? Aparece como toggle pero no sé dónde se ve

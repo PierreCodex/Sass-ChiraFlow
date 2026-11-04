@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import type { Usuario } from "@/features/auth/services/auth.api";
 import { errorJson, guardarSesion, urlUpstream } from "@/lib/auth/sesion";
+import { esHostDeTienda } from "@/lib/tienda/host";
 
 /**
  * Login: el único sitio, junto con `logout`, que toca la cookie de sesión.
@@ -26,6 +27,12 @@ interface RespuestaLogin {
 }
 
 export async function POST(request: NextRequest) {
+  // Desde una tienda no se inicia sesión (Story 6.1): la cookie del panel no
+  // se escribe nunca en un dominio de tienda.
+  if (esHostDeTienda(request.headers.get("host") ?? "")) {
+    return errorJson("No encontrado.", 404);
+  }
+
   let cuerpoEntrante: { remember?: boolean; [campo: string]: unknown };
   try {
     cuerpoEntrante = await request.json();

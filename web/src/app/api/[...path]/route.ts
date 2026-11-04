@@ -26,7 +26,10 @@ export const dynamic = "force-dynamic";
  *  - `host` iría con el dominio de Next, no con el de Laravel;
  *  - `cookie` es de este dominio, y contiene justo el token que no queremos
  *    filtrar dos veces;
- *  - `content-length` y `accept-encoding` los recalcula `fetch`.
+ *  - `content-length` y `accept-encoding` los recalcula `fetch`;
+ *  - `authorization` y `x-tenant` los pone SOLO el BFF, desde la cookie. Uno
+ *    que mande el navegador no pasa nunca: desde una tienda la petición sale
+ *    sin credenciales de verdad, no «con las que trajera» (Story 6.1).
  */
 const NO_REENVIAR = new Set([
   "host",
@@ -34,6 +37,8 @@ const NO_REENVIAR = new Set([
   "cookie",
   "content-length",
   "accept-encoding",
+  "authorization",
+  "x-tenant",
 ]);
 
 /** Cabeceras de la respuesta que describen el transporte, no el contenido. */
@@ -59,7 +64,10 @@ async function proxy(
    * trajera una cookie del panel, desde aquí no se usa. Lo demás no existe.
    */
   const desdeTienda = esHostDeTienda(request.headers.get("host") ?? "");
-  if (desdeTienda && path[0] !== "publico") {
+  // `.` y `..` no se recodifican (`encodeURIComponent("..") === ".."`), y
+  // `fetch` los resolvería: `publico/../citas` acabaría en `/citas`.
+  const conSaltos = path.some((s) => s === "." || s === "..");
+  if (conSaltos || (desdeTienda && path[0] !== "publico")) {
     return errorJson("No encontrado.", 404);
   }
   const { token, tenant } = desdeTienda ? { token: null, tenant: null } : await leerSesion();
