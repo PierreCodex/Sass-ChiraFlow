@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 11-03-2026 21:00
+last_updated: 11-04-2026 10:00
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
@@ -54,10 +54,10 @@ development_status:
   1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: done
   epic-1-retrospective: optional
 
-  epic-2: in-progress
+  epic-2: done
   2-1-elegir-qué-servicios-se-ofrecen-en-cada-sede: done
   2-2-una-sola-regla-decide-si-algo-es-reservable: done
-  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: review
+  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: done
   epic-2-retrospective: optional
 
   epic-3: backlog
@@ -84,8 +84,8 @@ development_status:
   5-4-las-sedes-dejan-de-tener-identidad-propia: backlog
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-cada-negocio-tiene-su-dirección-pública: backlog
+  epic-6: in-progress
+  6-1-cada-negocio-tiene-su-dirección-pública: ready-for-dev
   6-2-cada-sede-tiene-su-propio-enlace: backlog
   6-3-el-catálogo-que-ve-el-cliente: backlog
   6-4-los-huecos-que-ve-el-cliente-son-los-de-verdad: backlog
@@ -228,9 +228,6 @@ preparacion:
       salida_por_defecto: "ocultar del menu sin borrar datos"
 
   bloqueado:
-    - historias: ["6.1", "6.2", "6.3", "6.4", "6.5"]
-      bloqueado_por: "Epica 2 (regla unica de reservabilidad, Story 2.2)"
-      desbloquea: "cerrar 2.1 y 2.2"
     - historias: ["6.6", "6.7", "6.8", "6.9", "6.11"]
       bloqueado_por: "Epica 2 + Epica 4 (correo fiable: 4.1, 4.2, 4.5) + Epica 5 (identidad
         en correos y tienda)"
@@ -248,9 +245,9 @@ preparacion:
         y consentimiento verificado"
       desbloquea: "instancia en Railway + numero dado de alta"
     - historias: ["9.5"]
-      bloqueado_por: "L-1 y L-2 (dominio de marca y de tienda), VPS de Contabo, Vercel
-        Pro, Resend Pro, R2"
-      desbloquea: "contratar y apuntar los DNS en Cloudflare"
+      bloqueado_por: "VPS de Contabo con Coolify, Resend Pro y R2 (L-1 y L-2 resueltas
+        el 2026-11-03: tivuapp.com y tivuapp.store)"
+      desbloquea: "comprar el VPS y seguir docs/infra/cloudflare-dns.md"
     - historias: ["9.6"]
       bloqueado_por: "todo lo anterior + Q-03 y Q-04 (fecha objetivo y alcance definitivo)"
       desbloquea: "cerrar las epicas 1 a 9 y elegir los negocios piloto"
@@ -393,4 +390,37 @@ sprint_2:
     - "Contrato primero en api-contract.md (AD-13)"
     - "develop pasa a main por PR al cerrar, con la suite completa en verde"
   decisiones_pendientes_que_no_bloquean:
-    - "Formato de la dirección de las tiendas (pepito.tivuapp.com): hace falta en la épica 6 y la 9.5, no en este sprint"
+    - "Formato de la dirección de las tiendas: RESUELTO el 2026-11-03, {slug}.tivuapp.store (PR #38)"
+
+sprint_3:
+  nombre: "La tienda abre la puerta"
+  objetivo: >-
+    Que cada negocio tenga su dirección {slug}.tivuapp.store y la de cada sede,
+    y que el cliente vea el catálogo y los huecos reales y arme su reserva
+    antes de dar sus datos. Al cerrar, el cliente navega la tienda de verdad;
+    reservar (6.6 en adelante) espera al correo (épica 4) y a la marca (épica 5).
+  abierto: "2026-11-04"
+  historias: ["6.1", "6.2", "6.3", "6.4", "6.5"]
+  arrastra_del_sprint_2: ["2.3 (aviso en pantalla, codex)", "3.1 (codex)"]
+  backend_claude:
+    en_orden: ["6.1", "6.2", "6.4"]
+    apoyo: ["6.3 (catálogo público en la API)", "6.5 (lo que la revisión necesita de la API)"]
+    motivo_del_orden: "6.2 cuelga la sede de la dirección del negocio; 6.4 usa la regla de la 2.2 desde la zona pública que crea la 6.1"
+  frontend:
+    "6.1": "claude: middleware y BFF por host (la frontera); codex: «negocio no encontrado» y Configuración → Dirección pública"
+    "6.2": "claude con apoyo de codex"
+    "6.3": "codex con apoyo de claude"
+    "6.5": "codex con apoyo de claude"
+  fichas: ["spec-6-1-direccion-publica.md"]
+  pruebas_que_no_se_tocan:
+    - "La suite completa en verde antes de cada merge, incluida Concurrencia"
+    - "Las de la regla única (2.2) y el aviso (2.3) siguen en verde sin tocarlas"
+    - "Cada respuesta pública tiene su prueba de que no lleva ids internos ni datos del panel"
+  criterio_de_cierre:
+    - "Ninguna petición desde un host de tienda llega a una ruta del panel ni lleva credenciales"
+    - "Un subdominio desconocido o reservado no enseña datos de nadie"
+    - "Los huecos que ve el cliente salen de la misma Disponibilidad + Reservabilidad que el panel"
+    - "Contrato primero en api-contract.md (AD-13)"
+    - "develop pasa a main por PR al cerrar, con la suite completa en verde"
+  decisiones_pendientes_que_no_bloquean:
+    - "Precios y límites de Cloudflare for SaaS: hacen falta en la 6.12, no en este sprint"
