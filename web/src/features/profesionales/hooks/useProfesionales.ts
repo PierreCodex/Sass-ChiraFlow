@@ -14,7 +14,8 @@ export const {
 } = crearHooksRecurso<Profesional, ProfesionalPayload>(
   "profesionales",
   profesionalesApi,
-  { singular: "Profesional" }
+  { singular: "Profesional" },
+  [["servicios"], ["locales", "servicios"], ["local-profesional"], ["citas"]]
 );
 
 /** Cupo de profesionales del plan contratado. */

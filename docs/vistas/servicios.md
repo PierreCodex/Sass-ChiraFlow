@@ -282,10 +282,11 @@ componente se reutiliza tal cual: solo cambia dónde se monta.
 
 ## Pendiente
 
-- [ ] **Aviso de «nadie puede prestarlo» (Story 2.3, Codex).** El dato ya
-      llega en `reservabilidad`: pintar en la tabla y en el formulario que el
-      servicio no es reservable, o en qué sedes nadie puede prestarlo. Los
-      textos los pone el panel: «Nadie que lo preste atiende en Sur»
+- [x] **Aviso de «nadie puede prestarlo» (Story 2.3).** La tabla muestra una
+      marca con ayuda y el formulario un aviso con las sedes afectadas, a partir
+      de `reservabilidad`. Indica asignar un profesional o habilitarlo en esas
+      sedes. Los servicios inactivos no duplican el aviso. Guardar servicios,
+      profesionales o habilitaciones actualiza los avisos sin recargar.
 
 - [x] **¿El servicio se asigna también a locales concretos?** Sí, desde la
       Story 2.1: `local_servicio` y la sección «Servicios de cada sede»

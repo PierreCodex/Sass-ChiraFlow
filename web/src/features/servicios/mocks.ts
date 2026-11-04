@@ -1,15 +1,19 @@
 import type { Servicio } from "./types";
+import { localesMock } from "@/features/locales/mocks";
+import { localProfesionalMock } from "@/features/locales/mocks-recursos";
+import { profesionalesMock } from "@/features/profesionales/mocks";
+import { reservabilidadMock } from "./reservabilidad-mock";
 
 const consultas = { id: 1, nombre: "Consultas" };
 const odontologia = { id: 2, nombre: "Odontología" };
 const laboratorio = { id: 3, nombre: "Laboratorio" };
 
-const carmen = { id: 1, nombre: "Dra. Carmen Ríos" };
-const julio = { id: 2, nombre: "Dr. Julio Mendoza" };
-const rosaLab = { id: 3, nombre: "Lic. Rosa Paredes" };
-const andres = { id: 6, nombre: "Dr. Andrés Vílchez" };
+const carmen = { id: 2, nombre: "Dra. Carmen Ríos" };
+const julio = { id: 3, nombre: "Dr. Julio Mendoza" };
+const rosaLab = { id: 4, nombre: "Lic. Rosa Paredes" };
+const andres = { id: 5, nombre: "Dr. Andrés Vílchez" };
 
-export const serviciosMock: Servicio[] = [
+const catalogo: Omit<Servicio, "reservabilidad">[] = [
   { id: 1, nombre: "AAA", descripcion: null, color: "#5D87FF", categoria: null, tipo: "normal", max_sesiones: null, duracion_min: 30, precio: 20, activo: true, imagen_principal: null, galeria: [], empleados: [] },
   { id: 2, nombre: "ATENCION DEL MEDICO", descripcion: "Atención general del médico de turno", color: "#763EBD", categoria: null, tipo: "normal", max_sesiones: null, duracion_min: 60, precio: 45, activo: true, imagen_principal: null, galeria: [], empleados: [carmen] },
   { id: 3, nombre: "Consulta general", descripcion: "Evaluación médica general", color: "#13DEB9", categoria: consultas, tipo: "normal", max_sesiones: null, duracion_min: 30, precio: 60, activo: true, imagen_principal: null, galeria: [], empleados: [carmen, andres] },
@@ -23,3 +27,14 @@ export const serviciosMock: Servicio[] = [
   { id: 11, nombre: "Prueba de glucosa", descripcion: "Glucosa en ayunas", color: "#FB9678", categoria: laboratorio, tipo: "normal", max_sesiones: null, duracion_min: 10, precio: 35, activo: true, imagen_principal: null, galeria: [], empleados: [rosaLab] },
   { id: 12, nombre: "Certificado médico", descripcion: "Emisión de certificado de salud", color: "#FFAE1F", categoria: consultas, tipo: "normal", max_sesiones: null, duracion_min: 20, precio: 45, activo: false, imagen_principal: null, galeria: [], empleados: [carmen] },
 ];
+
+// AAA no tiene prestadores; Limpieza dental sí se reserva en Local 1,
+// pero faltan profesionales habilitados en las otras sedes.
+export const serviciosMock: Servicio[] = catalogo.map((servicio) => ({
+  ...servicio,
+  reservabilidad: servicio.id === 1
+    ? { reservable: false, sedes_sin_quien_lo_preste: localesMock.map(({ id, nombre }) => ({ id, nombre })) }
+    : servicio.id === 6
+      ? reservabilidadMock(servicio, localesMock, profesionalesMock, localProfesionalMock)
+      : { reservable: servicio.activo, sedes_sin_quien_lo_preste: [] },
+}));

@@ -43,7 +43,7 @@ export const localProfesionalMock: Record<number, LocalProfesional[]> = {
       horario_cierre: null,
     },
     {
-      id: 6,
+      id: 5,
       nombre: "Dr. Andrés Vílchez",
       foto_url: null,
       habilitado: true,
@@ -86,7 +86,7 @@ export const localProfesionalMock: Record<number, LocalProfesional[]> = {
       horario_cierre: null,
     },
     {
-      id: 6,
+      id: 5,
       nombre: "Dr. Andrés Vílchez",
       foto_url: null,
       habilitado: false,
@@ -129,7 +129,7 @@ export const localProfesionalMock: Record<number, LocalProfesional[]> = {
       horario_cierre: null,
     },
     {
-      id: 6,
+      id: 5,
       nombre: "Dr. Andrés Vílchez",
       foto_url: null,
       habilitado: false,

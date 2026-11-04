@@ -12,4 +12,4 @@ export const {
   useEliminar: useEliminarLocal,
 } = crearHooksRecurso<Local, LocalPayload>("locales", localesApi, {
   singular: "Local",
-});
+}, [["servicios"], ["local-profesional"], ["citas"]]);

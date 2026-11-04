@@ -1,6 +1,9 @@
 import { crearRecurso } from "@/lib/api/recurso";
 import { categoriasMock } from "@/features/categorias/mocks";
-import { profesionalesMock } from "@/features/profesionales/mocks";
+import { profesionalesApi } from "@/features/profesionales/services/profesionales.api";
+import { localesApi } from "@/features/locales/services/locales.api";
+import { localProfesionalMock } from "@/features/locales/mocks-recursos";
+import { reservabilidadMock } from "../reservabilidad-mock";
 import type { ImagenGaleria, Servicio, ServicioPayload } from "../types";
 import { serviciosMock } from "../mocks";
 
@@ -28,7 +31,15 @@ export const serviciosApi = crearRecurso<Servicio, ServicioPayload>({
   camposBusqueda: ["nombre"],
   // El formulario sube imágenes: no puede ir como JSON.
   enviarComoFormData: true,
-  valoresPorDefecto: { activo: true },
+  valoresPorDefecto: { activo: true, empleados: [], galeria: [], imagen_principal: null },
+  alLeerMock: (servicio) => ({
+    ...servicio,
+    reservabilidad: servicio.id === 1 || servicio.id === 6
+      ? reservabilidadMock(
+          servicio, localesApi.mockItems(), profesionalesApi.mockItems(), localProfesionalMock
+        )
+      : { reservable: servicio.activo, sedes_sin_quien_lo_preste: [] },
+  }),
   /*
    * El payload manda ids y archivos; la entidad expone objetos y URLs.
    *
@@ -47,7 +58,7 @@ export const serviciosApi = crearRecurso<Servicio, ServicioPayload>({
     }
 
     if ("empleado_ids" in payload) {
-      parcial.empleados = profesionalesMock
+      parcial.empleados = profesionalesApi.mockItems()
         .filter((e) => payload.empleado_ids?.includes(e.id))
         .map((e) => ({ id: e.id, nombre: e.nombre }));
     }

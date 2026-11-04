@@ -3,6 +3,7 @@ import { api } from "@/lib/api/client";
 import { delay } from "@/lib/mock-utils";
 import { crearRecurso } from "@/lib/api/recurso";
 import { profesionalesMock as fichasProfesionales } from "@/features/profesionales/mocks";
+import { profesionalesApi } from "@/features/profesionales/services/profesionales.api";
 import { saleEnAgenda } from "@/features/profesionales/types";
 import { serviciosMock } from "@/features/servicios/mocks";
 import { localesMock } from "../mocks";
@@ -14,20 +15,30 @@ import type {
   LocalProfesionalPayload,
 } from "../types";
 
-// Copia mutable por local, para que los cambios se vean en la sesión.
-const porLocal: Record<number, LocalProfesional[]> = Object.fromEntries(
-  Object.entries(localProfesionalMock).map(([id, lista]) => [
-    Number(id),
-    lista.map((item) => ({ ...item })),
-  ])
-);
+// Estado compartido con la reservabilidad mock de los servicios.
+const porLocal = localProfesionalMock;
+
+function filasProfesionalesMock(localId: number): LocalProfesional[] {
+  return profesionalesApi.mockItems().map((profesional) => ({
+    id: profesional.id,
+    habilitado: false,
+    nombre_publico: null,
+    perfil: null,
+    horario_apertura: null,
+    horario_cierre: null,
+    ...porLocal[localId]?.find((fila) => fila.id === profesional.id),
+    // Nombre y foto actuales incluso después de editar al profesional.
+    nombre: profesional.nombre,
+    foto_url: profesional.foto_url,
+  }));
+}
 
 export const localProfesionalApi = {
   /** Profesionales del negocio con su configuración en `localId`. */
   lista: async (localId: number): Promise<LocalProfesional[]> => {
     if (usarMocksPara("locales")) {
       await delay(250);
-      return porLocal[localId] ?? [];
+      return filasProfesionalesMock(localId);
     }
     const { data } = await api.get<{ data: LocalProfesional[] }>(
       `/locales/${localId}/profesionales`
@@ -48,7 +59,7 @@ export const localProfesionalApi = {
   ): Promise<LocalProfesional> => {
     if (usarMocksPara("locales")) {
       await delay();
-      const lista = porLocal[localId] ?? [];
+      const lista = filasProfesionalesMock(localId);
       const indice = lista.findIndex((item) => item.id === profesionalId);
       if (indice === -1) throw new Error("Profesional no encontrado");
 
@@ -62,6 +73,12 @@ export const localProfesionalApi = {
       );
 
       lista[indice] = { ...lista[indice], ...parche };
+      // Conservar también las asignaciones de profesionales inactivos: al
+      // darlos de alta otra vez recuperan la configuración de sus sedes.
+      porLocal[localId] = [
+        ...(porLocal[localId] ?? []).filter((fila) => fila.id !== profesionalId),
+        lista[indice],
+      ];
       return lista[indice];
     }
     const { horario_apertura, horario_cierre, ...resto } = payload;
