@@ -11,6 +11,9 @@ npm run typecheck            # tsc --noEmit
 
 ## Desplegar en Vercel
 
+> **Solo para la maqueta.** Producción va en el VPS con Coolify detrás de
+> Cloudflare (decidido el 2026-11-03): ver `docs/infra/cloudflare-dns.md`.
+
 El repo es un monorepo, así que hay **un ajuste obligatorio**:
 
 > **Root Directory: `web`**

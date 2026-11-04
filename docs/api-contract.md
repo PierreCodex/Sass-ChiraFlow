@@ -377,7 +377,7 @@ de su negocio** (`balta`), no su id numérico. Durante la transición, un id
 numérico se sigue aceptando y la respuesta trae `local.slug` para que la página
 redirija a la dirección con slug. Un slug antiguo de la sede resuelve igual
 (historial de slugs) y la respuesta trae el slug vigente. Direcciones de las
-páginas: `{slug}.site.<marca>/{sede}` y `/reservar/{slug}/{sede}`.
+páginas: `{slug}.tivuapp.store/{sede}` y `/reservar/{slug}/{sede}`.
 
 Estos endpoints **no comparten middleware con el panel**: no llevan sesión, no
 exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
@@ -1328,7 +1328,7 @@ Se cachea 10 minutos porque el formulario de citas la consulta en cada apertura.
 ### Tienda pública (`{slug}.dominio` · `/reservar/{slug}`)
 
 ⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar**: la sede se elige **antes** del servicio cuando hay
-varias; desde `{slug}.site.<marca>/{sede}` llega preseleccionada y se puede
+varias; desde `{slug}.tivuapp.store/{sede}` llega preseleccionada y se puede
 cambiar (si ya hay servicios elegidos, se avisa antes de reiniciar la
 selección). Las rutas de sucursal usan el slug de la sede (FR-81).
 

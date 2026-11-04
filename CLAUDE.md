@@ -304,6 +304,20 @@ puerta de entrada al producto) y el **onboarding** del negocio recién creado.
 
 ### Decisión tomada: dominios separados
 
+| Dirección | Qué |
+|---|---|
+| `tivuapp.com` | landing del SaaS |
+| `app.tivuapp.com` | panel (`admin.` la plataforma) |
+| `api.tivuapp.com` | Laravel: el BFF le habla por la red interna; de fuera solo webhooks |
+| `{slug}.tivuapp.store` | tienda de cada negocio |
+| `reservas.pepito.com` | dominio propio opcional, plan Pro (Story 6.12) |
+
+**Producción (2026-11-03):** un VPS de Contabo con **Coolify** (Next y Laravel
+en el mismo servidor, compartido con otro proyecto), **Cloudflare** delante
+(DNS, proxy, certificado de origen) y **Donweb** solo como registrador. Guía:
+`docs/infra/cloudflare-dns.md`. Sustituye a Forge + Vercel y al
+`{slug}.site.<marca>` de antes.
+
 Panel y tiendas van en **dominios registrables distintos**. Se mantiene, pero
 el motivo cambió de peso:
 
