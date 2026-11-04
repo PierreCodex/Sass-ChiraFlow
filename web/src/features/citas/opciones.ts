@@ -64,6 +64,11 @@ export interface PaginaOpciones<T> {
 export interface FiltroOpciones {
   search?: string;
   ids?: number[];
+  /**
+   * La sede elegida en el formulario (Story 2.2): solo lo que se puede
+   * reservar EN ella. Sin sede, lo reservable en alguna del alcance.
+   */
+  local?: number | null;
 }
 
 /** Cuántas opciones trae cada búsqueda. El backend acepta hasta 50. */

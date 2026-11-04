@@ -19,6 +19,12 @@ interface Props<C extends ColeccionOpciones> {
    * edita—, para enseñarlo mientras llega del servidor.
    */
   conocida?: { id: number; nombre: string } | null;
+  /**
+   * La sede elegida: la búsqueda solo ofrece lo reservable en ella. Lo ya
+   * elegido se sigue pidiendo sin sede, para que no desaparezca al cambiarla;
+   * si ya no vale ahí, lo dice el guardado bajo su campo.
+   */
+  local?: number | null;
   id?: string;
   placeholder?: string;
   error?: boolean;
@@ -40,6 +46,7 @@ function SelectorOpcion<C extends ColeccionOpciones>({
   onChange,
   etiqueta = (opcion) => opcion.nombre,
   conocida,
+  local,
   id,
   placeholder,
   error,
@@ -49,7 +56,7 @@ function SelectorOpcion<C extends ColeccionOpciones>({
   const [escrito, setEscrito] = useState("");
   const busqueda = useConRetardo(escrito);
 
-  const { data: encontradas = [], isFetching } = useOpcionesCita(coleccion, { search: busqueda });
+  const { data: encontradas = [], isFetching } = useOpcionesCita(coleccion, { search: busqueda, local });
   const { data: porId = [] } = useOpcionesCita(coleccion, { ids: valor ? [valor] : [] });
 
   /*

@@ -2,7 +2,7 @@
 title: 'Story 2.2 — Una sola regla decide si algo es reservable'
 type: 'feature'
 created: '2026-11-03'
-status: 'review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
@@ -103,10 +103,38 @@ En un negocio **sin sedes** solo cuentan 1 a 3, como hoy.
 - `Disponibilidad::huecosReservables()` pregunta a la regla; `huecos()` queda
   como cálculo de horario puro para el anti-solape, que ya aplicó la regla
   (o la salta a propósito al cerrar la cita de un profesional de baja).
-- `/citas/opciones` ya no lista profesionales sin nada agendable.
-- Pruebas: `tests/Feature/Agenda/ReservabilidadTest.php` (25, con la matriz de
-  coherencia). En `CitasTest` solo cambió la preparación: las sedes creadas con
+- `/citas/opciones` ya no lista profesionales sin nada agendable, y acepta
+  `?local_id=`: con la sede elegida en el formulario, solo lo reservable EN
+  ella (decidido en la revisión). El panel la manda desde `SelectorOpcion`;
+  lo ya elegido se sigue pidiendo sin sede para no desaparecer.
+- Pruebas: `tests/Feature/Agenda/ReservabilidadTest.php` (28, con la matriz de
+  coherencia, filas borradas y `solo_propios`). En `CitasTest` solo cambió la preparación: las sedes creadas con
   el modelo ahora también ofrecen los servicios (`ofrecerServiciosEnSedes`).
 - Panel: con una sola sede el selector no se pinta, así que un 422 en
   `local_id` sale como aviso en el formulario.
-- Suite completa 487 + Concurrencia 2, en verde.
+- Suite completa 489 + Concurrencia 2, en verde (tras los arreglos de la revisión).
+
+### Review Findings
+
+Revisión `bmad-code-review` del 2026-11-03 (Backend-Sass #18 + Sass-ChiraFlow #37).
+
+- [x] [Review][Patch] Recortar `/citas/opciones` por la sede elegida (`?local_id=`) y que el formulario la mande — decidido 2026-11-03: arreglarlo en la 2.2 [Backend-Sass app/Http/Controllers/CitaController.php; web/src/features/citas]
+- [x] [Review][Patch] Probar `solo_propios` en los servicios de `/citas/opciones` [Backend-Sass app/Http/Controllers/CitaController.php:61]
+- [x] [Review][Patch] Filas borradas (soft delete) en la matriz de coherencia [Backend-Sass tests/Feature/Agenda/ReservabilidadTest.php]
+- [x] [Review][Patch] Dos pruebas que no afirman nada útil: `expect(true)` en la tienda y `not->toBeEmpty()` en disponibilidad [Backend-Sass tests/Feature/Agenda/ReservabilidadTest.php]
+- [x] [Review][Patch] El contrato dice que la disponibilidad ya usa la regla; `huecosReservables()` aún no tiene quien la llame (la tienda, épica 6) [docs/api-contract.md]
+- [x] [Review][Patch] Comillas dobles «««» en la tabla de mensajes del contrato [docs/api-contract.md]
+- [x] [Review][Patch] El docblock de `evaluar()` no lista el orden real de los motivos [Backend-Sass app/Services/Reservabilidad.php:47]
+- [x] [Review][Patch] `ofrecerServiciosEnSedes()` reactiva filas que una prueba haya apagado antes [Backend-Sass tests/Feature/Agenda/CitasTest.php]
+- [x] [Review][Defer] Verificar en el navegador el aviso de `local_id` con una sola sede [web/src/features/citas/components/CitaFormDialog.tsx] — deferred: con datos ficticios no se puede provocar ese 422; se comprueba al conectar las citas al backend.
+
+**Rechazados**
+
+- `false` — «Al editar, el selector se queda vacío si lo elegido ya no es reservable»: `SelectorOpcion` enseña lo que ya se sabía de la cita (`conocida`) cuando `_ids` no lo devuelve.
+- `false` — «Una sede inexistente recibe el mensaje de desactivada»: `CitaRequest` valida `local_id` con `exists:locales`.
+- `false` — «Faltan índices para la subconsulta»: las tres pivotes tienen índice único compuesto y claves foráneas indexadas.
+- `false` — «`atiende = false` es un 422 nuevo al mover citas existentes»: es la regla de la ficha (punto 2) y está en el contrato; cerrar o cambiar el estado sigue sin pasar por la regla.
+- `false` — «La tienda y el enlace del cliente no usan la regla»: no existen todavía; la ficha los deja para la épica 6 con `exigirParaPublico` listo.
+- `low` — «Cita sin sede en un negocio con sedes se evalúa sin la dimensión sede»: solo ocurre con citas antiguas sin sede (toda sede creada por la API deja una principal, que no se puede borrar); es el comportamiento de la 1.3.
+- `low` — «`Disponibilidad` crea `Reservabilidad` con `new`»: `Disponibilidad` también se crea con `new`; inyectarla añade un parámetro sin daño concreto hoy.
+- Rechazado por editar la ficha — «Son 26 pruebas, no 25».
