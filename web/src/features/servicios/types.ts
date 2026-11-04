@@ -21,6 +21,11 @@ export interface Servicio {
   duracion_min: number;
   precio: number;
   activo: boolean;
+  /** Dato calculado por la API; nunca se envía al guardar. */
+  reservabilidad: {
+    reservable: boolean;
+    sedes_sin_quien_lo_preste: { id: number; nombre: string }[];
+  };
   /** URL de la imagen principal. */
   imagen_principal: string | null;
   /**

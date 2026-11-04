@@ -6,6 +6,7 @@ import Chip from "@mui/material/Chip";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import BuscadorTabla from "@/components/shared/BuscadorTabla";
@@ -66,9 +67,19 @@ const ServiciosPorLocal = () => {
       id: "nombre",
       label: "Servicio",
       render: (fila) => (
-        <Typography variant="subtitle2" fontWeight={600}>
-          {fila.nombre}
-        </Typography>
+        <Stack spacing={1} alignItems="flex-start">
+          <Typography variant="subtitle2" fontWeight={600}>
+            {fila.nombre}
+          </Typography>
+          {fila.sin_quien_lo_preste ? (
+            <Tooltip
+              title="No se puede reservar aquí: nadie que lo preste atiende en esta sede. Asigna un profesional activo que preste el servicio y atienda, y habilítalo en esta sede."
+              arrow
+            >
+              <Chip label="No reservable aquí" color="warning" size="small" variant="outlined" tabIndex={0} />
+            </Tooltip>
+          ) : null}
+        </Stack>
       ),
     },
     {

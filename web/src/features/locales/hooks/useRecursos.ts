@@ -37,6 +37,9 @@ export function useActualizarLocalProfesional(localId: number | undefined) {
     }) => localProfesionalApi.actualizar(localId!, profesionalId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: localProfesionalKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["servicios"] });
+      queryClient.invalidateQueries({ queryKey: ["locales", "servicios"] });
+      queryClient.invalidateQueries({ queryKey: ["citas"] });
       avisar("Profesional actualizado");
     },
   });
