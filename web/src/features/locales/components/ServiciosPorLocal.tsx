@@ -67,7 +67,7 @@ const ServiciosPorLocal = () => {
       id: "nombre",
       label: "Servicio",
       render: (fila) => (
-        <Stack spacing={1}>
+        <Stack spacing={1} alignItems="flex-start">
           <Typography variant="subtitle2" fontWeight={600}>
             {fila.nombre}
           </Typography>
