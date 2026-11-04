@@ -2,7 +2,7 @@
 title: 'Story 2.3 — Un servicio sin quién lo preste se ve venir'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'sprint-2/2-2-regla-unica-reservable'

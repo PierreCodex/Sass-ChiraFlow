@@ -54,10 +54,10 @@ development_status:
   1-15-el-anti-solape-aguanta-dos-reservas-a-la-vez: done
   epic-1-retrospective: optional
 
-  epic-2: in-progress
+  epic-2: done
   2-1-elegir-qué-servicios-se-ofrecen-en-cada-sede: done
   2-2-una-sola-regla-decide-si-algo-es-reservable: done
-  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: review
+  2-3-un-servicio-sin-quién-lo-preste-se-ve-venir: done
   epic-2-retrospective: optional
 
   epic-3: backlog
