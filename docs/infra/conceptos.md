@@ -161,6 +161,47 @@ del firewall habitual de Ubuntu. Cerrar el 8000 con `ufw` no basta.
 algo (Resend: un correo rebotó; GitHub: hay código nuevo). Las protecciones
 tienen que dejarlos pasar.
 
+**Política de Access.** La regla de quién pasa. **Allow** deja entrar a quien
+cumpla; todo lo demás queda fuera porque Access es *default-deny* (todo
+prohibido salvo lo permitido). Dentro: **Include** (basta con cumplir una),
+**Require** (hay que cumplir además esta) y **Exclude** (fuera aunque cumpla
+lo demás). La de Coolify es "Include → Emails → tivusass@gmail.com".
+
+**One-time PIN.** El método de identificarse en Access: un código de un solo
+uso que llega al correo. No hay contraseña que robar.
+
+**Llave SSH.** Un par de archivos: la parte **privada** se queda en tu PC (en
+Bitvise, "Global 1") y la **pública** va en `~/.ssh/authorized_keys` del
+servidor. El servidor reta a tu PC a firmar algo que solo la privada puede
+firmar. Con **passphrase**, robar el archivo no basta.
+
+**`PermitRootLogin prohibit-password`.** root puede entrar, pero **solo con
+llave**. Coolify entra así a su propio servidor; por eso no se prohíbe root
+del todo.
+
+**ufw.** El firewall sencillo de Ubuntu ("uncomplicated firewall"). Filtra lo
+que va a programas del propio Linux, como el SSH.
+
+**iptables y cadenas.** Lo que hay debajo de ufw: listas de reglas
+("cadenas") que el kernel recorre en orden; la primera que encaja decide.
+**ACCEPT** deja pasar, **DROP** descarta en silencio (el otro lado se queda
+esperando), **RETURN** vuelve a la cadena anterior.
+
+**DOCKER-USER.** La cadena que Docker reserva para reglas propias y que
+revisa **antes** de dejar llegar tráfico a un contenedor. Es donde se filtran
+los puertos de Docker, ya que `ufw` no los ve. En tivu deja el 80/443 solo a
+Cloudflare (subcadena `TIVU-CF`) y descarta el resto.
+
+**conntrack (estado de la conexión).** El kernel recuerda las conexiones
+abiertas. "ESTABLISHED" = respuesta a algo ya permitido: se deja pasar
+siempre, si no, ni los contenedores podrían recibir respuestas de internet.
+
+**Red de seguridad.** Al tocar un firewall por SSH uno puede dejarse fuera.
+Se programa antes un "deshacer" automático (`systemd-run --on-active=10min
+… ufw disable`) y se cancela solo cuando se comprueba que todo sigue
+funcionando. Y siempre se prueba desde una **segunda** sesión sin cerrar la
+primera.
+
 ## Correo
 
 **Email Routing.** Cloudflare recibe en `soporte@tivuapp.com` y lo reenvía a
