@@ -377,7 +377,7 @@ duplicarla.
 **`{sede}` es el slug de la sede, único dentro de su negocio** (`balta`;
 Story 6.2, PRD FR-81). Se acepta también un slug **antiguo** de esa sede y, en
 transición, su **id numérico**: en los dos casos la respuesta trae en
-`local.slug` el **vigente** y la página redirige con 301. Una sede inexistente,
+`local.slug` el **vigente** y la página redirige con 308 (permanente). Una sede inexistente,
 inactiva, borrada o de otro negocio responde el **mismo 404** que la tienda
 (Story 6.1). Direcciones de las páginas: `{slug}.tivuapp.store/{sede}` y
 `/reservar/{slug}/{sede}`; la antigua `/reservar/{slug}/sucursal/{id}` redirige
@@ -409,7 +409,7 @@ tenant no tiene slug.
 | `GET /publico/{slug}` | Respuesta |
 |---|---|
 | slug vigente, negocio activo | 200 con la tienda |
-| slug **anterior** del negocio | 200 con la tienda y `negocio.slug` = el **vigente**: la página redirige con 301 a la dirección nueva |
+| slug **anterior** del negocio | 200 con la tienda y `negocio.slug` = el **vigente**: la página redirige con 308 (permanente) a la dirección nueva |
 | inexistente, reservado, negocio sin slug, eliminado o purgado, suspendido (cualquier estado que no sea `prueba` ni `activa`), sin base provisionada o con la tienda apagada en Configuración (`sitio_publico_activo`) | **404** con cuerpo idéntico en todos los casos: `{ "message": "No encontramos esta tienda.", "codigo": "tienda_no_encontrada" }`. No revela si el negocio existe. La pantalla «tienda no disponible» del suspendido llega con la Story 6.11 |
 
 **Historial de direcciones.** Un slug que usó un negocio **no lo puede tomar
@@ -908,11 +908,13 @@ local principal no se borra y se edita desde Configuración).
 **Payload (multipart)**: lo mismo con `banner: File|null` y `logo: File|null`.
 
 **`slug`** (Story 6.2, PRD FR-81): se deriva del nombre **al crear** la sede
-(renombrarla no lo cambia) y se edita aparte con `slug` en el `PUT`. Único
+(renombrarla no lo cambia). Se puede elegir al crearla con `slug` en el
+`POST` y cambiar después con `slug` en el `PUT`. Único
 dentro del negocio, contando los que tuvieron las demás sedes; el anterior
 redirige para siempre. Formato: minúsculas, números y guiones, de 1 a 63, sin
-guion al principio ni al final ni dos seguidos; reservados `sucursal` y `cita`.
-422 en `slug` por formato, reservado u ocupado.
+guion al principio ni al final ni dos seguidos, y no solo números (chocaría
+con el id, que la tienda también acepta); reservados `sucursal`, `cita`, `api`
+e `images`. 422 en `slug` por formato, reservado u ocupado.
 
 ⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-82):
 **`color`, `banner_url` y `logo_url` dejan de

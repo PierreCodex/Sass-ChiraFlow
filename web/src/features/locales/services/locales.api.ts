@@ -16,6 +16,13 @@ export const localesApi = crearRecurso<Local, LocalPayload>({
     logo_url: payload.logo ? URL.createObjectURL(payload.logo) : null,
     ...(payload.slug ? { slug: payload.slug } : {}),
   }),
-  // Como el backend (Story 6.2): una sede nueva sin enlace lo deriva del nombre.
-  alLeerMock: (local) => (local.slug ? local : { ...local, slug: previsualizarSlug(local.nombre) || "sede" }),
+  /*
+    Como el backend (Story 6.2): una sede nueva sin enlace lo deriva del nombre
+    la primera vez y lo GUARDA (se escribe en el objeto de la memoria), para
+    que renombrarla después no lo cambie.
+  */
+  alLeerMock: (local) => {
+    if (!local.slug) local.slug = previsualizarSlug(local.nombre) || "sede";
+    return local;
+  },
 });

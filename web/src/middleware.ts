@@ -95,8 +95,14 @@ export function middleware(request: NextRequest) {
          * Cloudflare y Coolify, `nextUrl` lleva el host interno del contenedor
          * y la redirección mandaría al cliente a una dirección que no existe.
          */
-        const protocolo = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
-        const ruta = `${url.pathname.slice(propia.length) || "/"}${url.search}`;
+        // Detrás de varios proxies puede llegar como lista («https,http»).
+        const pedido = (request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol)
+          .split(",")[0]
+          .replace(":", "")
+          .trim();
+        const protocolo = pedido === "http" ? "http" : "https";
+        // Una sola barra delante: `//evil.com` sería otro sitio para `new URL`.
+        const ruta = `/${url.pathname.slice(propia.length).replace(/^\/+/, "")}${url.search}`;
         return NextResponse.redirect(new URL(ruta, `${protocolo}://${host}`), 308);
       }
       return NextResponse.next(conResto(request, url.pathname.slice(propia.length)));

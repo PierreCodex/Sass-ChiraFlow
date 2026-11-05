@@ -9,7 +9,7 @@ import { tiendaLocalMock } from "@/features/publico/mocks";
 /**
  * La ruta antigua de una sede, `/reservar/{negocio}/sucursal/{id}` (Story 6.2).
  * Ya no se pinta nada aquí: pregunta el slug vigente de esa sede y redirige
- * con 301 a `/reservar/{negocio}/{sede}`, para que los enlaces viejos sigan
+ * (308, permanente) a `/reservar/{negocio}/{sede}`, para que los enlaces viejos sigan
  * llegando y no haya dos direcciones para la misma página.
  */
 export default async function SucursalPorId({
@@ -23,17 +23,18 @@ export default async function SucursalPorId({
   if (usarMocksPara("publico")) {
     sede = tiendaLocalMock(localId)?.local.slug ?? null;
   } else {
-    try {
-      const respuesta = await fetch(
-        `${urlUpstream()}/publico/${encodeURIComponent(slug)}/sucursal/${encodeURIComponent(localId)}`,
-        { headers: { Accept: "application/json" }, cache: "no-store" }
-      );
-      if (respuesta.ok) {
-        const cuerpo = (await respuesta.json()) as { data?: { local?: { slug?: string } } };
-        sede = cuerpo.data?.local?.slug ?? null;
-      }
-    } catch {
-      // Sin backend no hay a dónde redirigir: «no encontrado» abajo.
+    // Solo un 404 del backend es «no encontrado». Un 429, un 5xx o la red
+    // caída son pasajeros: se lanzan y se ve la página de error, porque el
+    // enlace sigue valiendo.
+    const respuesta = await fetch(
+      `${urlUpstream()}/publico/${encodeURIComponent(slug)}/sucursal/${encodeURIComponent(localId)}`,
+      { headers: { Accept: "application/json" }, cache: "no-store" }
+    );
+    if (respuesta.ok) {
+      const cuerpo = (await respuesta.json()) as { data?: { local?: { slug?: string } } };
+      sede = cuerpo.data?.local?.slug ?? null;
+    } else if (respuesta.status !== 404) {
+      throw new Error(`La tienda respondió ${respuesta.status}`);
     }
   }
 

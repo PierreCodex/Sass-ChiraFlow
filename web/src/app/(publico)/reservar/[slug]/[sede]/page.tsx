@@ -2,17 +2,14 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { IconArrowsExchange, IconClock, IconMapPin, IconPhone } from "@tabler/icons-react";
+import { IconArrowsExchange } from "@tabler/icons-react";
 
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toApiError } from "@/lib/api/client";
