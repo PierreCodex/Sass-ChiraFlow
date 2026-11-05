@@ -374,12 +374,18 @@ duplicarla.
 | GET | `/publico/{slug}/sucursal/{sede}/horarios` | `?profesional_id&fecha&duracion_min` | `{ data: string[] }` — `["09:00","09:45",…]` |
 | POST | `/publico/{slug}/sucursal/{sede}/reservar` | `ReservaPayload` | `{ data: ReservaConfirmada }` |
 
-⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-81): `{sede}` es el **slug de la sede, único dentro
-de su negocio** (`balta`), no su id numérico. Durante la transición, un id
-numérico se sigue aceptando y la respuesta trae `local.slug` para que la página
-redirija a la dirección con slug. Un slug antiguo de la sede resuelve igual
-(historial de slugs) y la respuesta trae el slug vigente. Direcciones de las
-páginas: `{slug}.tivuapp.store/{sede}` y `/reservar/{slug}/{sede}`.
+**`{sede}` es el slug de la sede, único dentro de su negocio** (`balta`;
+Story 6.2, PRD FR-81). Se acepta también un slug **antiguo** de esa sede y, en
+transición, su **id numérico**: en los dos casos la respuesta trae en
+`local.slug` el **vigente** y la página redirige con 301. Una sede inexistente,
+inactiva, borrada o de otro negocio responde el **mismo 404** que la tienda
+(Story 6.1). Direcciones de las páginas: `{slug}.tivuapp.store/{sede}` y
+`/reservar/{slug}/{sede}`; la antigua `/reservar/{slug}/sucursal/{id}` redirige
+a la de slug.
+
+En la Story 6.2 `GET …/sucursal/{sede}` devuelve `negocio` y `local`, con
+`categorias: []`, `profesionales: []` y `resenas: null`: el catálogo es de la
+**Story 6.3**.
 
 Estos endpoints **no comparten middleware con el panel**: no llevan sesión, no
 exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
@@ -901,9 +907,15 @@ local principal no se borra y se edita desde Configuración).
 
 **Payload (multipart)**: lo mismo con `banner: File|null` y `logo: File|null`.
 
-⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-81, FR-82): `Local` gana **`slug`**
-(derivado del nombre al crearla, único dentro del negocio; editable, y el
-anterior redirige para siempre). **`color`, `banner_url` y `logo_url` dejan de
+**`slug`** (Story 6.2, PRD FR-81): se deriva del nombre **al crear** la sede
+(renombrarla no lo cambia) y se edita aparte con `slug` en el `PUT`. Único
+dentro del negocio, contando los que tuvieron las demás sedes; el anterior
+redirige para siempre. Formato: minúsculas, números y guiones, de 1 a 63, sin
+guion al principio ni al final ni dos seguidos; reservados `sucursal` y `cita`.
+422 en `slug` por formato, reservado u ocupado.
+
+⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-82):
+**`color`, `banner_url` y `logo_url` dejan de
 emitirse y de aceptarse**: la identidad visual es del negocio (ver
 Configuración → apariencia). Sus valores se trasladan al negocio según FR-82 y
 se conservan sin uso hasta la portada por sede (FR-80, posterior).
@@ -1146,15 +1158,16 @@ de `tenants`.
 { "negocio": { "nombre", "slug", "telefono", "email" },
   "locales": [ /* LocalPublico */ ] }
 
-// LocalPublico: id, nombre, direccion?, descripcion?, telefono?, banner_url?,
-// logo_url?, latitud?, longitud?, color?, horario_desde?, horario_hasta?
+// LocalPublico: id, slug, nombre, direccion?, descripcion?, telefono?,
+// banner_url?, logo_url?, latitud?, longitud?, color?, horario_desde?,
+// horario_hasta?   (`slug` desde la Story 6.2)
 //
 // ⚠️ Cambio aprobado el 2026-09-19, pendiente de implementar (FR-77, FR-81, FR-82):
 // negocio gana: logo_url, color_primario, texto_sobre_color, apariencia (igual
 //   que en Configuración); es la identidad de TODAS las sedes.
-// LocalPublico gana slug y pierde banner_url, logo_url y color.
+// LocalPublico pierde banner_url, logo_url y color (el `slug` ya está, 6.2).
 
-// GET /publico/{slug}/sucursal/{localId}  → TiendaLocal
+// GET /publico/{slug}/sucursal/{sede}  → TiendaLocal   ({sede}: slug, slug antiguo o id)
 {
   "negocio": { … },
   "local":   { … },
