@@ -159,6 +159,7 @@ botón, pero conviene protegerlo también en el servidor.
 | Campo | Tipo | Confirmado | Notas |
 |---|---|---|---|
 | `nombre` | string | ✅ | |
+| `slug` | string | ✅ | Story 6.2: el enlace de la sede en la tienda, `pepito.tivuapp.store/balta`. Se deriva del nombre al crear; renombrar no lo cambia. Opcional en `POST` y `PUT`; 422 en `slug` por formato, reservado u ocupado (reglas en `api-contract.md`). **Falta en el panel**: verlo, copiarlo y editarlo |
 | `direccion` | string \| null | ✅ | Texto libre |
 | `descripcion_publica` | string \| null | ✅ | |
 | `telefono` | string \| null | ✅ | |

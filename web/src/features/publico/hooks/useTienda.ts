@@ -4,8 +4,8 @@ import type { ReservaPayload } from "../types";
 
 export const publicoKeys = {
   negocio: (slug: string) => ["publico", slug] as const,
-  tienda: (slug: string, localId: number) =>
-    ["publico", slug, "sucursal", localId] as const,
+  tienda: (slug: string, sede: string) =>
+    ["publico", slug, "sucursal", sede] as const,
   horarios: (
     slug: string,
     localId: number,
@@ -26,13 +26,14 @@ export function useNegocioPublico(slug: string) {
   });
 }
 
-export function useTienda(slug: string, localId: number) {
+/** Una sede por su slug (o uno antiguo, o el id): Story 6.2. */
+export function useTienda(slug: string, sede: string) {
   return useQuery({
-    queryKey: publicoKeys.tienda(slug, localId),
-    queryFn: () => publicoApi.tienda(slug, localId),
+    queryKey: publicoKeys.tienda(slug, sede),
+    queryFn: () => publicoApi.tienda(slug, sede),
     staleTime: 10 * 60 * 1000,
     retry: false,
-    enabled: Number.isFinite(localId),
+    enabled: sede !== "",
   });
 }
 

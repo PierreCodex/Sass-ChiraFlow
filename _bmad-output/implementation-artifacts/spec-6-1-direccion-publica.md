@@ -2,7 +2,7 @@
 title: 'Story 6.1 — Cada negocio tiene su dirección pública'
 type: 'feature'
 created: '2026-11-04'
-status: 'review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'

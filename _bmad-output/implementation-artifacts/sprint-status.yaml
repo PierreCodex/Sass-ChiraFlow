@@ -85,8 +85,8 @@ development_status:
   epic-5-retrospective: optional
 
   epic-6: in-progress
-  6-1-cada-negocio-tiene-su-dirección-pública: review
-  6-2-cada-sede-tiene-su-propio-enlace: backlog
+  6-1-cada-negocio-tiene-su-dirección-pública: done
+  6-2-cada-sede-tiene-su-propio-enlace: in-progress
   6-3-el-catálogo-que-ve-el-cliente: backlog
   6-4-los-huecos-que-ve-el-cliente-son-los-de-verdad: backlog
   6-5-elegir-y-revisar-antes-de-dar-mis-datos: backlog
@@ -411,7 +411,7 @@ sprint_3:
     "6.2": "claude con apoyo de codex"
     "6.3": "codex con apoyo de claude"
     "6.5": "codex con apoyo de claude"
-  fichas: ["spec-6-1-direccion-publica.md"]
+  fichas: ["spec-6-1-direccion-publica.md", "spec-6-2-enlace-por-sede.md"]
   pruebas_que_no_se_tocan:
     - "La suite completa en verde antes de cada merge, incluida Concurrencia"
     - "Las de la regla única (2.2) y el aviso (2.3) siguen en verde sin tocarlas"

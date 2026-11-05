@@ -82,6 +82,29 @@ export function middleware(request: NextRequest) {
      */
     const propia = `/reservar/${slug}`;
     if (url.pathname === propia || url.pathname.startsWith(`${propia}/`)) {
+      /*
+       * Story 6.2: en su subdominio la dirección se ve limpia,
+       * `pepito.tivuapp.store/balta`. Si alguien abre la forma larga
+       * (`/reservar/pepito/balta`), se le manda a la corta. Solo para páginas:
+       * las peticiones internas de Next (RSC, prefetch) siguen como antes.
+       */
+      const esPagina = !request.headers.has("rsc") && !request.headers.has("next-router-prefetch");
+      if (esPagina && slug !== SLUG_INEXISTENTE) {
+        /*
+         * Con el host que pidió el navegador, no con `nextUrl`: detrás de
+         * Cloudflare y Coolify, `nextUrl` lleva el host interno del contenedor
+         * y la redirección mandaría al cliente a una dirección que no existe.
+         */
+        // Detrás de varios proxies puede llegar como lista («https,http»).
+        const pedido = (request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol)
+          .split(",")[0]
+          .replace(":", "")
+          .trim();
+        const protocolo = pedido === "http" ? "http" : "https";
+        // Una sola barra delante: `//evil.com` sería otro sitio para `new URL`.
+        const ruta = `/${url.pathname.slice(propia.length).replace(/^\/+/, "")}${url.search}`;
+        return NextResponse.redirect(new URL(ruta, `${protocolo}://${host}`), 308);
+      }
       return NextResponse.next(conResto(request, url.pathname.slice(propia.length)));
     }
 

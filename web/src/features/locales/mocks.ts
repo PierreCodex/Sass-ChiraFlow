@@ -3,6 +3,7 @@ import type { Local } from "./types";
 export const localesMock: Local[] = [
   {
     id: 1,
+    slug: "local-1",
     nombre: "Local 1",
     direccion: "piura",
     descripcion_publica: "Sede principal de la clínica.",
@@ -19,6 +20,7 @@ export const localesMock: Local[] = [
   },
   {
     id: 2,
+    slug: "la-molina",
     nombre: "la molina",
     direccion: "la moli2",
     descripcion_publica: "pureba",
@@ -35,6 +37,7 @@ export const localesMock: Local[] = [
   },
   {
     id: 3,
+    slug: "sucursal-miraflores",
     nombre: "Sucursal Miraflores",
     direccion: "Av. Larco 745, Miraflores",
     descripcion_publica: "Atención de estética y terapia física.",

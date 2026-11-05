@@ -48,6 +48,8 @@ export interface ResumenResenas {
 /** Sede donde se puede reservar. */
 export interface LocalPublico {
   id: number;
+  /** El enlace de la sede (Story 6.2): `/reservar/{negocio}/{slug}`. */
+  slug: string;
   nombre: string;
   direccion: string | null;
   descripcion: string | null;
