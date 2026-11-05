@@ -85,7 +85,7 @@ development_status:
   epic-5-retrospective: optional
 
   epic-6: in-progress
-  6-1-cada-negocio-tiene-su-dirección-pública: ready-for-dev
+  6-1-cada-negocio-tiene-su-dirección-pública: review
   6-2-cada-sede-tiene-su-propio-enlace: backlog
   6-3-el-catálogo-que-ve-el-cliente: backlog
   6-4-los-huecos-que-ve-el-cliente-son-los-de-verdad: backlog

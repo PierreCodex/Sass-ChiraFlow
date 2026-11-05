@@ -76,3 +76,32 @@ export function useGuardarConfiguracion() {
     },
   });
 }
+
+/**
+ * ¿Está libre esta dirección? (Story 6.1) Solo pregunta con un slug bien
+ * formado y distinto del actual: lo demás se sabe sin ir al servidor.
+ */
+export function useDireccionDisponible(slug: string, preguntar: boolean) {
+  return useQuery({
+    queryKey: [...configuracionKeys.all, "direccion", slug],
+    queryFn: () => configuracionApi.direccionDisponible(slug),
+    enabled: preguntar,
+    staleTime: 30 * 1000,
+  });
+}
+
+/** Cambia la dirección pública. La anterior sigue llevando a la tienda. */
+export function useCambiarDireccion() {
+  const queryClient = useQueryClient();
+  const { avisar } = useAvisos();
+
+  return useMutation({
+    mutationFn: (slug: string) => configuracionApi.cambiarDireccion(slug),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: configuracionKeys.all });
+      // El slug también viaja en `usuario.negocio` (enlace del checklist).
+      queryClient.invalidateQueries({ queryKey: authKeys.usuario });
+      avisar("Dirección cambiada correctamente");
+    },
+  });
+}

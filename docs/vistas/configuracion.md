@@ -193,8 +193,11 @@ maquetado ni aparece en el menú**. Habrá que ver si entra en este proyecto.
 
 ## Dirección pública (Story 6.1)
 
-Sección nueva de Configuración: la dirección de la tienda, `{slug}.tivuapp.store`.
-Pantalla **pendiente (Codex)**; el backend ya está.
+En **Sitio público → Tu enlace**, bajo el enlace, el botón **«Cambiar
+dirección»** (solo con `configuracion: gestionar`) abre un diálogo
+(`CambiarDireccionDialog`). Comprueba mientras se escribe —con un retardo de
+400 ms—, pasa lo escrito a minúsculas, enseña ✓ «Disponible» o el motivo, y
+solo deja guardar una dirección libre.
 
 ```jsonc
 // GET /api/configuracion/direccion/disponible?slug=pepito-spa   (mientras se escribe, con retardo)
@@ -214,7 +217,7 @@ Pantalla **pendiente (Codex)**; el backend ya está.
 
 ## Pendiente
 
-- [ ] **Pantalla «Dirección pública» (Story 6.1, Codex)** — ver arriba
+- [x] **Pantalla «Dirección pública» (Story 6.1)** — hecha, ver arriba
 
 - [ ] **Añadir `modo_intervalo` e `intervalo_min` al backend**
 - [ ] ¿Qué es el **marketplace**? Aparece como toggle pero no sé dónde se ve

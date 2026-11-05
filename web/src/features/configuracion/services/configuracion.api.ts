@@ -8,6 +8,12 @@ import type {
   ConfiguracionPayload,
   RespuestaConfiguracion,
 } from "../types";
+import {
+  normalizarDireccion,
+  tieneFormatoValido,
+  type DireccionCambiada,
+  type DisponibilidadDireccion,
+} from "../direccion";
 
 let memoria: Configuracion = configuracionMock;
 
@@ -79,4 +85,50 @@ export const configuracionApi = {
     );
     return data.data;
   },
+
+  /** ¿Se puede usar esta dirección? (Story 6.1) Mientras se escribe. */
+  direccionDisponible: async (slug: string): Promise<DisponibilidadDireccion> => {
+    if (usarMocksPara("configuracion")) {
+      await delay(250);
+      if (!tieneFormatoValido(slug)) return { disponible: false, motivo: "formato" };
+      if (RESERVADAS_MOCK.includes(slug)) return { disponible: false, motivo: "reservado" };
+      if (slug !== memoria.slug && OCUPADAS_MOCK.includes(slug)) {
+        return { disponible: false, motivo: "ocupado" };
+      }
+      return { disponible: true };
+    }
+    const { data } = await api.get<{ data: DisponibilidadDireccion }>(
+      "/configuracion/direccion/disponible",
+      { params: { slug } }
+    );
+    return data.data;
+  },
+
+  /** Cambia la dirección; la anterior sigue llevando a la tienda. */
+  cambiarDireccion: async (slug: string): Promise<DireccionCambiada> => {
+    if (usarMocksPara("configuracion")) {
+      await delay();
+      const nueva = normalizarDireccion(slug);
+      if (!tieneFormatoValido(nueva) || RESERVADAS_MOCK.includes(nueva) || OCUPADAS_MOCK.includes(nueva)) {
+        // La misma forma que el 422 de Laravel, para que el formulario lo pinte igual.
+        throw { response: { status: 422, data: {
+          message: "Esa dirección no se puede usar.",
+          errors: { slug: ["Esa dirección no se puede usar. Elige otra."] },
+        } } };
+      }
+      // La anterior queda «ocupada» por este mismo negocio, como en el backend.
+      if (memoria.slug) OCUPADAS_MOCK.push(memoria.slug);
+      memoria = { ...memoria, slug: nueva };
+      return { slug: nueva, url: `https://${nueva}.tivuapp.store` };
+    }
+    const { data } = await api.put<{ data: DireccionCambiada }>(
+      "/configuracion/direccion",
+      { slug }
+    );
+    return data.data;
+  },
 };
+
+// Con datos ficticios: unos pocos ejemplos de cada motivo.
+const RESERVADAS_MOCK = ["www", "admin", "app", "api", "reservar", "tienda", "cita"];
+const OCUPADAS_MOCK: string[] = ["barberia-el-cairo", "spa-luna"];
