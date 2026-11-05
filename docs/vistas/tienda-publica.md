@@ -258,12 +258,20 @@ Así cada negocio se ve suyo sin mantener un tema aparte por cliente.
 Todos bajo `/publico/*` y **sin autenticación**, para dejar claro que no
 comparten middleware con el panel.
 
+**Cómo se llega a una tienda (Story 6.1).** El negocio sale de la dirección,
+en el servidor: `pepito.tivuapp.store` → middleware → `/reservar/pepito` →
+`GET /api/publico/pepito`. Desde un host de tienda el BFF solo deja pasar
+`/api/publico/*`, sin credenciales; ni el panel ni el login existen ahí. El
+`layout.tsx` de `reservar/[slug]` hace en el servidor lo que el cliente no
+puede: 404 de verdad si no es una tienda abierta, y redirección permanente
+(conservando la subpágina) si se entró por una dirección antigua.
+
 ### `GET /api/publico/{slug}`
 
 ```json
 {
   "data": {
-    "negocio": { "id": 1, "nombre": "Clínica El Rosal", "slug": "clinica-el-rosal", "telefono": "976645666", "email": "contacto@elrosal.pe" },
+    "negocio": { "nombre": "Clínica El Rosal", "slug": "clinica-el-rosal", "telefono": "976645666", "email": "contacto@elrosal.pe" },
     "locales": [
       {
         "id": 1, "nombre": "Local 1", "direccion": "piura",

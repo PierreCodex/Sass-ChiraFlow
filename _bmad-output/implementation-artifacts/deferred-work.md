@@ -63,3 +63,21 @@
 - source_spec: `spec-2-2-regla-unica-reservable.md`
   summary: Falta verificar en el navegador el aviso de `local_id` de `CitaFormDialog` cuando el negocio tiene una sola sede.
   evidence: El selector de sede no se pinta con una sola sede; con datos ficticios no se puede provocar ese 422. Se comprueba al conectar el módulo de citas al backend.
+
+## Deferred from: code review of spec-6-1-direccion-publica.md (2026-11-04)
+
+- source_spec: `spec-6-1-direccion-publica.md`
+  summary: Las URLs públicas de las imágenes (logo, banner) llevan el id interno del negocio.
+  evidence: `ImagenService::url` arma `/api/archivos/{tenant_id}/…`. Decidido: claves opacas en R2 detrás de Cloudflare en la Story 5.2, antes de mostrar fotos en la 6.3.
+
+- source_spec: `spec-6-1-direccion-publica.md`
+  summary: El límite de peticiones de la tienda cuenta por la IP de Next, no por visitante.
+  evidence: Detrás del BFF todo llega desde el servidor de Next (`throttle:tienda` por `ip()`), y el layout de la tienda añade una consulta por vista. Es la Story 6.10; cuidado con fiarse de `X-Forwarded-For` porque `api.` es público.
+
+- source_spec: `spec-6-1-direccion-publica.md`
+  summary: Sin pruebas automáticas del middleware, el BFF y el layout de la tienda.
+  evidence: `web/` no tiene ejecutor de pruebas (AD-19, Vitest pendiente). Verificado a mano con `curl` forzando el `Host` contra `next dev`.
+
+- source_spec: `spec-6-1-direccion-publica.md`
+  summary: `created_at` y `updated_at` de los negocios se guardan en el JSON `data`, no en su columna.
+  evidence: Mismo fallo que `deleted_at` (arreglado en la 6.1): no están en `Tenant::getCustomColumns()`. Moverlos toca datos existentes; hacerlo antes de cualquier informe o métrica por fecha de alta.

@@ -289,7 +289,7 @@ Crea en la misma transacción el `tenants` (`slug NULL`, plan de prueba,
 | Método | Ruta | Payload | Respuesta |
 |---|---|---|---|
 | GET | `/onboarding` | — | `{ data: Onboarding }` |
-| POST | `/onboarding/nombre` | `{ nombre }` | `{ data: { nombre, slug } }` · fija el **slug definitivo, inmutable**; repetirlo → 422 |
+| POST | `/onboarding/nombre` | `{ nombre }` | `{ data: { nombre, slug } }` · fija el **slug inicial**; repetirlo → 422. Renombrar el negocio no lo cambia; cambiarlo es `PUT /configuracion/direccion` (Story 6.1) |
 | PUT | `/onboarding/pasos/{clave}` | — | `{ data: Onboarding }` · solo claves marcables desde el cliente (`sitio_publico`) |
 
 Los demás pasos los marca **el backend como efecto lateral** del endpoint que
@@ -357,6 +357,8 @@ duplicarla.
 | POST | `/caja/movimientos` | `{ tipo, monto, concepto }` | `{ data: MovimientoCaja }` | acumula en `ingresos`/`egresos` del día |
 | GET | `/configuracion` | — | `{ data: Configuracion }` | |
 | PUT | `/configuracion` | **parche** de `Configuracion` (multipart si hay logo/cover) | `{ data: Configuracion }` | una petición por sección |
+| GET | `/configuracion/direccion/disponible` | `?slug=` | `{ data: { disponible, motivo? } }` | Story 6.1. `motivo`: `formato` \| `reservado` \| `ocupado`; el texto lo pone el panel. Requiere `configuracion: gestionar` |
+| PUT | `/configuracion/direccion` | `{ slug }` | `{ data: { slug, url } }` | Story 6.1. Cambia la dirección pública; la anterior **sigue llevando** a la tienda (ver «Tienda pública»). 422 en `slug` por formato, reservado u ocupado. Requiere `configuracion: gestionar` |
 | GET | `/reportes` | `?desde&hasta` | `{ data: Reporte }` | todo el informe en una respuesta |
 | GET | `/reportes/exportar` | `?desde&hasta` | **CSV** (`responseType: blob`) | con BOM, para que Excel lea los acentos |
 | GET | `/suscripcion` | — | `{ data: Suscripcion }` | banner de prueba + Mi Plan |
@@ -384,8 +386,50 @@ exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
 el tenant (igual que el `Route::domain` del Laravel anterior).
 
 Mientras el negocio no haya completado el paso `nombre_negocio` del onboarding
-(el que fija el slug definitivo), la tienda responde **404**: hasta entonces el
+(el que fija el slug inicial), la tienda responde **404**: hasta entonces el
 tenant no tiene slug.
+
+#### Cómo se resuelve el negocio (Story 6.1)
+
+- **Zona propia** en Laravel (`routes/publico.php`): sin `auth:sanctum`, sin
+  sesión. Un `Authorization` que llegara se **ignora**.
+- **El negocio sale del host, en el servidor.** Next saca el slug de
+  `{slug}.tivuapp.store`, reescribe a `/reservar/{slug}/…` y la página pide
+  `/api/publico/{slug}`. Ninguna cabecera, query ni cuerpo elige el negocio.
+- **El BFF decide por el host** (AD-15): desde un host de tienda solo reenvía
+  `/api/publico/*`, y **sin** `Authorization` ni `X-Tenant`; cualquier otra
+  ruta responde 404.
+
+| `GET /publico/{slug}` | Respuesta |
+|---|---|
+| slug vigente, negocio activo | 200 con la tienda |
+| slug **anterior** del negocio | 200 con la tienda y `negocio.slug` = el **vigente**: la página redirige con 301 a la dirección nueva |
+| inexistente, reservado, negocio sin slug, eliminado o purgado, suspendido (cualquier estado que no sea `prueba` ni `activa`), sin base provisionada o con la tienda apagada en Configuración (`sitio_publico_activo`) | **404** con cuerpo idéntico en todos los casos: `{ "message": "No encontramos esta tienda.", "codigo": "tienda_no_encontrada" }`. No revela si el negocio existe. La pantalla «tienda no disponible» del suspendido llega con la Story 6.11 |
+
+**Historial de direcciones.** Un slug que usó un negocio **no lo puede tomar
+ningún otro nunca** (los enlaces viejos de WhatsApp llevarían a la tienda de
+otro); el mismo negocio sí puede volver a uno suyo.
+
+**Formato del slug** (para elegir uno nuevo): minúsculas, números y guiones; de
+3 a 63 caracteres; sin guion al principio ni al final ni dos seguidos. Lo que se
+escribe se recorta y se pasa a minúsculas antes de comprobarlo. Un slug antiguo
+que no lo cumpla (antes se admitían dos letras) **sigue funcionando**: el formato
+es para elegir, no para buscar. **Reservados** (los de AD-15): `www`, `api`,
+`admin`, `app`, `mail`, `ftp`, `site`, `coolify`, `status`, `panel`,
+`dashboard`, `soporte`, `ayuda`, `blog`, `docs`, `login`, `registro`,
+`static`, `cdn`, `publico`, `planes`, `categorias-negocio`, `reservar`,
+`tienda`, `cita`.
+
+⚠️ **`tienda` no se puede quitar de esa lista.** El middleware de Next manda ahí
+todo host de tienda que no nombra a un negocio (`tivuapp.store`,
+`a.b.tivuapp.store`) y toda ruta `/reservar/{otro}` desde la tienda de un
+negocio (`SLUG_INEXISTENTE` en `web/src/lib/tienda/host.ts`): con `tienda`
+reservado eso es siempre «no encontrado».
+
+**Imágenes.** Hoy las URLs de logo y banner van a Laravel
+(`/api/archivos/{id-del-negocio}/…`), así que llevan el id interno. Se cambia en
+la Story 5.2 (claves opacas en R2 detrás de Cloudflare), antes de que la 6.3
+muestre fotos en la tienda.
 
 ---
 
@@ -1098,7 +1142,8 @@ de `tenants`.
 
 ```jsonc
 // GET /publico/{slug}
-{ "negocio": { "id", "nombre", "slug", "telefono", "email" },
+// Sin `id` del negocio (Story 6.1): es el que nombra su base de datos.
+{ "negocio": { "nombre", "slug", "telefono", "email" },
   "locales": [ /* LocalPublico */ ] }
 
 // LocalPublico: id, nombre, direccion?, descripcion?, telefono?, banner_url?,

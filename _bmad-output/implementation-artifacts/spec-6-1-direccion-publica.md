@@ -2,7 +2,7 @@
 title: 'Story 6.1 — Cada negocio tiene su dirección pública'
 type: 'feature'
 created: '2026-11-04'
-status: 'ready-for-dev'
+status: 'review'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
@@ -122,3 +122,32 @@ no enseñe nada (PRD FR-36, AD-3, AD-11, AD-15).
 - Enlace por sede (`/{sede}`): 6.2. Catálogo y huecos: 6.3 y 6.4.
 - «Tienda no disponible» para suspendidos: 6.11. Límite de peticiones: 6.10.
 - Dominio propio del negocio: 6.12.
+
+### Review Findings
+
+Revisión `bmad-code-review` del 2026-11-04 (cuatro perspectivas). Diff: Backend-Sass `9be6229` + Sass-ChiraFlow `1fcaa27`, `ce8241f`.
+
+- [x] [Review][Defer] Las URLs de las imágenes llevan el id interno del negocio [app/Services/ImagenService.php] — deferred (decidido 2026-11-04): se arregla en la Story 5.2 con claves opacas en R2 detrás de Cloudflare, antes de que la 6.3 muestre fotos. Anotado en las dos historias y en el contrato.
+- [x] [Review][Patch] El BFF copia `Authorization` y `X-Tenant` del navegador en una tienda, y deja pasar segmentos `.`/`..` [web/src/app/api/[...path]/route.ts]
+- [x] [Review][Patch] El respaldo `NEXT_PUBLIC_APP_DOMAIN` puede convertir el panel en «tienda» (`app.dominio`) [web/src/lib/tienda/host.ts, web/src/config/env.ts]
+- [x] [Review][Patch] Borrar de verdad un negocio libera sus slugs (`cascadeOnDelete`) [database/migrations/2026_11_05_000001_create_tenant_slugs_table.php]
+- [x] [Review][Patch] El relleno de `tenant_slugs` para negocios existentes no lo prueba nada [tests/Feature/Publico]
+- [x] [Review][Patch] Dos negocios pidiendo el mismo slug a la vez: 500 en vez de 422; `anotar()` acepta en silencio un slug ajeno [app/Services/DireccionPublica.php]
+- [x] [Review][Patch] Negocios borrados antes del arreglo guardan `deleted_at` en `data` [app/Models/Tenant.php + migración]
+- [x] [Review][Patch] `resolver()` rechaza por formato slugs antiguos válidos (p. ej. de 2 letras) [app/Services/DireccionPublica.php]
+- [x] [Review][Patch] `/api/auth/login` y `logout` responden en un host de tienda [web/src/app/api/auth]
+- [x] [Review][Patch] La redirección de un slug antiguo pierde la ruta y la consulta [web/src/app/(publico)/reservar/[slug]/layout.tsx, web/src/middleware.ts]
+- [x] [Review][Patch] Documentación: tabla de 404 incompleta, regla de formato (`--`, minúsculas), dependencia de `tienda` entre repos, `api.` también sirve `/archivos`, fichas de Configuración y Tienda pública [docs]
+- [x] [Review][Defer] Límite de peticiones por visitante real [routes/publico.php] — deferred: detrás del BFF todo llega desde la IP de Next y el layout duplica la consulta; es la Story 6.10 (identificar al visitante sin fiarse de un `X-Forwarded-For` que llegue por `api.` público).
+- [x] [Review][Defer] Pruebas automáticas del middleware, el BFF y el layout [web/] — deferred: `web/` no tiene ejecutor de pruebas (AD-19, Vitest pendiente). Verificado a mano con `curl` forzando el `Host` contra `next dev`.
+
+**Rechazados**
+
+- `false` — «El BFF bloquea las imágenes de la tienda»: sus URLs son absolutas a Laravel (`APP_URL`), no pasan por el BFF.
+- `false` — «El middleware reescribe archivos de `public/`»: solo hay `favicon.ico` e `images/`, los dos excluidos del matcher.
+- `false` — «`user()->tenant` nulo da 500»: `tenancy.init` responde 503 antes de llegar al controlador.
+- `low` — «Los nuevos reservados cierran tiendas existentes»: no hay negocios en producción; en local, ninguno usa esos nombres.
+- `low` — «`derivarSlug` al llegar al tope de 1000»: inalcanzable con un slug bien formado.
+- `low` — «Dos onboardings derivan el mismo slug a la vez»: carrera previa a la 6.1 y muy improbable.
+- `low` — «Un `UPDATE` masivo de `tenants.slug` se salta el historial»: ningún código lo hace.
+- descartado — «El layout pinta la tienda con un 429 o un 5xx»: es lo pretendido; sin backend no se bloquea la página y el cliente muestra su error.
