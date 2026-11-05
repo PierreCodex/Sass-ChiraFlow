@@ -20,7 +20,8 @@
 Por cada dominio (`tivuapp.com` y `tivuapp.store`):
 
 - **¿Hay correo en Donweb** (p. ej. `hola@tivuapp.com`)? Anotar los registros
-  **MX** y **TXT**: hay que conservarlos al mudar el DNS.
+  **MX** y **TXT**: hay que conservarlos al mudar el DNS. Si no hay, el correo
+  se monta de cero en la **Parte 3**.
 - **¿DNSSEC activado?** Desactivarlo **antes** y esperar unas horas. Cambiar
   los nameservers con DNSSEC activo deja el dominio sin resolver.
 
@@ -104,3 +105,141 @@ en `{slug}.tivuapp.store` y no en `{slug}.site.…`.
 - Activar HSTS cuando todo funcione.
 - Dominios propios de los negocios: **Cloudflare for SaaS** (confirmar precios
   y límites en su documentación vigente antes de comprometerlo en el plan Pro).
+
+---
+
+## Parte 3 — Correo (sin pagar Google Workspace)
+
+> Decidido el 2026-11-05. Cada pieza hace una sola cosa:
+>
+> | Pieza | Qué hace |
+> |---|---|
+> | **Cloudflare Email Routing** | **recibe** en `soporte@`, `contacto@`… y reenvía |
+> | **Gmail** (`tivusass@gmail.com`) | la bandeja donde se leen y se responden |
+> | **Resend** | **envía**: los correos del backend y las respuestas desde Gmail |
+>
+> Si un día se contrata Workspace, se cambian los MX y nada más: Resend y el
+> backend no se tocan.
+
+Requisito: `tivuapp.com` ya en **Active** (Parte 1). No hace falta el VPS.
+
+Todos los registros de esta parte van en **DNS only (nube gris)**: MX y TXT
+no se pueden proxiar.
+
+### 9. Recibir: Email Routing
+
+`tivuapp.com` → **Email → Email Routing** → activar.
+
+1. **Destination addresses:** añadir `tivusass@gmail.com` y abrir el enlace
+   de verificación que llega a esa bandeja.
+2. **Routing rules → Custom addresses:** `soporte@` y `contacto@` →
+   `tivusass@gmail.com`. Catch-all **desactivado**: solo atrae spam.
+3. Cloudflare crea solo sus **MX** y su **SPF** en la raíz (`@`). No
+   duplicarlos a mano.
+
+Comprobar: escribir a `soporte@tivuapp.com` desde otra cuenta y ver que llega
+a Gmail.
+
+### 10. Enviar: verificar el dominio en Resend
+
+1. Entrar en **resend.com** con `tivusass@gmail.com` → **Domains → Add
+   Domain** → `tivuapp.com`. Región: la que Resend proponga.
+2. Resend da sus registros. Copiarlos **tal cual** a Cloudflare. Son de este
+   tipo (los valores exactos, los suyos):
+
+   | Tipo | Nombre | Para qué |
+   |---|---|---|
+   | MX | `send` | rebotes de Resend |
+   | TXT | `send` | SPF de Resend |
+   | TXT | `resend._domainkey` | firma DKIM |
+
+   Viven en `send.` y en `resend._domainkey`, así que **no chocan** con los MX
+   y el SPF de Email Routing en la raíz.
+3. **Verify** en Resend. Hasta que salga verificado, Resend solo entrega a la
+   dirección dueña de la cuenta.
+4. **API Keys:** crear **dos**, con permiso solo de envío:
+   - `backend-produccion` → para Coolify.
+   - `gmail-smtp` → para el paso 12.
+
+   Se guardan en el gestor de contraseñas, **nunca en el repo**. Así se puede
+   revocar una sin cortar la otra.
+
+### 11. DMARC
+
+Un TXT más en `tivuapp.com`:
+
+| Tipo | Nombre | Valor |
+|---|---|---|
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:soporte@tivuapp.com` |
+
+Empieza en `p=none` (solo informa). Cuando los informes muestren que todo
+pasa SPF y DKIM, subir a `p=quarantine`.
+
+### 12. Responder desde Gmail como `soporte@`
+
+Gmail → **Configuración → Cuentas e importación → Enviar como → Añadir otra
+dirección**:
+
+- Nombre: `Soporte tivu`. Dirección: `soporte@tivuapp.com`. Desmarcar «Tratar
+  como un alias».
+- SMTP: `smtp.resend.com`, puerto **465**, SSL. Usuario: `resend`.
+  Contraseña: la clave `gmail-smtp`.
+- Gmail manda un código a `soporte@`: llega por Email Routing al mismo Gmail.
+
+**No usar los servidores de Google para esto.** El correo saldría sin la
+firma DKIM de `tivuapp.com`, fallaría DMARC y acabaría en spam o rechazado.
+Estas respuestas cuentan contra la cuota de Resend.
+
+### 13. `tivuapp.store` no envía correo
+
+En las tiendas de todos los negocios nadie debe poder mandar correo en nombre
+de `pepito.tivuapp.store`. En `tivuapp.store`:
+
+| Tipo | Nombre | Valor |
+|---|---|---|
+| TXT | `@` | `v=spf1 -all` |
+| TXT | `_dmarc` | `v=DMARC1; p=reject; sp=reject` |
+| MX | `@` | `.` con prioridad 0 («null MX»: no recibe) |
+
+El `sp=reject` cubre todos los subdominios. El comodín `*` de la Parte 2 es
+un registro A: no da MX ni TXT a las tiendas.
+
+### 14. Remitentes y backend
+
+| Correo | De | Responder a |
+|---|---|---|
+| De la plataforma (verificación, recuperar contraseña) | `tivu <no-responder@tivuapp.com>` | `soporte@tivuapp.com` |
+| De una reserva (confirmación, cancelación) | `Pepito Barbería vía tivu <reservas@tivuapp.com>` | **el correo del negocio**: si el cliente responde, le llega a Pepito |
+
+Variables en Coolify (ya previstas en `.env.example` del backend):
+
+```env
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=no-responder@tivuapp.com
+MAIL_FROM_NAME=tivu
+RESEND_API_KEY=   # la clave backend-produccion
+```
+
+En el código:
+
+- **Los correos van en cola** (`ShouldQueue`): una caída de Resend no puede
+  romper una reserva ni un registro.
+- **Registrar los fallos de envío**: es como uno se entera de que llegó al
+  tope diario.
+- Con el cliente final, **el canal principal es WhatsApp**. El correo es para
+  la cuenta y como respaldo.
+
+### 15. Límites y seguridad
+
+- **Resend gratis:** del orden de 3.000 correos al mes, **100 al día** y un
+  dominio (confirmar en su página de precios vigente). El tope diario es el
+  que se nota: una confirmación más un recordatorio por cita lo agotan con
+  pocos negocios activos. Sobra para la beta; pasar al plan de pago con los
+  primeros clientes que pagan.
+- **Email Routing** solo recibe y reenvía: no envía ni guarda nada.
+- **Sin dependencias en círculo:** Cloudflare, Donweb, Contabo, Coolify y
+  Resend se abren con `tivusass@gmail.com`, **nunca** con `soporte@tivuapp.com`.
+  Si Cloudflare falla, ese correo deja de llegar y no se podría recuperar la
+  cuenta que lo arregla.
+- **El Gmail es la llave de todo:** 2FA con app o llave de seguridad, códigos
+  de respaldo guardados fuera del propio Gmail.
