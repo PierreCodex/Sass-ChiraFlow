@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { usarMocksPara } from "@/lib/api/mocks";
 import { urlUpstream } from "@/lib/auth/sesion";
 import { esHostDeTienda, urlTienda } from "@/lib/tienda/host";
+import { restoSeguro } from "./redireccion";
 
 /**
  * La puerta de cada tienda, en el servidor (Story 6.1).
@@ -21,17 +22,6 @@ import { esHostDeTienda, urlTienda } from "@/lib/tienda/host";
  *
  * Con datos ficticios no hay nada que comprobar.
  */
-/**
- * La subpágina y la consulta que dejó el middleware (`x-tienda-resto`), solo si
- * es una ruta relativa de verdad: nada que empiece por `//` ni tenga esquema,
- * para que la redirección nunca pueda mandar fuera de la tienda.
- */
-function restoSeguro(resto: string | null): string {
-  if (!resto) return "";
-  if (resto.startsWith("//") || resto.includes("\\") || !/^[/?]/.test(resto)) return "";
-  return resto;
-}
-
 export default async function TiendaLayout({
   children,
   params,

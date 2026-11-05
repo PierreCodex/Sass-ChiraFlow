@@ -41,7 +41,7 @@ export default function ElegirSucursalPage({
 
   useEffect(() => {
     if (localUnico) {
-      router.replace(`/reservar/${slug}/sucursal/${localUnico.id}`);
+      router.replace(`/reservar/${slug}/${localUnico.slug}`);
     }
   }, [localUnico, router, slug]);
 
@@ -93,7 +93,7 @@ export default function ElegirSucursalPage({
                 <Card sx={{ height: "100%" }}>
                   <CardActionArea
                     component={Link}
-                    href={`/reservar/${slug}/sucursal/${local.id}`}
+                    href={`/reservar/${slug}/${local.slug}`}
                     sx={{ height: "100%" }}
                   >
                     <Box

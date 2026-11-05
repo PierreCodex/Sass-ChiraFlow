@@ -1,5 +1,10 @@
 export interface Local {
   id: number;
+  /**
+   * El enlace de la sede: `{negocio}.tivuapp.store/{slug}` (Story 6.2). Se
+   * deriva del nombre al crearla; renombrarla no lo cambia, y se edita aparte.
+   */
+  slug: string;
   nombre: string;
   direccion: string | null;
   /** Se muestra en la página pública de reservas. */
@@ -83,6 +88,8 @@ export interface GrupoPayload {
 
 export interface LocalPayload {
   nombre: string;
+  /** Story 6.2: cambiar el enlace de la sede. Ausente = no se toca. */
+  slug?: string | null;
   direccion: string | null;
   descripcion_publica: string | null;
   telefono: string | null;

@@ -40,18 +40,22 @@ export const publicoApi = {
     return data.data;
   },
 
-  /** Catálogo y profesionales de una sede. */
-  tienda: async (slug: string, localId: number): Promise<TiendaLocal> => {
+  /**
+   * Catálogo y profesionales de una sede. `sede` es su slug (Story 6.2); un
+   * slug antiguo o el id también valen, y la respuesta trae el vigente en
+   * `local.slug`.
+   */
+  tienda: async (slug: string, sede: string): Promise<TiendaLocal> => {
     if (usarMocksPara("publico")) {
       await delay(400);
-      const tienda = tiendaLocalMock(localId);
+      const tienda = tiendaLocalMock(sede);
       if (!tienda || slug !== negocioMock.slug) {
         throw new Error("Sucursal no encontrada");
       }
       return tienda;
     }
     const { data } = await api.get<{ data: TiendaLocal }>(
-      `/publico/${slug}/sucursal/${localId}`
+      `/publico/${slug}/sucursal/${encodeURIComponent(sede)}`
     );
     return data.data;
   },
@@ -113,7 +117,7 @@ export const publicoApi = {
     if (usarMocksPara("publico")) {
       await delay(800);
 
-      const tienda = tiendaLocalMock(localId)!;
+      const tienda = tiendaLocalMock(String(localId))!;
       const servicios = tienda.categorias.flatMap(
         (categoria) => categoria.servicios
       );

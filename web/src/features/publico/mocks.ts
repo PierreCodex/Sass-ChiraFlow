@@ -93,6 +93,7 @@ export function profesionalesDelLocal(localId: number): ProfesionalPublico[] {
 function aLocalPublico(local: (typeof localesMock)[number]): LocalPublico {
   return {
     id: local.id,
+    slug: local.slug,
     nombre: local.nombre,
     direccion: local.direccion,
     descripcion: local.descripcion_publica,
@@ -208,9 +209,11 @@ function resumirResenas(resenas: Resena[]): ResumenResenas | null {
   };
 }
 
-export function tiendaLocalMock(localId: number): TiendaLocal | null {
-  const local = localesMock.find((item) => item.id === localId);
+/** La sede por su slug o —como el backend en transición— por su id. */
+export function tiendaLocalMock(sede: string): TiendaLocal | null {
+  const local = localesMock.find((item) => item.slug === sede || String(item.id) === sede);
   if (!local) return null;
+  const localId = local.id;
 
   const resenas = resenasPorLocal[localId] ?? [];
 
