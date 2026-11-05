@@ -16,7 +16,7 @@ import { IconArrowsExchange, IconClock, IconMapPin, IconPhone } from "@tabler/ic
 
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toApiError } from "@/lib/api/client";
-import { esHostDeTienda } from "@/lib/tienda/host";
+import { useRutaTienda } from "@/features/publico/base-tienda";
 import TiendaShell from "@/features/publico/components/TiendaShell";
 import PortadaLocal from "@/features/publico/components/PortadaLocal";
 import MapaLocal from "@/features/publico/components/MapaLocal";
@@ -56,11 +56,9 @@ export default function SedePage({
   const { data: tienda } = useNegocioPublico(slug);
   const variasSedes = (tienda?.locales.length ?? 0) > 1;
   const [avisoCambio, setAvisoCambio] = useState(false);
-  const elegirSede = () => {
-    // En su subdominio la portada es «/»; por ruta, `/reservar/{negocio}`.
-    const enSubdominio = typeof window !== "undefined" && esHostDeTienda(window.location.host);
-    router.push(enSubdominio ? "/" : `/reservar/${slug}`);
-  };
+  // En su subdominio la portada es «/»; por ruta, `/reservar/{negocio}`.
+  const ruta = useRutaTienda(slug);
+  const elegirSede = () => router.push(ruta(""));
   const carrito = useCarrito();
 
   const [wizardAbierto, setWizardAbierto] = useState(false);

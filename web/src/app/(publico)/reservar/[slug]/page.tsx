@@ -17,6 +17,7 @@ import { IconMapPin, IconPhone } from "@tabler/icons-react";
 import { toApiError } from "@/lib/api/client";
 import TiendaShell from "@/features/publico/components/TiendaShell";
 import { useNegocioPublico } from "@/features/publico/hooks/useTienda";
+import { useRutaTienda } from "@/features/publico/base-tienda";
 
 /**
  * Selector de sucursal.
@@ -32,6 +33,7 @@ export default function ElegirSucursalPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
+  const ruta = useRutaTienda(slug);
   const { data, isPending, isError, error } = useNegocioPublico(slug);
 
   // Con una sola sede este paso no aporta nada: se va directo al catálogo.
@@ -41,9 +43,9 @@ export default function ElegirSucursalPage({
 
   useEffect(() => {
     if (localUnico) {
-      router.replace(`/reservar/${slug}/${localUnico.slug}`);
+      router.replace(ruta(`/${localUnico.slug}`));
     }
-  }, [localUnico, router, slug]);
+  }, [localUnico, router, ruta]);
 
   if (isError) {
     return (
@@ -93,7 +95,7 @@ export default function ElegirSucursalPage({
                 <Card sx={{ height: "100%" }}>
                   <CardActionArea
                     component={Link}
-                    href={`/reservar/${slug}/${local.slug}`}
+                    href={ruta(`/${local.slug}`)}
                     sx={{ height: "100%" }}
                   >
                     <Box

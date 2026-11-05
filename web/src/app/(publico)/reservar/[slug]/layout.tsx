@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { usarMocksPara } from "@/lib/api/mocks";
 import { urlUpstream } from "@/lib/auth/sesion";
 import { esHostDeTienda, urlTienda } from "@/lib/tienda/host";
+import { BaseTiendaProvider } from "@/features/publico/base-tienda";
 import { restoSeguro } from "./redireccion";
 
 /**
@@ -30,8 +31,19 @@ export default async function TiendaLayout({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const cabeceras = await headers();
+  const enSubdominio = esHostDeTienda(cabeceras.get("host") ?? "");
 
-  if (usarMocksPara("publico")) return children;
+  /*
+    Story 6.2: los enlaces internos de la tienda salen limpios en su subdominio
+    (`pepito.tivuapp.store/balta`) y por ruta en desarrollo
+    (`/reservar/pepito/balta`). Lo decide este layout, que ve el host.
+  */
+  const conBase = (
+    <BaseTiendaProvider base={enSubdominio ? "" : `/reservar/${slug}`}>{children}</BaseTiendaProvider>
+  );
+
+  if (usarMocksPara("publico")) return conBase;
 
   let estado: number | null = null;
   let vigente: string | null = null;
@@ -52,12 +64,10 @@ export default async function TiendaLayout({
   if (estado === 404) notFound();
 
   if (vigente && vigente !== slug) {
-    const cabeceras = await headers();
-    const host = cabeceras.get("host") ?? "";
     // En su subdominio se va a la dirección nueva; por ruta, a la ruta nueva.
-    const base = esHostDeTienda(host) ? urlTienda(vigente) : `/reservar/${vigente}`;
+    const base = enSubdominio ? urlTienda(vigente) : `/reservar/${vigente}`;
     permanentRedirect(`${base}${restoSeguro(cabeceras.get("x-tienda-resto"))}`);
   }
 
-  return children;
+  return conBase;
 }

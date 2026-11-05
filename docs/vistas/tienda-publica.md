@@ -266,6 +266,14 @@ en el servidor: `pepito.tivuapp.store` → middleware → `/reservar/pepito` →
 puede: 404 de verdad si no es una tienda abierta, y redirección permanente
 (conservando la subpágina) si se entró por una dirección antigua.
 
+**Direcciones limpias (Story 6.2).** En su subdominio la tienda se ve como
+`pepito.tivuapp.store` y cada sede como `pepito.tivuapp.store/balta`. La forma
+`/reservar/pepito/balta` es solo la de desarrollo (sin dominio de tiendas): el
+layout de la tienda decide la base por el host (`BaseTiendaProvider`, y
+`useRutaTienda()` para armar enlaces), y si alguien abre la forma larga en el
+subdominio, el middleware lo redirige (308) a la corta. La ruta antigua
+`/reservar/pepito/sucursal/3` redirige a la de slug.
+
 ### `GET /api/publico/{slug}`
 
 ```json
