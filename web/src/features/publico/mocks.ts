@@ -38,18 +38,19 @@ function aServicioPublico(servicio: (typeof serviciosMock)[number]): ServicioPub
     duracion_min: servicio.duracion_min,
     precio: servicio.precio,
     color: servicio.color,
-    imagen_principal: servicio.imagen_principal,
-    // La tienda pública solo necesita las URLs; el `{id, url}` del panel es
-    // para saber qué fotos conserva el formulario al editar.
-    galeria: servicio.galeria.map((imagen) => imagen.url),
+    // Story 6.3: como el backend, sin fotos hasta la 5.2 (claves opacas). Así
+    // también se ve en desarrollo la tienda tal como saldrá.
+    imagen_principal: null,
+    galeria: [],
   };
 }
 
 /**
  * Las combinaciones servicio + profesional que se pueden reservar en una sede:
- * la misma regla que el backend (`Reservabilidad`, Épica 2), con los mocks
- * del panel. Servicio activo y ofrecido en la sede; profesional activo, que
- * atiende, habilitado en la sede y que presta el servicio.
+ * la regla del backend (`Reservabilidad`, Épica 2), con los mocks del panel.
+ * Servicio activo y ofrecido en la sede; profesional activo, que atiende,
+ * habilitado en la sede y que presta el servicio. Lo que los mocks no tienen
+ * (`visible_publico`, categoría desactivada) no se simula.
  */
 function paresEn(localId: number) {
   const habilitados = (localProfesionalMock[localId] ?? []).filter((fila) => fila.habilitado);
@@ -106,7 +107,8 @@ export function profesionalesDelLocal(localId: number): ProfesionalPublico[] {
   const pares = paresEn(localId);
   const asignados = localProfesionalMock[localId] ?? [];
 
-  return asignados.flatMap((asignado) => {
+  return asignados
+    .flatMap((asignado) => {
     const servicios = pares
       .filter((par) => par.profesionalId === asignado.id)
       .map((par) => par.servicio.id)
@@ -118,13 +120,15 @@ export function profesionalesDelLocal(localId: number): ProfesionalPublico[] {
       {
         id: asignado.id,
         // El nombre público manda sobre el real: es el que ve el cliente.
-        nombre: asignado.nombre_publico ?? empleado.nombre,
+        nombre: asignado.nombre_publico || empleado.nombre,
         perfil: asignado.perfil,
-        foto_url: empleado.foto_url,
+        // Como el backend: sin fotos hasta la Story 5.2.
+        foto_url: null,
         servicios,
       },
     ];
-  });
+    })
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
 }
 
 function aLocalPublico(local: (typeof localesMock)[number]): LocalPublico {

@@ -389,7 +389,9 @@ esa sede** y además `visible_publico`. Un servicio oculto, inactivo, borrado,
 no habilitado en la sede o sin nadie que lo preste ahí **no sale**. Por
 categoría (`orden`, nombre); los servicios por nombre; sin categoría —o con la
 categoría desactivada— en «Otros servicios» (`id: null`), al final. Precio: el
-del servicio. **Fotos apagadas hasta la Story 5.2** (`imagen_principal: null`,
+del servicio, como **número** JSON. Los profesionales, por nombre. **Todo
+servicio de `categorias` está en el `servicios` de al menos un profesional**:
+salen de las mismas combinaciones reservables. **Fotos apagadas hasta la Story 5.2** (`imagen_principal: null`,
 `galeria: []`, `foto_url: null`): sus URLs llevan hoy el id del negocio.
 
 Estos endpoints **no comparten middleware con el panel**: no llevan sesión, no
