@@ -3,6 +3,7 @@ import { categoriasMock } from "@/features/categorias/mocks";
 import { localesMock } from "@/features/locales/mocks";
 import { localProfesionalMock } from "@/features/locales/mocks-recursos";
 import { profesionalesMock } from "@/features/profesionales/mocks";
+import { seOfreceMock } from "@/features/servicios/reservabilidad-mock";
 import { haceDias } from "@/lib/mock-utils";
 import type {
   CategoriaPublica,
@@ -44,22 +45,51 @@ function aServicioPublico(servicio: (typeof serviciosMock)[number]): ServicioPub
   };
 }
 
-/** Categorías con sus servicios activos, más "Otros" al final. */
-export function categoriasPublicas(): CategoriaPublica[] {
-  const activos = serviciosMock.filter((servicio) => servicio.activo);
+/**
+ * Las combinaciones servicio + profesional que se pueden reservar en una sede:
+ * la misma regla que el backend (`Reservabilidad`, Épica 2), con los mocks
+ * del panel. Servicio activo y ofrecido en la sede; profesional activo, que
+ * atiende, habilitado en la sede y que presta el servicio.
+ */
+function paresEn(localId: number) {
+  const habilitados = (localProfesionalMock[localId] ?? []).filter((fila) => fila.habilitado);
+
+  return serviciosMock
+    .filter((servicio) => servicio.activo && seOfreceMock(localId, servicio.id))
+    .flatMap((servicio) =>
+      habilitados
+        .filter((fila) => {
+          const profesional = profesionalesMock.find((item) => item.id === fila.id);
+          return (
+            profesional?.activo &&
+            profesional.atiende &&
+            servicio.empleados.some((empleado) => empleado.id === fila.id)
+          );
+        })
+        .map((fila) => ({ servicio, profesionalId: fila.id }))
+    );
+}
+
+/**
+ * Story 6.3: el catálogo de la sede, solo con lo reservable en ella. Por
+ * categoría (`orden`, nombre) y «Otros servicios» al final.
+ */
+export function categoriasPublicas(localId: number): CategoriaPublica[] {
+  const reservables = [...new Map(paresEn(localId).map(({ servicio }) => [servicio.id, servicio])).values()]
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const conCategoria = [...categoriasMock]
     .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre))
     .map((categoria) => ({
       id: categoria.id,
       nombre: categoria.nombre,
-      servicios: activos
+      servicios: reservables
         .filter((servicio) => servicio.categoria?.id === categoria.id)
         .map(aServicioPublico),
     }))
     .filter((categoria) => categoria.servicios.length > 0);
 
-  const sueltos = activos
+  const sueltos = reservables
     .filter((servicio) => !servicio.categoria)
     .map(aServicioPublico);
 
@@ -68,26 +98,33 @@ export function categoriasPublicas(): CategoriaPublica[] {
     : conCategoria;
 }
 
-/** Solo los habilitados en esa sede y activos en el negocio. */
+/**
+ * Quien tiene algo que reservar en esa sede, con los servicios que presta en
+ * ella (Story 6.3).
+ */
 export function profesionalesDelLocal(localId: number): ProfesionalPublico[] {
+  const pares = paresEn(localId);
   const asignados = localProfesionalMock[localId] ?? [];
 
-  return asignados
-    .filter((asignado) => asignado.habilitado)
-    .flatMap((asignado) => {
-      const empleado = profesionalesMock.find((item) => item.id === asignado.id);
-      if (!empleado?.activo) return [];
+  return asignados.flatMap((asignado) => {
+    const servicios = pares
+      .filter((par) => par.profesionalId === asignado.id)
+      .map((par) => par.servicio.id)
+      .sort((a, b) => a - b);
+    const empleado = profesionalesMock.find((item) => item.id === asignado.id);
+    if (!servicios.length || !empleado) return [];
 
-      return [
-        {
-          id: asignado.id,
-          // El nombre público manda sobre el real: es el que ve el cliente.
-          nombre: asignado.nombre_publico ?? empleado.nombre,
-          perfil: asignado.perfil,
-          foto_url: empleado.foto_url,
-        },
-      ];
-    });
+    return [
+      {
+        id: asignado.id,
+        // El nombre público manda sobre el real: es el que ve el cliente.
+        nombre: asignado.nombre_publico ?? empleado.nombre,
+        perfil: asignado.perfil,
+        foto_url: empleado.foto_url,
+        servicios,
+      },
+    ];
+  });
 }
 
 function aLocalPublico(local: (typeof localesMock)[number]): LocalPublico {
@@ -220,7 +257,7 @@ export function tiendaLocalMock(sede: string): TiendaLocal | null {
   return {
     negocio: negocioMock,
     local: aLocalPublico(local),
-    categorias: categoriasPublicas(),
+    categorias: categoriasPublicas(localId),
     profesionales: profesionalesDelLocal(localId),
     resenas: resumirResenas(resenas),
     ultimas_resenas: resenas,

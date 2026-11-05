@@ -36,7 +36,7 @@ import type {
   ProfesionalPublico,
   ReservaConfirmada,
 } from "../types";
-import { duracionCarrito, totalCarrito } from "../types";
+import { duracionCarrito, quienesPrestan, totalCarrito } from "../types";
 
 interface Props {
   abierto: boolean;
@@ -223,7 +223,14 @@ const WizardReserva = ({
               <Card
                 key={opcion.valor}
                 variant="outlined"
-                onClick={() => setModo(opcion.valor)}
+                onClick={() => {
+                  // Quien vale para una modalidad puede no valer para la otra
+                  // (en la única tiene que prestar todos): se elige de nuevo.
+                  if (opcion.valor !== modo) {
+                    actualizarTodas({ profesional_id: null, hora_inicio: null });
+                  }
+                  setModo(opcion.valor);
+                }}
                 sx={{
                   cursor: "pointer",
                   borderColor: modo === opcion.valor ? "primary.main" : "divider",
@@ -256,10 +263,17 @@ const WizardReserva = ({
                   ? `Reservamos ${duracionTotal} minutos seguidos para tus ${lineas.length} servicios.`
                   : `Duración: ${duracionTotal} minutos.`}
               </Typography>
+              {quienesPrestan(profesionales, lineas.map((linea) => linea.servicio.id)).length === 0 ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Nadie atiende todos estos servicios en una sola cita. Vuelve y
+                  elige agendarlos por separado.
+                </Alert>
+              ) : null}
               <SelectorHueco
                 slug={slug}
                 localId={localId}
-                profesionales={profesionales}
+                // Story 6.3: en una sola cita, quien presta todos los servicios.
+                profesionales={quienesPrestan(profesionales, lineas.map((linea) => linea.servicio.id))}
                 duracionMin={duracionTotal}
                 profesionalId={asignaciones[0]?.profesional_id ?? null}
                 fecha={asignaciones[0]?.fecha ?? null}
@@ -293,7 +307,8 @@ const WizardReserva = ({
                       <SelectorHueco
                         slug={slug}
                         localId={localId}
-                        profesionales={profesionales}
+                        // Story 6.3: solo quien presta este servicio aquí.
+                        profesionales={quienesPrestan(profesionales, [linea.servicio.id])}
                         duracionMin={linea.servicio.duracion_min * linea.cantidad}
                         profesionalId={asignacion.profesional_id}
                         fecha={asignacion.fecha}

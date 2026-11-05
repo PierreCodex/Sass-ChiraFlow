@@ -2,7 +2,7 @@
 title: 'Story 6.2 — Cada sede tiene su propio enlace'
 type: 'feature'
 created: '2026-11-04'
-status: 'in-progress'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
