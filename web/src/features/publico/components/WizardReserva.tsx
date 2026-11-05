@@ -36,7 +36,7 @@ import type {
   ProfesionalPublico,
   ReservaConfirmada,
 } from "../types";
-import { duracionCarrito, totalCarrito } from "../types";
+import { duracionCarrito, quienesPrestan, totalCarrito } from "../types";
 
 interface Props {
   abierto: boolean;
@@ -72,6 +72,16 @@ const WizardReserva = ({
   // Con un solo servicio la modalidad no aplica: siempre es una cita.
   const necesitaModo = lineas.length > 1;
 
+  /*
+    Story 6.3: en una sola cita, solo quien presta TODOS los servicios. Si no
+    hay nadie, la cita única no se puede elegir y se empieza por separado.
+  */
+  const paraUnaCita = useMemo(
+    () => quienesPrestan(profesionales, lineas.map((linea) => linea.servicio.id)),
+    [profesionales, lineas]
+  );
+  const unicaPosible = paraUnaCita.length > 0;
+
   const [paso, setPaso] = useState(0);
   const [modo, setModo] = useState<ModoReserva>("unica");
   const [asignaciones, setAsignaciones] = useState<AsignacionServicio[]>([]);
@@ -82,7 +92,7 @@ const WizardReserva = ({
     if (!abierto) return;
     reservar.reset();
     setPaso(0);
-    setModo("unica");
+    setModo(unicaPosible || lineas.length <= 1 ? "unica" : "separada");
     setDatos(DATOS_VACIOS);
     setErrores({});
     setAsignaciones(
@@ -210,22 +220,36 @@ const WizardReserva = ({
                 {
                   valor: "unica" as ModoReserva,
                   titulo: "Todo seguido, en una sola cita",
-                  detalle: `Un solo profesional te atiende ${duracionCarrito(lineas)} minutos seguidos.`,
+                  detalle: unicaPosible
+                    ? `Un solo profesional te atiende ${duracionCarrito(lineas)} minutos seguidos.`
+                    : "No disponible: nadie atiende todos estos servicios en una sola cita.",
+                  deshabilitada: !unicaPosible,
                 },
                 {
                   valor: "separada" as ModoReserva,
                   titulo: "Por separado",
                   detalle:
                     "Cada servicio con su profesional, su día y su hora.",
+                  deshabilitada: false,
                 },
               ]
             ).map((opcion) => (
               <Card
                 key={opcion.valor}
                 variant="outlined"
-                onClick={() => setModo(opcion.valor)}
+                aria-disabled={opcion.deshabilitada}
+                onClick={() => {
+                  if (opcion.deshabilitada) return;
+                  // Quien vale para una modalidad puede no valer para la otra
+                  // (en la única tiene que prestar todos): se elige de nuevo.
+                  if (opcion.valor !== modo) {
+                    actualizarTodas({ profesional_id: null, fecha: null, hora_inicio: null });
+                  }
+                  setModo(opcion.valor);
+                }}
                 sx={{
-                  cursor: "pointer",
+                  cursor: opcion.deshabilitada ? "not-allowed" : "pointer",
+                  opacity: opcion.deshabilitada ? 0.6 : 1,
                   borderColor: modo === opcion.valor ? "primary.main" : "divider",
                 }}
               >
@@ -259,7 +283,8 @@ const WizardReserva = ({
               <SelectorHueco
                 slug={slug}
                 localId={localId}
-                profesionales={profesionales}
+                // Story 6.3: en una sola cita, quien presta todos los servicios.
+                profesionales={paraUnaCita}
                 duracionMin={duracionTotal}
                 profesionalId={asignaciones[0]?.profesional_id ?? null}
                 fecha={asignaciones[0]?.fecha ?? null}
@@ -293,7 +318,8 @@ const WizardReserva = ({
                       <SelectorHueco
                         slug={slug}
                         localId={localId}
-                        profesionales={profesionales}
+                        // Story 6.3: solo quien presta este servicio aquí.
+                        profesionales={quienesPrestan(profesionales, [linea.servicio.id])}
                         duracionMin={linea.servicio.duracion_min * linea.cantidad}
                         profesionalId={asignacion.profesional_id}
                         fecha={asignacion.fecha}

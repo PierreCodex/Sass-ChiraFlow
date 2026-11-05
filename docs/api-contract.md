@@ -383,9 +383,16 @@ inactiva, borrada o de otro negocio responde el **mismo 404** que la tienda
 `/reservar/{slug}/{sede}`; la antigua `/reservar/{slug}/sucursal/{id}` redirige
 a la de slug.
 
-En la Story 6.2 `GET …/sucursal/{sede}` devuelve `negocio` y `local`, con
-`categorias: []`, `profesionales: []` y `resenas: null`: el catálogo es de la
-**Story 6.3**.
+**El catálogo de la sede** (Story 6.3, FR-37) sale de la regla única de la
+Épica 2 (`Reservabilidad`): solo los servicios que se pueden reservar **en
+esa sede** y además `visible_publico`. Un servicio oculto, inactivo, borrado,
+no habilitado en la sede o sin nadie que lo preste ahí **no sale**. Por
+categoría (`orden`, nombre); los servicios por nombre; sin categoría —o con la
+categoría desactivada— en «Otros servicios» (`id: null`), al final. Precio: el
+del servicio, como **número** JSON. Los profesionales, por nombre. **Todo
+servicio de `categorias` está en el `servicios` de al menos un profesional**:
+salen de las mismas combinaciones reservables. **Fotos apagadas hasta la Story 5.2** (`imagen_principal: null`,
+`galeria: []`, `foto_url: null`): sus URLs llevan hoy el id del negocio.
 
 Estos endpoints **no comparten middleware con el panel**: no llevan sesión, no
 exponen costes ni estados internos, y el `slug` del negocio es el que resuelve
@@ -1178,7 +1185,8 @@ de `tenants`.
       "servicios": [ { "id", "nombre", "descripcion", "duracion_min",
                        "precio", "color", "imagen_principal", "galeria" } ] }
   ],
-  "profesionales": [ { "id", "nombre", "perfil", "foto_url" } ],
+  "profesionales": [ { "id", "nombre", "perfil", "foto_url",
+                       "servicios": [4, 7] } ],   // Story 6.3
   "resenas": { "promedio": 4.7, "total": 38,
                "distribucion": { "5": 30, "4": 5, "3": 2, "2": 1, "1": 0 } },
   "ultimas_resenas": [ { "id", "cliente", "puntuacion", "comentario",
@@ -1186,8 +1194,12 @@ de `tenants`.
 }
 ```
 
-Solo salen los profesionales `activo` **y** con `habilitado: true` en la pivote
-de esa sede, y su `nombre` es el `nombre_publico` si lo tiene.
+Solo salen los profesionales con algo que reservar en esa sede (activos, que
+atienden, habilitados en ella y que prestan algún servicio del catálogo), y su
+`nombre` es el `nombre_publico` si lo tiene. **`servicios`** (Story 6.3) son
+los ids de los servicios del catálogo que presta **en esa sede**: la tienda
+solo ofrece para cada servicio a quien lo presta, y en una cita única a quien
+presta todos.
 
 ⚠️ **Reseñas no existen en el backend**: no hay tabla ni campo. El esquema
 propuesto está en `vistas/tienda-publica.md`. `resenas: null` es válido.

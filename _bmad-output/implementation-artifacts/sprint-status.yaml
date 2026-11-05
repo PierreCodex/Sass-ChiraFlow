@@ -86,8 +86,8 @@ development_status:
 
   epic-6: in-progress
   6-1-cada-negocio-tiene-su-dirección-pública: done
-  6-2-cada-sede-tiene-su-propio-enlace: in-progress
-  6-3-el-catálogo-que-ve-el-cliente: backlog
+  6-2-cada-sede-tiene-su-propio-enlace: done
+  6-3-el-catálogo-que-ve-el-cliente: in-progress
   6-4-los-huecos-que-ve-el-cliente-son-los-de-verdad: backlog
   6-5-elegir-y-revisar-antes-de-dar-mis-datos: backlog
   6-6-reservar-dejando-mis-datos: backlog

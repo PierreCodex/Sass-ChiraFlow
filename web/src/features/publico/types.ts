@@ -67,15 +67,26 @@ export interface LocalPublico {
 /**
  * Profesional visible en la tienda.
  *
- * Solo aparecen los que están `activo` **y** con `habilitado = true` en la
- * pivote `local_profesional` de esta sede.
+ * Solo aparecen los que tienen algo que reservar en esta sede (Story 6.3):
+ * activos, que atienden, habilitados en ella y que prestan al menos un
+ * servicio de su catálogo.
  */
 export interface ProfesionalPublico {
   id: number;
   /** `nombre_publico` de la pivote, o el nombre real si no tiene. */
   nombre: string;
   perfil: string | null;
+  /** `null` hasta la Story 5.2 (claves opacas). */
   foto_url: string | null;
+  /** Los ids de los servicios del catálogo que presta EN esta sede (Story 6.3). */
+  servicios: number[];
+}
+
+/** Quien puede atender todos estos servicios en la sede. */
+export function quienesPrestan(profesionales: ProfesionalPublico[], servicioIds: number[]) {
+  return profesionales.filter((profesional) =>
+    servicioIds.every((id) => profesional.servicios.includes(id))
+  );
 }
 
 export interface ServicioPublico {

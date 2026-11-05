@@ -295,11 +295,16 @@ subdominio, el middleware lo redirige (308) a la corta. La ruta antigua
 
 ### `GET /api/publico/{slug}/sucursal/{local}`
 
-Devuelve `negocio`, `local`, `categorias` (con sus servicios **activos**) y
-`profesionales` (activos **y** con `habilitado = true` en esa sede).
+Devuelve `negocio`, `local`, `categorias` y `profesionales`. **Story 6.3**:
+solo lo que se puede reservar en esa sede, con la regla única de la Épica 2
+más `visible_publico`; cada profesional trae `servicios`, los ids que presta
+en esa sede, y el asistente solo ofrece para cada servicio a quien lo presta
+(en la cita única, a quien presta todos). Reglas completas en
+`api-contract.md`.
 
-Los servicios sin categoría van en un grupo final "Otros servicios", igual que
-en el Blade.
+Los servicios sin categoría (o con la categoría desactivada) van en un grupo
+final "Otros servicios", igual que en el Blade. Las fotos siguen apagadas
+hasta la Story 5.2.
 
 ### `GET /api/publico/{slug}/sucursal/{local}/horarios`
 
