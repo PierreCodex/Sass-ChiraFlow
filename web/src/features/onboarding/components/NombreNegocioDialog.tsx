@@ -48,9 +48,10 @@ interface Props {
 }
 
 /**
- * Paso 1 del checklist. Va en diálogo y no dentro del drawer porque es la
- * decisión más irreversible del producto —fija el subdominio de la tienda para
- * siempre— y merece la vista previa del enlace y el aviso a tamaño legible.
+ * Paso 1 del checklist. Va en diálogo y no dentro del drawer porque fija el
+ * subdominio de la tienda —el enlace que los clientes van a guardar— y merece
+ * la vista previa y el aviso a tamaño legible. Desde la Story 6.1 se puede
+ * cambiar después, dejando el anterior redirigiendo.
  */
 const NombreNegocioDialog = ({ abierto, onCerrar }: Props) => {
   const fijar = useFijarNombre();
@@ -159,10 +160,10 @@ const NombreNegocioDialog = ({ abierto, onCerrar }: Props) => {
             </Typography>
           </Box>
 
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            <strong>El enlace no se podrá cambiar.</strong> Tus clientes lo van
-            a guardar y compartir, así que elige el nombre con el que quieres
-            que te conozcan.
+          <Alert severity="info" sx={{ mt: 2 }}>
+            <strong>Elige bien el enlace:</strong> tus clientes lo van a guardar
+            y compartir. Si más adelante lo cambias (en Administración → Sitio
+            público), el anterior seguirá llevando a tu tienda.
           </Alert>
         </DialogContent>
 

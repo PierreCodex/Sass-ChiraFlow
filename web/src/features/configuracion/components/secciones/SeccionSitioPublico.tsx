@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import { Controller } from "react-hook-form";
+import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
@@ -7,6 +9,11 @@ import Switch from "@mui/material/Switch";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 
+import { IconPencil } from "@tabler/icons-react";
+
+import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
+
+import CambiarDireccionDialog from "../CambiarDireccionDialog";
 import EnlaceTienda from "../EnlaceTienda";
 import MarcoSeccion from "../MarcoSeccion";
 import SeccionCampos from "../SeccionCampos";
@@ -20,6 +27,7 @@ const CAMPOS: CampoConfiguracion[] = [
 
 /** El enlace de la tienda, si está encendida y sus términos. */
 export default function SeccionSitioPublico() {
+  const [cambiando, setCambiando] = useState(false);
   const s = useSeccion(CAMPOS, (valores) => ({
     /*
       Los dos booleanos viajan aunque sean `false`. La distinción del parche es
@@ -57,6 +65,25 @@ export default function SeccionSitioPublico() {
             nombreNegocio={s.configuracion.nombre}
             variante="compacto"
           />
+        ) : null}
+
+        {/* Story 6.1: sin slug todavía no hay dirección que cambiar. */}
+        {s.configuracion?.slug ? (
+          <SoloSiGestiona modulo="configuracion">
+            <Button
+              variant="text"
+              startIcon={<IconPencil size={18} />}
+              onClick={() => setCambiando(true)}
+              sx={{ mt: 1.5 }}
+            >
+              Cambiar dirección
+            </Button>
+            <CambiarDireccionDialog
+              abierto={cambiando}
+              slugActual={s.configuracion.slug}
+              onCerrar={() => setCambiando(false)}
+            />
+          </SoloSiGestiona>
         ) : null}
       </SeccionCampos>
 
