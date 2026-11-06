@@ -220,3 +220,29 @@ informar), `quarantine` (a spam), `reject` (rechazar).
 
 **Null MX.** Un MX `.`: "este dominio no recibe correo". Junto a `-all` y
 `p=reject`, impide falsificar correos de `tivuapp.store`.
+
+## Trabajo en equipo
+
+**Credenciales propias.** Cada persona entra con su correo, su contraseña,
+su 2FA y su llave. Con una cuenta compartida no se le puede quitar el acceso
+a uno solo y no se sabe quién hizo qué. Guía:
+[`acceso-colaborador.md`](acceso-colaborador.md).
+
+**Mínimo privilegio.** Dar solo el acceso que hace falta. Si el colaborador
+solo despliega desde Coolify, no necesita SSH.
+
+**Miembro de un equipo (Coolify, Cloudflare).** Una invitación a **su**
+correo. Se revoca desde el panel sin cambiar ninguna contraseña. En Coolify,
+un miembro ve todos los proyectos del equipo.
+
+**Llave pública y llave privada.** La pública (`.pub`, una línea) se puede
+enviar a cualquiera: sola no abre nada. La privada nunca sale del PC de su
+dueño.
+
+**`authorized_keys`.** La lista de llaves públicas que pueden entrar como ese
+usuario. Una línea por persona, con su nombre al final. Quitar el acceso es
+borrar su línea. Se añade con `>>`; con `>` se borraría la lista entera.
+
+**Un dominio por cuenta de Cloudflare.** Cada uno pone sus dominios en su
+propia cuenta gratis. Al VPS le da igual de qué cuenta venga el tráfico: el
+firewall solo mira que llegue desde una IP de Cloudflare.
