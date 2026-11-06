@@ -95,6 +95,12 @@ visitante ──(1)──> Cloudflare ──(2)──> VPS
 | Full | cifrado, sin comprobar el certificado | mejor, pero aceptaría uno falso |
 | **Full (strict)** | cifrado **y** comprobado | el que se usa |
 
+**Gestor de contraseñas.** Una bóveda cifrada (Bitwarden, 1Password…) que
+guarda contraseñas, claves de API, claves privadas y códigos de recuperación
+de la 2FA. Se abre con **una** contraseña maestra, que no se guarda en
+ningún sitio, y con 2FA. Es el único sitio donde viven los secretos de tivu:
+nunca un `.txt`, un chat o el repo.
+
 **Clave privada.** La mitad secreta del certificado. Quien la tenga puede
 hacerse pasar por tu servidor: va en el gestor de contraseñas y en el VPS,
 nunca en el repo ni en un chat.
