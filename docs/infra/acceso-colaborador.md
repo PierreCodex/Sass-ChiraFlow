@@ -28,7 +28,13 @@ En los comandos, cambiar:
   de Jean y lo del colaborador. Cada app suya lleva **límites de CPU y RAM**.
 - **Cada uno con lo suyo.** Sus apps van en **su propio Project**, con sus
   propias bases de datos y sus propias copias de seguridad. Nunca usa la base
-  de tivu.
+  de tivu (la verá, igual que sus contraseñas: Coolify no separa por
+  proyecto).
+- **Su propio GitHub.** La fuente `coolify-tivu` de Coolify da acceso a los
+  repos de tivu y está disponible para todo el equipo. Él conecta **la suya**
+  (paso C5) y despliega solo desde ahí.
+- **Qué necesita depende de su app.** Una web con dominio necesita los pasos
+  C1 a C4 (Cloudflare y certificado). Un bot o un worker sin web, solo C5 y C6.
 - **Todo dominio pasa por Cloudflare, con la nube naranja.** El firewall del
   VPS solo deja entrar por 80/443 a las IPs de Cloudflare. Un dominio que
   apunte directo a la IP **no carga**. Abrir el firewall no es opción: dejaría
@@ -42,7 +48,7 @@ En los comandos, cambiar:
 ### A1. Su llave SSH (opcional)
 
 Solo hace falta si va a entrar al servidor por terminal. Para el día a día
-basta con la web de Coolify. El certificado del paso B4 lo puede subir el
+basta con la web de Coolify. El certificado del paso C3 lo puede subir el
 dueño del VPS.
 
 En **Windows (PowerShell)**, **Mac** o **Linux**:
@@ -207,11 +213,25 @@ de Traefik), no `/data/coolify/proxy/…`. Traefik relee estos archivos sin
 reiniciar, y elige solo el certificado que corresponde a cada dominio. Los de
 tivu y los suyos conviven sin chocar.
 
-### C5. Sus apps en Coolify
+### C5. Su GitHub en Coolify
+
+**Sources → + Add → GitHub App**, con un nombre suyo (por ejemplo
+`coolify-nombre-colaborador`):
+
+- Webhook endpoint: el de la instancia, `https://coolify.tivuapp.com`.
+- *Preview deployment access*: «Do not update pull requests». Sin runners.
+- **Register With GitHub** con **su** sesión de GitHub abierta, y luego
+  **Install** en **su** cuenta con **Only select repositories**: solo los
+  repos que va a desplegar.
+
+Los avisos de GitHub (webhooks) ya pasan por Cloudflare Access: la regla de
+`/webhooks` vale para todas las fuentes.
+
+### C6. Sus apps en Coolify
 
 1. **Projects → + Add** → un Project con su nombre. Todo lo suyo va ahí.
-2. Dentro: **+ New → Resource** → su app (desde GitHub, Dockerfile, Docker
-   Compose…). Servidor: `localhost`.
+2. Dentro: **+ New** → su app. Si viene de GitHub, elegir **su** fuente,
+   nunca `coolify-tivu`. Servidor: `localhost`.
 3. Si necesita base de datos, la crea **dentro de su Project**.
 4. En la app:
    - **Domains**: `https://sudominio.com` (y los que use, separados por
@@ -220,7 +240,7 @@ tivu y los suyos conviven sin chocar.
      1 GB para una app pequeña.
 5. **Deploy**.
 
-### C6. Comprobar
+### C7. Comprobar
 
 - `https://sudominio.com` carga con candado.
 - Si sale un error de Cloudflare:
@@ -249,7 +269,8 @@ Mientras tanto, se despliega con el botón **Deploy** de Coolify.
 
 Cuando el colaborador deje de usar el servidor:
 
-1. **Coolify:** Teams → Members → quitarlo. Antes, acordar qué pasa con sus
+1. **Coolify:** Teams → Members → quitarlo. Borrar su fuente de GitHub en
+   Sources (y él desinstala la app en su GitHub). Antes, acordar qué pasa con sus
    apps: borrarlas o que las migre.
 2. **Cloudflare Access:** quitar su correo de la política.
 3. **SSH:** `nano /root/.ssh/authorized_keys`, borrar **solo** la línea que
@@ -270,6 +291,7 @@ Cuando el colaborador deje de usar el servidor:
 | Colaborador | Dominio, registro A naranja, Full (strict) | **su** Cloudflare |
 | Colaborador | Certificado de origen | su Cloudflare → VPS `/data/coolify/proxy/certs/` |
 | Colaborador | `sudominio-origin.yaml` | Coolify → Proxy → Dynamic Configurations |
+| Colaborador | Su fuente de GitHub, instalada en su cuenta | Coolify → Sources |
 | Colaborador | Project, apps, límites, dominio | Coolify |
 
 Conceptos en [`conceptos.md`](conceptos.md). La guía de tivu está en
