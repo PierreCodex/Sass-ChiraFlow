@@ -134,8 +134,18 @@ controls → Applications → Self-hosted → Public DNS:
 - Política **Solo yo**: Allow, Include → Emails → `tivusass@gmail.com`.
 - Recién creada puede dar "Unable to find your Access application" unos
   minutos.
-- Pendiente: al conectar GitHub para desplegar, una política **Bypass** para
-  la ruta de webhooks de Coolify.
+- **Webhooks de GitHub** (hecho el 2026-11-07): otra aplicación,
+  `coolify-webhooks`, con destino `coolify.tivuapp.com/webhooks` y política
+  **Bypass → Include Everyone**. Access aplica la más concreta: solo esa ruta
+  queda abierta (Coolify comprueba la firma de GitHub) y el panel sigue
+  pidiendo el código. Comprobar en incógnito: `/webhooks/source/github/events`
+  responde Coolify (404 a un GET), `/` redirige a `cloudflareaccess.com`.
+
+**GitHub en Coolify** (hecho el 2026-11-07). **Sources → + Add → GitHub
+App**: endpoint de la instancia `https://coolify.tivuapp.com`, *Preview
+deployment access* «Do not update pull requests», sin runners. En GitHub, la
+app se llama `coolify-tivu`, instalada en la cuenta personal con **Only
+select repositories**: `Sass-ChiraFlow` y `Backend-Sass`.
 
 **SSH solo con llave.** En `/etc/ssh/sshd_config.d/00-solo-llave.conf`:
 
