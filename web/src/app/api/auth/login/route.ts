@@ -1,6 +1,11 @@
 import type { NextRequest } from "next/server";
 import type { Usuario } from "@/features/auth/services/auth.api";
-import { errorJson, guardarSesion, urlUpstream } from "@/lib/auth/sesion";
+import {
+  cabeceraIpCliente,
+  errorJson,
+  guardarSesion,
+  urlUpstream,
+} from "@/lib/auth/sesion";
 import { esHostDeTienda } from "@/lib/tienda/host";
 
 /**
@@ -49,6 +54,9 @@ export async function POST(request: NextRequest) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        // El límite de intentos de /login es por IP: tiene que ser la del
+        // visitante, no la del contenedor de Next.
+        ...cabeceraIpCliente(request),
       },
       body: JSON.stringify(credenciales),
       cache: "no-store",

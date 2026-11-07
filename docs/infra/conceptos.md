@@ -139,6 +139,27 @@ que toca. También es quien presenta el certificado de origen.
 **Configuración dinámica de Traefik.** Archivos que Traefik relee sin
 reiniciar. `cloudflare-origin.yaml` le dice dónde están los certificados.
 
+**Red interna de Docker.** Los contenedores se hablan entre sí por nombre
+(`http://api-<uuid>:8080`) sin salir a internet. En Coolify hay que activar
+la **red predefinida** para que dos recursos se vean, y el que recibe tiene
+que tener un **nombre fijo** («Consistent name»): con el de por defecto, el
+nombre lleva la fecha del despliegue y cambia en cada uno.
+
+**Build vs. ejecución.** Las variables `NEXT_PUBLIC_*` se fijan al construir
+la imagen y quedan dentro del JavaScript del navegador (nunca un secreto). Las
+demás, como `API_URL`, se leen al arrancar el contenedor y se cambian sin
+reconstruir.
+
+**Standalone.** Modo de Next que deja solo lo necesario para correr
+(`server.js` y los estáticos): la imagen pesa mucho menos.
+
+**La IP del visitante detrás de proxies.** Cada intermediario (Cloudflare,
+Traefik, el BFF) hace que el siguiente vea **su** IP, no la del visitante.
+Cloudflare manda la real en la cabecera `CF-Connecting-IP`; el BFF la
+reenvía y el nginx de Laravel la toma como IP de verdad. Hace falta para
+limitar intentos por persona: sin ella, todos los visitantes parecen uno
+solo. Solo es fiable porque al VPS no entra nadie más que Cloudflare.
+
 ## Seguridad
 
 **Defensa en capas.** Varias protecciones independientes: el atacante tiene

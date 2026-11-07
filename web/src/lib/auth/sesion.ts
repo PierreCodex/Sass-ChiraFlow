@@ -30,6 +30,22 @@ export function urlUpstream() {
   return env.apiUrl.replace(/\/+$/, "");
 }
 
+/**
+ * La IP del visitante, para las rutas del BFF que arman sus propias cabeceras
+ * (login y logout). El proxy genérico ya la reenvía al copiar las del
+ * navegador.
+ *
+ * Cloudflare la pone en `CF-Connecting-IP` y pisa la que mande el navegador;
+ * el nginx de la imagen de Laravel la toma como `REMOTE_ADDR` porque la
+ * petición le llega desde la red interna. Sin ella, Laravel vería la IP del
+ * contenedor de Next y todos los visitantes compartirían el mismo límite de
+ * intentos. En local no existe, y no pasa nada.
+ */
+export function cabeceraIpCliente(request: Request): Record<string, string> {
+  const ip = request.headers.get("cf-connecting-ip");
+  return ip ? { "CF-Connecting-IP": ip } : {};
+}
+
 export async function leerSesion(): Promise<Sesion> {
   const tarro = await cookies();
   return {

@@ -30,6 +30,10 @@ export const dynamic = "force-dynamic";
  *  - `authorization` y `x-tenant` los pone SOLO el BFF, desde la cookie. Uno
  *    que mande el navegador no pasa nunca: desde una tienda la petición sale
  *    sin credenciales de verdad, no «con las que trajera» (Story 6.1).
+ *
+ * `CF-Connecting-IP` pasa a propósito: es la IP del visitante (Cloudflare la
+ * pone y pisa la del navegador), y con ella Laravel limita por persona y no
+ * por el contenedor de Next. Ver `cabeceraIpCliente` en `lib/auth/sesion.ts`.
  */
 const NO_REENVIAR = new Set([
   "host",

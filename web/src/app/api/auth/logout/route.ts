@@ -1,4 +1,10 @@
-import { borrarSesion, errorJson, leerSesion, urlUpstream } from "@/lib/auth/sesion";
+import {
+  borrarSesion,
+  cabeceraIpCliente,
+  errorJson,
+  leerSesion,
+  urlUpstream,
+} from "@/lib/auth/sesion";
 import { esHostDeTienda } from "@/lib/tienda/host";
 
 /**
@@ -30,6 +36,7 @@ export async function POST(request: Request) {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
+          ...cabeceraIpCliente(request),
         },
         cache: "no-store",
       });
