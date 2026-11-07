@@ -1,0 +1,11 @@
+# Lo que no entra en la imagen de producción.
+node_modules
+.next
+.env
+.env*.local
+npm-debug.log*
+tsconfig.tsbuildinfo
+*.md
+Dockerfile
+docker-compose*.yml
+.git
