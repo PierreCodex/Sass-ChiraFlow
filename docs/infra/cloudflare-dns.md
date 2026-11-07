@@ -99,9 +99,108 @@ en `{slug}.tivuapp.store` y no en `{slug}.site.…`.
 - `https://lo-que-sea.tivuapp.store` abre con candado (aunque sea la página de
   negocio no encontrado).
 
-### 8. Después (al instalar Coolify)
+### 8. Coolify detrás de Cloudflare (hecho el 2026-11-05)
 
-- Firewall del VPS: 80/443 **solo desde las IPs de Cloudflare**, SSH con llave.
+**Certificados en Traefik.** Los cuatro archivos PEM van en el VPS, en
+`/data/coolify/proxy/certs/` (`tivuapp.com.cert/.key`,
+`tivuapp.store.cert/.key`, las claves con `chmod 600`). En Coolify, **Servers
+→ localhost → Proxy → Dynamic Configurations → Add**, archivo
+`cloudflare-origin.yaml`:
+
+```yaml
+tls:
+  certificates:
+    - certFile: /traefik/certs/tivuapp.com.cert
+      keyFile: /traefik/certs/tivuapp.com.key
+    - certFile: /traefik/certs/tivuapp.store.cert
+      keyFile: /traefik/certs/tivuapp.store.key
+```
+
+La ruta es `/traefik/…`: así se ve esa carpeta desde dentro del contenedor.
+
+**Dominio del panel.** **Settings → General → URL** =
+`https://coolify.tivuapp.com`. No confundir con el *Wildcard domain* del
+servidor, que se deja vacío.
+
+### 9. Asegurar el servidor (hecho el 2026-11-05)
+
+**2FA en Coolify.** Profile → Two-factor authentication; códigos de
+recuperación en el gestor de contraseñas.
+
+**Cloudflare Access delante del panel.** Zero Trust (plan Free) → Access
+controls → Applications → Self-hosted → Public DNS:
+
+- Destino `coolify.tivuapp.com`, sesión de 24 h, login con **One-time PIN**.
+- Política **Solo yo**: Allow, Include → Emails → `tivusass@gmail.com`.
+- Recién creada puede dar "Unable to find your Access application" unos
+  minutos.
+- Pendiente: al conectar GitHub para desplegar, una política **Bypass** para
+  la ruta de webhooks de Coolify.
+
+**SSH solo con llave.** En `/etc/ssh/sshd_config.d/00-solo-llave.conf`:
+
+```
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+```
+
+`root` sigue entrando **con llave**: Coolify lo necesita. En
+`~/.ssh/authorized_keys` de root está también la llave de Coolify: no
+borrarla. Comprobar con `sshd -T | grep -E 'passwordauth|permitroot'`.
+
+**Firewall: dos capas.**
+
+| Entrada | La filtra | Regla |
+|---|---|---|
+| SSH (proceso de Linux) | `ufw` | solo el 22 |
+| Lo publicado por Docker: Traefik 80/443, Coolify 8000/6001/6002 | cadena `DOCKER-USER` (Docker se salta `ufw`) | 80/443 solo desde Cloudflare; el resto, DROP |
+
+```bash
+# Red de seguridad: si algo sale mal, ufw se apaga solo a los 10 min
+systemd-run --on-active=10min --unit=tivu-rescate /usr/sbin/ufw disable
+
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+
+# Reglas de Docker, con la lista oficial de Cloudflare (15 rangos)
+cp /etc/ufw/after.rules /etc/ufw/after.rules.bak
+{
+echo ""
+echo "# BEGIN tivu-docker"
+echo "*filter"
+echo ":DOCKER-USER - [0:0]"
+echo ":TIVU-CF - [0:0]"
+echo "-A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN"
+echo "-A DOCKER-USER ! -i eth0 -j RETURN"
+echo "-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 80 -j TIVU-CF"
+echo "-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 443 -j TIVU-CF"
+echo "-A DOCKER-USER -j DROP"
+curl -fsS https://www.cloudflare.com/ips-v4 | while read -r red || [ -n "$red" ]; do [ -n "$red" ] && echo "-A TIVU-CF -s $red -j ACCEPT"; done
+echo "-A TIVU-CF -j DROP"
+echo "COMMIT"
+echo "# END tivu-docker"
+} >> /etc/ufw/after.rules
+grep -c 'TIVU-CF -s' /etc/ufw/after.rules   # debe dar 15
+
+ufw --force enable        # en Bitvise, «y» a mano da «Aborted»
+iptables -S DOCKER-USER
+
+# Probado (segunda sesión SSH, coolify.tivuapp.com, IP:8000 que no carga):
+systemctl stop tivu-rescate.timer
+```
+
+- `eth0` es la tarjeta de red del VPS (`ip -br link`).
+- `--ctorigdstport` mira el puerto **original**: tras la redirección de
+  Docker, el 8000 llega al contenedor como 8080.
+- **Si Cloudflare cambia sus IPs** (raro; se anuncia), borrar el bloque
+  `tivu-docker` de `after.rules`, repetir el bloque y `ufw reload`.
+- Una app nueva en Coolify **no publica puertos**: va por Traefik con su
+  dominio. Si alguna publicara uno, quedaría cerrado por el `DROP`.
+
+### 10. Después
+
 - Activar HSTS cuando todo funcione.
 - Dominios propios de los negocios: **Cloudflare for SaaS** (confirmar precios
   y límites en su documentación vigente antes de comprometerlo en el plan Pro).
@@ -126,45 +225,54 @@ Requisito: `tivuapp.com` ya en **Active** (Parte 1). No hace falta el VPS.
 Todos los registros de esta parte van en **DNS only (nube gris)**: MX y TXT
 no se pueden proxiar.
 
-### 9. Recibir: Email Routing
+### 11. Recibir: Email Routing (hecho el 2026-11-05)
 
-`tivuapp.com` → **Email → Email Routing** → activar.
+Cuenta → **Compute → Email Service → Email Routing → Onboard Domain** →
+`tivuapp.com`. No tocar **Email Sending (Beta)**: el envío es de Resend.
 
-1. **Destination addresses:** añadir `tivusass@gmail.com` y abrir el enlace
-   de verificación que llega a esa bandeja.
-2. **Routing rules → Custom addresses:** `soporte@` y `contacto@` →
-   `tivusass@gmail.com`. Catch-all **desactivado**: solo atrae spam.
-3. Cloudflare crea solo sus **MX** y su **SPF** en la raíz (`@`). No
+1. **Verify DNS records → Activate.** Cloudflare crea solo, y bloquea
+   (*Locked*), tres **MX** `route1/2/3.mx.cloudflare.net` y un **SPF** en la
+   raíz, más un TXT `cf2024-1._domainkey` (su DKIM para lo que reenvía). No
    duplicarlos a mano.
+2. **Destination addresses:** añadir `tivusass@gmail.com` y abrir el enlace
+   de verificación que llega a esa bandeja, hasta que salga *Verified*.
+3. **Routing rules → Create routing rule:** pattern `soporte`, dominio
+   `tivuapp.com`, *Send to an email* → `tivusass@gmail.com`. Lo mismo con
+   `contacto`. Catch-all **desactivado** (*Drop*): solo atrae spam.
 
 Comprobar: escribir a `soporte@tivuapp.com` desde otra cuenta y ver que llega
 a Gmail.
 
-### 10. Enviar: verificar el dominio en Resend
+### 12. Enviar: verificar el dominio en Resend (hecho el 2026-11-05)
 
 1. Entrar en **resend.com** con `tivusass@gmail.com` → **Domains → Add
-   Domain** → `tivuapp.com`. Región: la que Resend proponga.
-2. Resend da sus registros. Copiarlos **tal cual** a Cloudflare. Son de este
-   tipo (los valores exactos, los suyos):
+   Domain** → `tivuapp.com`. Región: **São Paulo (sa-east-1)**, la más
+   cercana. No se cambia sin borrar el dominio.
+2. **Manual setup** primero, para ver la lista. **Enable receiving
+   apagado**: encendido pediría un MX en la raíz y rompería Email Routing.
+   Los registros de Resend:
 
    | Tipo | Nombre | Para qué |
    |---|---|---|
-   | MX | `send` | rebotes de Resend |
-   | TXT | `send` | SPF de Resend |
    | TXT | `resend._domainkey` | firma DKIM |
+   | CNAME | `rsend` | envío (Resend Forge) |
+   | CNAME | `send` | rebotes y SPF de Resend |
+   | TXT | `_dmarc` | opcional: ver paso 13 |
 
-   Viven en `send.` y en `resend._domainkey`, así que **no chocan** con los MX
-   y el SPF de Email Routing en la raíz.
-3. **Verify** en Resend. Hasta que salga verificado, Resend solo entrega a la
-   dirección dueña de la cuenta.
+   Ninguno va en la raíz, así que **no chocan** con Email Routing. Los CNAME
+   en **DNS only** (nube gris): proxiados, la verificación falla.
+3. Con recibir apagado, **Auto configure** (entra a Cloudflare con Domain
+   Connect) los crea sin errores de copia. No creó el `_dmarc`.
+4. Esperar a **Verified** (fueron 4 minutos). Hasta entonces, Resend solo
+   entrega a la dirección dueña de la cuenta.
 4. **API Keys:** crear **dos**, con permiso solo de envío:
    - `backend-produccion` → para Coolify.
-   - `gmail-smtp` → para el paso 12.
+   - `gmail-smtp` → para el paso 14.
 
    Se guardan en el gestor de contraseñas, **nunca en el repo**. Así se puede
    revocar una sin cortar la otra.
 
-### 11. DMARC
+### 13. DMARC (hecho el 2026-11-06)
 
 Un TXT más en `tivuapp.com`:
 
@@ -175,7 +283,7 @@ Un TXT más en `tivuapp.com`:
 Empieza en `p=none` (solo informa). Cuando los informes muestren que todo
 pasa SPF y DKIM, subir a `p=quarantine`.
 
-### 12. Responder desde Gmail como `soporte@`
+### 14. Responder desde Gmail como `soporte@` (hecho el 2026-11-06)
 
 Gmail → **Configuración → Cuentas e importación → Enviar como → Añadir otra
 dirección**:
@@ -184,13 +292,18 @@ dirección**:
   como un alias».
 - SMTP: `smtp.resend.com`, puerto **465**, SSL. Usuario: `resend`.
   Contraseña: la clave `gmail-smtp`.
-- Gmail manda un código a `soporte@`: llega por Email Routing al mismo Gmail.
+- Gmail rellena solo el SMTP con `route2.mx.cloudflare.net` y usuario
+  `soporte`: **está mal** (es el servidor que recibe). Cambiarlo.
+- Gmail manda un enlace a `soporte@`: llega por Email Routing al mismo Gmail.
+- En **Enviar como → Cuando responda a un mensaje**: «Responder desde la
+  misma dirección a la que se ha enviado el mensaje». Sin poner `soporte@`
+  como predeterminada.
 
 **No usar los servidores de Google para esto.** El correo saldría sin la
 firma DKIM de `tivuapp.com`, fallaría DMARC y acabaría en spam o rechazado.
 Estas respuestas cuentan contra la cuota de Resend.
 
-### 13. `tivuapp.store` no envía correo
+### 15. `tivuapp.store` no envía correo (hecho el 2026-11-06)
 
 En las tiendas de todos los negocios nadie debe poder mandar correo en nombre
 de `pepito.tivuapp.store`. En `tivuapp.store`:
@@ -204,7 +317,10 @@ de `pepito.tivuapp.store`. En `tivuapp.store`:
 El `sp=reject` cubre todos los subdominios. El comodín `*` de la Parte 2 es
 un registro A: no da MX ni TXT a las tiendas.
 
-### 14. Remitentes y backend
+Cloudflare seguirá recomendando "Email cannot reach @tivuapp.store": es
+justo lo buscado, se ignora.
+
+### 16. Remitentes y backend
 
 | Correo | De | Responder a |
 |---|---|---|
@@ -229,7 +345,7 @@ En el código:
 - Con el cliente final, **el canal principal es WhatsApp**. El correo es para
   la cuenta y como respaldo.
 
-### 15. Límites y seguridad
+### 17. Límites y seguridad
 
 - **Resend gratis:** del orden de 3.000 correos al mes, **100 al día** y un
   dominio (confirmar en su página de precios vigente). El tope diario es el
