@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -27,7 +28,7 @@ import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 
 import SelectorHueco from "./SelectorHueco";
-import { useReservar } from "../hooks/useTienda";
+import { publicoKeys, useReservar } from "../hooks/useTienda";
 import type {
   AsignacionServicio,
   DatosCliente,
@@ -36,7 +37,13 @@ import type {
   ProfesionalPublico,
   ReservaConfirmada,
 } from "../types";
-import { duracionCarrito, quienesPrestan, totalCarrito } from "../types";
+import {
+  CUALQUIER_PROFESIONAL,
+  duracionCarrito,
+  quienesPrestan,
+  totalCarrito,
+  serviciosParaHorarios,
+} from "../types";
 
 interface Props {
   abierto: boolean;
@@ -68,6 +75,7 @@ const WizardReserva = ({
 }: Props) => {
   const theme = useTheme();
   const reservar = useReservar(slug, localId);
+  const queryClient = useQueryClient();
 
   // Con un solo servicio la modalidad no aplica: siempre es una cita.
   const necesitaModo = lineas.length > 1;
@@ -115,6 +123,7 @@ const WizardReserva = ({
   const pasoReal = necesitaModo ? paso : paso + 1;
 
   const duracionTotal = useMemo(() => duracionCarrito(lineas), [lineas]);
+  const unidades = useMemo(() => serviciosParaHorarios(lineas), [lineas]);
   const montoTotal = useMemo(() => totalCarrito(lineas), [lineas]);
 
   const actualizar = (id: number, cambios: Partial<AsignacionServicio>) => {
@@ -133,7 +142,7 @@ const WizardReserva = ({
   };
 
   const asignacionCompleta = (asignacion: AsignacionServicio) =>
-    !!asignacion.profesional_id && !!asignacion.fecha && !!asignacion.hora_inicio;
+    asignacion.profesional_id !== null && !!asignacion.fecha && !!asignacion.hora_inicio;
 
   const puedeAvanzarAsignacion =
     modo === "unica"
@@ -167,12 +176,29 @@ const WizardReserva = ({
         servicios: asignaciones.map((asignacion) => ({
           id: asignacion.id,
           cantidad: asignacion.cantidad,
-          profesional_id: asignacion.profesional_id!,
+          // «Cualquier profesional»: lo asigna el servidor al reservar.
+          profesional_id:
+            asignacion.profesional_id === CUALQUIER_PROFESIONAL
+              ? null
+              : asignacion.profesional_id,
           fecha: asignacion.fecha!,
           hora_inicio: asignacion.hora_inicio!,
         })),
       },
-      { onSuccess: (reserva) => onConfirmada(reserva) }
+      {
+        onSuccess: (reserva) => onConfirmada(reserva),
+        onError: (error) => {
+          /*
+            Story 6.4: otro cliente se llevó la hora mientras este rellenaba
+            sus datos. Se refrescan las horas y se vuelve a elegir; el
+            selector dice cuál se perdió.
+          */
+          if (toApiError(error).errors?.hora_inicio) {
+            queryClient.invalidateQueries({ queryKey: publicoKeys.horariosDe(slug, localId) });
+            setPaso(necesitaModo ? 1 : 0);
+          }
+        },
+      }
     );
   };
 
@@ -285,7 +311,7 @@ const WizardReserva = ({
                 localId={localId}
                 // Story 6.3: en una sola cita, quien presta todos los servicios.
                 profesionales={paraUnaCita}
-                duracionMin={duracionTotal}
+                servicios={unidades}
                 profesionalId={asignaciones[0]?.profesional_id ?? null}
                 fecha={asignaciones[0]?.fecha ?? null}
                 hora={asignaciones[0]?.hora_inicio ?? null}
@@ -320,7 +346,7 @@ const WizardReserva = ({
                         localId={localId}
                         // Story 6.3: solo quien presta este servicio aquí.
                         profesionales={quienesPrestan(profesionales, [linea.servicio.id])}
-                        duracionMin={linea.servicio.duracion_min * linea.cantidad}
+                        servicios={serviciosParaHorarios([linea])}
                         profesionalId={asignacion.profesional_id}
                         fecha={asignacion.fecha}
                         hora={asignacion.hora_inicio}
@@ -465,11 +491,11 @@ const WizardReserva = ({
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
                       {asignacion.fecha} · {asignacion.hora_inicio} ·{" "}
-                      {
-                        profesionales.find(
-                          (item) => item.id === asignacion.profesional_id
-                        )?.nombre
-                      }
+                      {asignacion.profesional_id === CUALQUIER_PROFESIONAL
+                        ? "Cualquier profesional"
+                        : profesionales.find(
+                            (item) => item.id === asignacion.profesional_id
+                          )?.nombre}
                     </Typography>
                   </Box>
                   <Typography variant="subtitle2" fontWeight={600} noWrap>

@@ -752,8 +752,9 @@ lo tenga.
 
 Una sola regla, la misma para el guardado de citas y las opciones del panel.
 La tienda y el enlace del cliente (épica 6) la usarán igual: ya están listas
-la comprobación para la tienda y las horas libres que la aplican
-(`huecosReservables`), aún sin endpoint. Servicio + profesional + sede es
+la comprobación para la tienda y las horas libres que la aplican: la tienda
+las pide en `GET /publico/{slug}/sucursal/{sede}/horarios` (Story 6.4, §5).
+Servicio + profesional + sede es
 reservable si y solo si:
 
 1. el servicio está activo;
@@ -1472,11 +1473,32 @@ selección). Las rutas de sucursal usan el slug de la sede (FR-81).
 4. wizard:
       [Modalidad]  solo si hay más de un servicio: única o separada
       Fecha y profesional
-          → GET …/horarios?profesional_id&fecha&duracion_min   (por cada línea)
+          → GET …/horarios?fecha&servicios[]&profesional_id   (Story 6.4)
+              una vez en cita única; una por línea en separada
       Tus datos    nombre, teléfono y correo obligatorios (validación de cliente)
       Confirmar
           → POST …/reservar  → comprobante con código
 ```
+
+**`GET /publico/{slug}/sucursal/{sede}/horarios`** (Story 6.4) →
+`{ "data": ["09:00", "10:15", …] }`
+
+| Parámetro | Qué es |
+|---|---|
+| `fecha` | `YYYY-MM-DD`, de hoy (en la zona del negocio) a 90 días. Fuera: 422 |
+| `servicios[]` | un id por **unidad**: dos cortes = el id dos veces. Varios distintos = una cita seguida con quien los preste todos. De 1 a 10 |
+| `profesional_id` | opcional. Sin él, «cualquier profesional»: la unión de las horas de todos los que pueden |
+
+- **La duración la calcula el servidor** desde los servicios (suma × cantidad).
+  Antes era `duracion_min` del navegador: con ella cualquiera pedía huecos de
+  un minuto, y el servidor no sabía qué servicio aplicar a la regla.
+- Mismo motor que el panel (§4) y misma regla (Story 2.2) más
+  `visible_publico`. Lo que no se puede reservar en esa sede es **404**
+  `{ message, codigo: "no_reservable" }`, sin decir qué falla.
+- Hoy no salen las horas que ya pasaron en la zona del negocio.
+- Al reservar (Story 6.6), `profesional_id: null` = «cualquiera», y una hora
+  que ya no está libre es 422 en `hora_inicio`: el asistente refresca las horas
+  y vuelve al paso de elegir.
 
 El carrito vive en memoria y **no en la query string** como en la app anterior:
 allí cada cambio recargaba la página. Los huecos se cachean solo 30 s: entre que
