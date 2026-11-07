@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -10,7 +11,8 @@ import Typography from "@mui/material/Typography";
 
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
-import { useHorarios } from "../hooks/useTienda";
+import { toApiError } from "@/lib/api/client";
+import { publicoKeys, useHorarios } from "../hooks/useTienda";
 import { CUALQUIER_PROFESIONAL, type ProfesionalPublico } from "../types";
 
 interface Props {
@@ -60,7 +62,7 @@ const SelectorHueco = ({
   onFecha,
   onHora,
 }: Props) => {
-  const { data: huecos, isPending, isFetching } = useHorarios(
+  const { data: huecos, isPending, isFetching, error } = useHorarios(
     slug,
     localId,
     servicios,
@@ -68,6 +70,19 @@ const SelectorHueco = ({
     fecha
   );
   const [perdida, setPerdida] = useState<string | null>(null);
+
+  /*
+    Story 6.5: un 404 es «esto ya no se puede reservar aquí» (servicio
+    retirado, profesional que ya no lo presta). Se refresca el catálogo, y la
+    página quita de la selección lo que ya no está y lo explica.
+  */
+  const queryClient = useQueryClient();
+  const yaNoSePuede = !!error && toApiError(error).status === 404;
+  useEffect(() => {
+    if (yaNoSePuede) {
+      queryClient.invalidateQueries({ queryKey: publicoKeys.sedesDe(slug) });
+    }
+  }, [yaNoSePuede, queryClient, slug]);
 
   useEffect(() => {
     if (!hora || !huecos || isFetching) return;
@@ -140,6 +155,11 @@ const SelectorHueco = ({
           <Typography variant="body2" color="textSecondary">
             Elige profesional y fecha para ver las horas libres.
           </Typography>
+        ) : yaNoSePuede ? (
+          <Alert severity="warning">
+            Esto ya no se puede reservar con quien elegiste. Elige otro
+            profesional o revisa tu selección.
+          </Alert>
         ) : isPending ? (
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             {Array.from({ length: 6 }).map((_, i) => (

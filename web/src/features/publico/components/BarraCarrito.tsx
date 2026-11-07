@@ -13,6 +13,7 @@ interface Props {
   monto: number;
   duracion: number;
   onReservar: () => void;
+  onVaciar: () => void;
 }
 
 /** "1 h 30 min" */
@@ -27,7 +28,7 @@ function formatDuracion(minutos: number) {
  * Barra fija con el resumen del carrito. Solo aparece con algo seleccionado,
  * igual que en la app actual.
  */
-const BarraCarrito = ({ unidades, monto, duracion, onReservar }: Props) => {
+const BarraCarrito = ({ unidades, monto, duracion, onReservar, onVaciar }: Props) => {
   if (unidades === 0) return null;
 
   return (
@@ -60,14 +61,19 @@ const BarraCarrito = ({ unidades, monto, duracion, onReservar }: Props) => {
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            size="large"
-            onClick={onReservar}
-            sx={{ whiteSpace: "nowrap" }}
-          >
-            Reservar
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center" flexShrink={0}>
+            <Button color="inherit" onClick={onVaciar} sx={{ whiteSpace: "nowrap" }}>
+              Vaciar
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={onReservar}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Reservar
+            </Button>
+          </Stack>
         </Stack>
       </Container>
     </Paper>

@@ -194,6 +194,44 @@ export function totalCarrito(lineas: LineaCarrito[]) {
   );
 }
 
+/** «A», «A» y «B», «A», «B» y «C». */
+function enumerar(nombres: string[]) {
+  const citados = nombres.map((nombre) => `«${nombre}»`);
+  return citados.length > 1
+    ? `${citados.slice(0, -1).join(", ")} y ${citados[citados.length - 1]}`
+    : citados[0] ?? "";
+}
+
+/**
+ * Story 6.5: qué decirle al cliente cuando el catálogo cambió mientras elegía.
+ * No se cuenta el motivo exacto (2.2: a un desconocido no se le dice si el
+ * profesional está de baja), pero sí que no es culpa suya.
+ */
+export function avisoDeCambios(cambios: {
+  quitados: string[];
+  actualizados: string[];
+}): string | null {
+  const partes: string[] = [];
+  if (cambios.quitados.length) {
+    const varios = cambios.quitados.length > 1;
+    partes.push(
+      `Quitamos ${enumerar(cambios.quitados)} de tu selección: ya no ${
+        varios ? "se pueden" : "se puede"
+      } reservar en esta sede (el negocio ${
+        varios ? "los retiró" : "lo retiró"
+      } o no tiene quién ${varios ? "los atienda" : "lo atienda"}).`
+    );
+  }
+  if (cambios.actualizados.length) {
+    partes.push(
+      `${enumerar(cambios.actualizados)} ${
+        cambios.actualizados.length > 1 ? "cambiaron" : "cambió"
+      } de precio o de duración; el total ya está al día.`
+    );
+  }
+  return partes.length ? partes.join(" ") : null;
+}
+
 /**
  * Los servicios como los pide `/horarios` (Story 6.4): un id por unidad, así
  * la cantidad viaja como repetición y el servidor suma la duración.
