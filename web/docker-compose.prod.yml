@@ -1,0 +1,34 @@
+# Producción del frontend de tivu en Coolify (base directory: /web).
+# Guía: docs/infra/despliegue-web.md
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    environment:
+      # La URL de Laravel para el BFF, por la red interna de Coolify (no sale
+      # a internet). Ejemplo: http://api-<uuid-del-backend>:8080/api
+      API_URL: ${API_URL:?falta API_URL}
+    expose:
+      - "3000"
+    labels:
+      # El panel (app.tivuapp.com) lo pone Coolify desde «Domains». Las
+      # tiendas no caben ahí: son un comodín, y Coolify solo genera reglas
+      # Host(`nombre.exacto`). Esta regla manda a este contenedor la raíz y
+      # cualquier subdominio de tivuapp.store; el middleware de Next saca el
+      # slug del host. El certificado es el de origen de Cloudflare
+      # (*.tivuapp.store) que ya está en Traefik: aquí no se pide ninguno.
+      # Sin `$` al final de la expresión: Coolify reescribe los `$` de las
+      # etiquetas. Solo llegan nombres de la zona (el firewall solo deja
+      # entrar a Cloudflare), así que el ancla no añade nada.
+      - traefik.enable=true
+      - traefik.http.routers.tivu-tiendas.rule=Host(`tivuapp.store`) || HostRegexp(`^[a-z0-9-]+\.tivuapp\.store`)
+      - traefik.http.routers.tivu-tiendas.entrypoints=https
+      - traefik.http.routers.tivu-tiendas.tls=true
+      - traefik.http.routers.tivu-tiendas.service=tivu-tiendas
+      - traefik.http.services.tivu-tiendas.loadbalancer.server.port=3000
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1G

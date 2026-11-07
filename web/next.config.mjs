@@ -13,6 +13,9 @@
  */
 const nextConfig = {
   reactStrictMode: false,
+  // Producción (Coolify): server.js mínimo con solo lo necesario. Ver
+  // web/Dockerfile y docs/infra/despliegue-web.md.
+  output: "standalone",
   images: { unoptimized: true },
   redirects() {
     return [
