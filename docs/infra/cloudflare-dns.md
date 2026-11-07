@@ -225,37 +225,46 @@ Requisito: `tivuapp.com` ya en **Active** (Parte 1). No hace falta el VPS.
 Todos los registros de esta parte van en **DNS only (nube gris)**: MX y TXT
 no se pueden proxiar.
 
-### 11. Recibir: Email Routing
+### 11. Recibir: Email Routing (hecho el 2026-11-05)
 
-`tivuapp.com` → **Email → Email Routing** → activar.
+Cuenta → **Compute → Email Service → Email Routing → Onboard Domain** →
+`tivuapp.com`. No tocar **Email Sending (Beta)**: el envío es de Resend.
 
-1. **Destination addresses:** añadir `tivusass@gmail.com` y abrir el enlace
-   de verificación que llega a esa bandeja.
-2. **Routing rules → Custom addresses:** `soporte@` y `contacto@` →
-   `tivusass@gmail.com`. Catch-all **desactivado**: solo atrae spam.
-3. Cloudflare crea solo sus **MX** y su **SPF** en la raíz (`@`). No
+1. **Verify DNS records → Activate.** Cloudflare crea solo, y bloquea
+   (*Locked*), tres **MX** `route1/2/3.mx.cloudflare.net` y un **SPF** en la
+   raíz, más un TXT `cf2024-1._domainkey` (su DKIM para lo que reenvía). No
    duplicarlos a mano.
+2. **Destination addresses:** añadir `tivusass@gmail.com` y abrir el enlace
+   de verificación que llega a esa bandeja, hasta que salga *Verified*.
+3. **Routing rules → Create routing rule:** pattern `soporte`, dominio
+   `tivuapp.com`, *Send to an email* → `tivusass@gmail.com`. Lo mismo con
+   `contacto`. Catch-all **desactivado** (*Drop*): solo atrae spam.
 
 Comprobar: escribir a `soporte@tivuapp.com` desde otra cuenta y ver que llega
 a Gmail.
 
-### 12. Enviar: verificar el dominio en Resend
+### 12. Enviar: verificar el dominio en Resend (hecho el 2026-11-05)
 
 1. Entrar en **resend.com** con `tivusass@gmail.com` → **Domains → Add
-   Domain** → `tivuapp.com`. Región: la que Resend proponga.
-2. Resend da sus registros. Copiarlos **tal cual** a Cloudflare. Son de este
-   tipo (los valores exactos, los suyos):
+   Domain** → `tivuapp.com`. Región: **São Paulo (sa-east-1)**, la más
+   cercana. No se cambia sin borrar el dominio.
+2. **Manual setup** primero, para ver la lista. **Enable receiving
+   apagado**: encendido pediría un MX en la raíz y rompería Email Routing.
+   Los registros de Resend:
 
    | Tipo | Nombre | Para qué |
    |---|---|---|
-   | MX | `send` | rebotes de Resend |
-   | TXT | `send` | SPF de Resend |
    | TXT | `resend._domainkey` | firma DKIM |
+   | CNAME | `rsend` | envío (Resend Forge) |
+   | CNAME | `send` | rebotes y SPF de Resend |
+   | TXT | `_dmarc` | opcional: ver paso 13 |
 
-   Viven en `send.` y en `resend._domainkey`, así que **no chocan** con los MX
-   y el SPF de Email Routing en la raíz.
-3. **Verify** en Resend. Hasta que salga verificado, Resend solo entrega a la
-   dirección dueña de la cuenta.
+   Ninguno va en la raíz, así que **no chocan** con Email Routing. Los CNAME
+   en **DNS only** (nube gris): proxiados, la verificación falla.
+3. Con recibir apagado, **Auto configure** (entra a Cloudflare con Domain
+   Connect) los crea sin errores de copia. No creó el `_dmarc`.
+4. Esperar a **Verified** (fueron 4 minutos). Hasta entonces, Resend solo
+   entrega a la dirección dueña de la cuenta.
 4. **API Keys:** crear **dos**, con permiso solo de envío:
    - `backend-produccion` → para Coolify.
    - `gmail-smtp` → para el paso 14.
@@ -263,7 +272,7 @@ a Gmail.
    Se guardan en el gestor de contraseñas, **nunca en el repo**. Así se puede
    revocar una sin cortar la otra.
 
-### 13. DMARC
+### 13. DMARC (hecho el 2026-11-06)
 
 Un TXT más en `tivuapp.com`:
 
@@ -274,7 +283,7 @@ Un TXT más en `tivuapp.com`:
 Empieza en `p=none` (solo informa). Cuando los informes muestren que todo
 pasa SPF y DKIM, subir a `p=quarantine`.
 
-### 14. Responder desde Gmail como `soporte@`
+### 14. Responder desde Gmail como `soporte@` (hecho el 2026-11-06)
 
 Gmail → **Configuración → Cuentas e importación → Enviar como → Añadir otra
 dirección**:
@@ -283,13 +292,18 @@ dirección**:
   como un alias».
 - SMTP: `smtp.resend.com`, puerto **465**, SSL. Usuario: `resend`.
   Contraseña: la clave `gmail-smtp`.
-- Gmail manda un código a `soporte@`: llega por Email Routing al mismo Gmail.
+- Gmail rellena solo el SMTP con `route2.mx.cloudflare.net` y usuario
+  `soporte`: **está mal** (es el servidor que recibe). Cambiarlo.
+- Gmail manda un enlace a `soporte@`: llega por Email Routing al mismo Gmail.
+- En **Enviar como → Cuando responda a un mensaje**: «Responder desde la
+  misma dirección a la que se ha enviado el mensaje». Sin poner `soporte@`
+  como predeterminada.
 
 **No usar los servidores de Google para esto.** El correo saldría sin la
 firma DKIM de `tivuapp.com`, fallaría DMARC y acabaría en spam o rechazado.
 Estas respuestas cuentan contra la cuota de Resend.
 
-### 15. `tivuapp.store` no envía correo
+### 15. `tivuapp.store` no envía correo (hecho el 2026-11-06)
 
 En las tiendas de todos los negocios nadie debe poder mandar correo en nombre
 de `pepito.tivuapp.store`. En `tivuapp.store`:
@@ -302,6 +316,9 @@ de `pepito.tivuapp.store`. En `tivuapp.store`:
 
 El `sp=reject` cubre todos los subdominios. El comodín `*` de la Parte 2 es
 un registro A: no da MX ni TXT a las tiendas.
+
+Cloudflare seguirá recomendando "Email cannot reach @tivuapp.store": es
+justo lo buscado, se ignora.
 
 ### 16. Remitentes y backend
 
