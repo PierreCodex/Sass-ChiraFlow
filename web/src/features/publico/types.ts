@@ -135,9 +135,17 @@ export interface LineaCarrito {
 export type ModoReserva = "unica" | "separada";
 
 /** Asignación de un servicio dentro de la reserva. */
+/**
+ * «Cualquier profesional» en el asistente (Story 6.4): las horas de todos los
+ * que pueden atender, y la reserva asigna uno concreto. Al servidor viaja como
+ * `profesional_id` ausente (horarios) o `null` (reserva).
+ */
+export const CUALQUIER_PROFESIONAL = 0;
+
 export interface AsignacionServicio {
   id: number;
   cantidad: number;
+  /** `null` = sin elegir; `CUALQUIER_PROFESIONAL` = el que esté libre. */
   profesional_id: number | null;
   fecha: string | null; // YYYY-MM-DD
   hora_inicio: string | null; // "HH:MM"
@@ -157,7 +165,8 @@ export interface ReservaPayload extends DatosCliente {
   servicios: {
     id: number;
     cantidad: number;
-    profesional_id: number;
+    /** `null` = cualquiera: lo asigna el servidor al reservar (6.6). */
+    profesional_id: number | null;
     fecha: string;
     hora_inicio: string;
   }[];
@@ -182,6 +191,16 @@ export function totalCarrito(lineas: LineaCarrito[]) {
   return lineas.reduce(
     (suma, linea) => suma + linea.servicio.precio * linea.cantidad,
     0
+  );
+}
+
+/**
+ * Los servicios como los pide `/horarios` (Story 6.4): un id por unidad, así
+ * la cantidad viaja como repetición y el servidor suma la duración.
+ */
+export function serviciosParaHorarios(lineas: LineaCarrito[]) {
+  return lineas.flatMap((linea) =>
+    Array.from({ length: linea.cantidad }, () => linea.servicio.id)
   );
 }
 

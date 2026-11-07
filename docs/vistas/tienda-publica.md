@@ -306,17 +306,24 @@ Los servicios sin categoría (o con la categoría desactivada) van en un grupo
 final "Otros servicios", igual que en el Blade. Las fotos siguen apagadas
 hasta la Story 5.2.
 
-### `GET /api/publico/{slug}/sucursal/{local}/horarios`
+### `GET /api/publico/{slug}/sucursal/{sede}/horarios` (Story 6.4)
 
-Parámetros: `profesional_id`, `fecha`, **`duracion_min`**.
+Parámetros: `fecha`, `servicios[]` (un id por unidad) y `profesional_id`
+opcional.
 
 ```json
 { "data": ["09:00", "10:10", "11:20", "14:00"] }
 ```
 
-> ⚠️ En Laravel este endpoint **no recibe la duración**: solo
-> `profesional_id` y `fecha`. Sin ella no se puede saber si una cita cabe
-> antes del siguiente hueco ocupado, así que hay que añadirla.
+La duración **no** la manda el navegador: el servidor la suma desde los
+servicios, y así también sabe qué servicio aplicar a la regla única. Sin
+`profesional_id` devuelve las horas de cualquiera que pueda atender (la opción
+«Cualquier profesional» del asistente). Detalle y errores en
+`api-contract.md` §5.
+
+El selector vuelve a pedir las horas cada 30 s y al volver a la pestaña. Si la
+que el cliente eligió ya no está, la quita y lo dice: «La hora 10:15 ya no está
+libre. Elige otra.»
 
 ### `POST /api/publico/{slug}/sucursal/{local}/reservar`
 
@@ -453,7 +460,8 @@ nuevo recibe el plan que salga primero por id, no uno elegido a propósito.
       `{{instagram}}`, `{{facebook}}` y `{{web}}`, pero hoy están escritas a
       fuego en `WhatsAppMensajeService`. Deberían estar en Configuración y
       salir también en el pie de la tienda
-- [ ] `duracion_min` en el endpoint de horarios (ver arriba)
+- [x] ~~`duracion_min` en el endpoint de horarios~~: lo calcula el servidor
+      desde los servicios (Story 6.4)
 - [ ] **SEO**: hoy las dos páginas son cliente (`"use client"`). Para que
       Google indexe cada tienda hacen falta Server Components con
       `generateMetadata` por negocio. Es un cambio de fondo: decidir antes de

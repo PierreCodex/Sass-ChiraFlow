@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { publicoApi } from "../services/publico.api";
-import type { ReservaPayload } from "../types";
+import { CUALQUIER_PROFESIONAL, type ReservaPayload } from "../types";
 
 export const publicoKeys = {
   negocio: (slug: string) => ["publico", slug] as const,
@@ -9,11 +9,17 @@ export const publicoKeys = {
   horarios: (
     slug: string,
     localId: number,
-    profesionalId: number,
-    fecha: string,
-    duracion: number
+    servicios: number[],
+    profesionalId: number | null,
+    fecha: string
   ) =>
-    ["publico", slug, localId, "horarios", profesionalId, fecha, duracion] as const,
+    [
+      "publico", slug, localId, "horarios",
+      servicios.join(","), profesionalId ?? "sin-elegir", fecha,
+    ] as const,
+  /** Todas las de una sede: para refrescarlas tras perder una hora. */
+  horariosDe: (slug: string, localId: number) =>
+    ["publico", slug, localId, "horarios"] as const,
 };
 
 /** Negocio + sedes. El catálogo no cambia mientras el cliente reserva. */
@@ -38,32 +44,33 @@ export function useTienda(slug: string, sede: string) {
 }
 
 /**
- * Huecos libres. A diferencia del catálogo **no se cachea mucho**: entre que
- * el cliente elige y confirma, otro puede haber tomado la hora.
+ * Huecos libres (Story 6.4). A diferencia del catálogo se cachean **solo 30 s**:
+ * entre que el cliente elige y confirma, otro puede llevarse la hora. Se
+ * vuelven a pedir cada 30 s y al volver a la pestaña.
+ *
+ * `profesionalId`: `null` = sin elegir (no se pide nada);
+ * `CUALQUIER_PROFESIONAL` = las horas de cualquiera que pueda atender.
  */
 export function useHorarios(
   slug: string,
   localId: number,
+  servicios: number[],
   profesionalId: number | null,
-  fecha: string | null,
-  duracionMin: number
+  fecha: string | null
 ) {
   return useQuery({
-    queryKey: publicoKeys.horarios(
-      slug,
-      localId,
-      profesionalId ?? 0,
-      fecha ?? "",
-      duracionMin
-    ),
+    queryKey: publicoKeys.horarios(slug, localId, servicios, profesionalId, fecha ?? ""),
     queryFn: () =>
       publicoApi.horarios(slug, localId, {
-        profesional_id: profesionalId!,
         fecha: fecha!,
-        duracion_min: duracionMin,
+        servicios,
+        profesional_id:
+          profesionalId === CUALQUIER_PROFESIONAL ? null : profesionalId,
       }),
-    enabled: !!profesionalId && !!fecha && duracionMin > 0,
+    enabled: profesionalId !== null && !!fecha && servicios.length > 0,
     staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+    refetchOnWindowFocus: true,
   });
 }
 

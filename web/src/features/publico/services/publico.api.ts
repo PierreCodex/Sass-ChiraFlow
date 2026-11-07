@@ -61,49 +61,80 @@ export const publicoApi = {
   },
 
   /**
-   * Horas libres de un profesional para una fecha y una duración.
+   * Horas libres de una sede para unos servicios (Story 6.4).
    *
-   * En mock se calcula con el **mismo motor** que usa el calendario del panel
-   * (`features/calendario/disponibilidad`), así los huecos que ve el cliente
-   * son exactamente los que respeta el admin: jornada, breaks, excepciones y
-   * citas ya tomadas.
+   * `servicios` lleva un id por unidad (dos cortes = el id dos veces); varios
+   * distintos son una cita seguida con quien los preste todos. La duración la
+   * calcula el servidor. Sin `profesional_id`, las horas de cualquiera que
+   * pueda atender.
+   *
+   * En mock se calcula con el **mismo motor** que el calendario del panel
+   * (`features/calendario/disponibilidad`), con la misma unión.
    */
   horarios: async (
     slug: string,
     localId: number,
-    params: { profesional_id: number; fecha: string; duracion_min: number }
+    params: { fecha: string; servicios: number[]; profesional_id: number | null }
   ): Promise<string[]> => {
     if (usarMocksPara("publico")) {
       await delay(300);
 
-      const empleado = profesionalesMock.find(
-        (item) => item.id === params.profesional_id
+      const tienda = tiendaLocalMock(String(localId));
+      if (!tienda) return [];
+
+      const catalogo = tienda.categorias.flatMap((categoria) => categoria.servicios);
+      const distintos = [...new Set(params.servicios)];
+      if (!distintos.every((id) => catalogo.some((servicio) => servicio.id === id))) {
+        return [];
+      }
+
+      const duracion = params.servicios.reduce(
+        (total, id) => total + (catalogo.find((servicio) => servicio.id === id)?.duracion_min ?? 0),
+        0
       );
-      if (!empleado) return [];
 
-      const jornada = jornadaDelDia(empleado, params.fecha, {
-        apertura: configuracionMock.horario_apertura ?? "09:00",
-        cierre: configuracionMock.horario_cierre ?? "20:00",
-      });
-      if (!jornada.trabaja) return [];
+      const candidatos = tienda.profesionales
+        .filter((profesional) => distintos.every((id) => profesional.servicios.includes(id)))
+        .map((profesional) => profesional.id)
+        .filter((id) => params.profesional_id === null || id === params.profesional_id);
 
-      const ocupados: Ocupado[] = citasMock
-        .filter(
-          (cita) =>
-            cita.fecha === params.fecha &&
-            cita.empleado?.id === params.profesional_id &&
-            cita.estado !== "cancelada"
-        )
-        .map((cita) => ({ inicio: cita.hora_inicio, fin: cita.hora_fin }));
+      const horas = new Set<string>();
+      for (const id of candidatos) {
+        const empleado = profesionalesMock.find((item) => item.id === id);
+        if (!empleado) continue;
 
-      const paso = pasoDeAgenda(configuracionMock.agenda, params.duracion_min);
+        const jornada = jornadaDelDia(empleado, params.fecha, {
+          apertura: configuracionMock.horario_apertura ?? "09:00",
+          cierre: configuracionMock.horario_cierre ?? "20:00",
+        });
+        if (!jornada.trabaja) continue;
 
-      return huecosDisponibles(jornada, ocupados, params.duracion_min, paso);
+        const ocupados: Ocupado[] = citasMock
+          .filter(
+            (cita) =>
+              cita.fecha === params.fecha &&
+              cita.empleado?.id === id &&
+              cita.estado !== "cancelada"
+          )
+          .map((cita) => ({ inicio: cita.hora_inicio, fin: cita.hora_fin }));
+
+        const paso = pasoDeAgenda(configuracionMock.agenda, duracion);
+        huecosDisponibles(jornada, ocupados, duracion, paso).forEach((hora) => horas.add(hora));
+      }
+
+      return [...horas].sort();
     }
 
+    const { fecha, servicios, profesional_id } = params;
     const { data } = await api.get<{ data: string[] }>(
       `/publico/${slug}/sucursal/${localId}/horarios`,
-      { params }
+      {
+        params: {
+          fecha,
+          servicios,
+          ...(profesional_id === null ? {} : { profesional_id }),
+        },
+      }
     );
     return data.data;
   },

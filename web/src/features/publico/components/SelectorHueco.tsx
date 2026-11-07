@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -10,42 +11,48 @@ import Typography from "@mui/material/Typography";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { useHorarios } from "../hooks/useTienda";
-import type { ProfesionalPublico } from "../types";
+import { CUALQUIER_PROFESIONAL, type ProfesionalPublico } from "../types";
 
 interface Props {
   slug: string;
   localId: number;
   profesionales: ProfesionalPublico[];
-  duracionMin: number;
+  /** Un id por unidad: dos cortes = el id dos veces. El servidor suma. */
+  servicios: number[];
   profesionalId: number | null;
   fecha: string | null;
   hora: string | null;
   onProfesional: (id: number) => void;
   onFecha: (fecha: string) => void;
-  onHora: (hora: string) => void;
+  onHora: (hora: string | null) => void;
 }
 
+/**
+ * Hoy en la hora del navegador. `toISOString()` da la fecha en UTC: en Lima,
+ * desde las 19:00 ya sería mañana y no se podría reservar para esta noche.
+ */
 function hoy() {
-  return new Date().toISOString().slice(0, 10);
+  const ahora = new Date();
+  const dos = (n: number) => String(n).padStart(2, "0");
+  return `${ahora.getFullYear()}-${dos(ahora.getMonth() + 1)}-${dos(ahora.getDate())}`;
 }
 
 /**
  * Profesional → fecha → hueco, en ese orden.
  *
- * El orden importa y no es el de la app actual, que pone "Fecha y hora" antes
- * que "Profesional": los huecos **dependen** del profesional
- * (`/horarios` recibe `profesional_id`), así que no se pueden calcular antes
- * de elegirlo.
+ * Los huecos dependen de quién atiende, así que se elige primero. «Cualquier
+ * profesional» (Story 6.4) junta las horas de todos los que pueden, y la
+ * reserva asigna uno.
  *
  * Las horas son chips, no un campo libre: si un hueco no está en la lista, no
- * se puede reservar. Así el cliente nunca elige una hora que el negocio va a
- * tener que rechazar.
+ * se puede reservar. La lista se refresca cada 30 s; si la hora elegida
+ * desaparece (otro cliente se la llevó), se quita y se dice.
  */
 const SelectorHueco = ({
   slug,
   localId,
   profesionales,
-  duracionMin,
+  servicios,
   profesionalId,
   fecha,
   hora,
@@ -53,13 +60,36 @@ const SelectorHueco = ({
   onFecha,
   onHora,
 }: Props) => {
-  const { data: huecos, isPending } = useHorarios(
+  const { data: huecos, isPending, isFetching } = useHorarios(
     slug,
     localId,
+    servicios,
     profesionalId,
-    fecha,
-    duracionMin
+    fecha
   );
+  const [perdida, setPerdida] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hora || !huecos || isFetching) return;
+    if (!huecos.includes(hora)) {
+      setPerdida(hora);
+      onHora(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [huecos, hora, isFetching]);
+
+  const elegirProfesional = (id: number) => {
+    setPerdida(null);
+    onProfesional(id);
+  };
+  const elegirFecha = (valor: string) => {
+    setPerdida(null);
+    onFecha(valor);
+  };
+  const elegirHora = (valor: string) => {
+    setPerdida(null);
+    onHora(valor);
+  };
 
   return (
     <Stack spacing={1}>
@@ -70,9 +100,12 @@ const SelectorHueco = ({
           fullWidth
           value={profesionalId ?? ""}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onProfesional(Number(e.target.value))
+            elegirProfesional(Number(e.target.value))
           }
         >
+          {profesionales.length > 1 ? (
+            <MenuItem value={CUALQUIER_PROFESIONAL}>Cualquier profesional</MenuItem>
+          ) : null}
           {profesionales.map((profesional) => (
             <MenuItem key={profesional.id} value={profesional.id}>
               {profesional.nombre}
@@ -89,7 +122,7 @@ const SelectorHueco = ({
           value={fecha ?? ""}
           slotProps={{ htmlInput: { min: hoy() } }}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onFecha(e.target.value)
+            elegirFecha(e.target.value)
           }
         />
       </Box>
@@ -97,7 +130,13 @@ const SelectorHueco = ({
       <Box>
         <CustomFormLabel>Hora</CustomFormLabel>
 
-        {!profesionalId || !fecha ? (
+        {perdida ? (
+          <Alert severity="warning" sx={{ mb: 1 }}>
+            La hora {perdida} ya no está libre. Elige otra.
+          </Alert>
+        ) : null}
+
+        {profesionalId === null || !fecha ? (
           <Typography variant="body2" color="textSecondary">
             Elige profesional y fecha para ver las horas libres.
           </Typography>
@@ -120,7 +159,7 @@ const SelectorHueco = ({
                 label={libre}
                 color={libre === hora ? "primary" : "default"}
                 variant={libre === hora ? "filled" : "outlined"}
-                onClick={() => onHora(libre)}
+                onClick={() => elegirHora(libre)}
               />
             ))}
           </Stack>
