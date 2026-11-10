@@ -2,7 +2,7 @@
 title: 'Story 4.1 — Un solo camino para avisar, con registro de lo enviado'
 type: 'feature'
 created: '2026-11-07'
-status: 'review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'
