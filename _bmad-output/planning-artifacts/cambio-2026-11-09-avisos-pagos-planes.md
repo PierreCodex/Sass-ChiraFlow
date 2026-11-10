@@ -66,7 +66,20 @@ Entre el 2026-11-07 y el 2026-11-09, al revisar la épica 4 con Jean y el equipo
   el cliente lo pide.
 - **Pensado para la API oficial:** el `Notificador` pasa datos con nombre, no
   texto armado; cada plantilla tendrá un campo opcional «plantilla en Meta» con
-  el orden de sus variables.
+  el orden de sus variables. Las plantillas se envían a aprobación **antes**
+  del cambio, mientras Evolution sigue funcionando.
+- **Los números son configuración, no código.** Cada número es un registro del
+  panel de plataforma: proveedor (Evolution, Meta/Kapso), número, **uso**
+  (equipo, clientes o ambos) y estado (calentando, activo, caído, retirado). El
+  `Notificador` pide «el canal para este destinatario» y la configuración
+  responde. Cambiar de número, pasar a uno solo con Meta o usar uno de reserva
+  es reasignar el uso, en minutos.
+- **Los consentimientos son de la persona, no del número**: el del cliente
+  sigue valiendo con un número nuevo (el primer mensaje se presenta: «Somos
+  tivu, el nuevo número de avisos de [negocio]»). El equipo vuelve a escribir
+  su código al número nuevo, para mantener la conversación de ida y vuelta.
+- **Un tercer número de reserva**, calentándose desde el principio, para
+  reemplazar al instante uno bloqueado.
 
 ### 2.2 Nada de mensajes basura al equipo
 
@@ -169,7 +182,7 @@ Primero los tipos 1 y 2.
 
 | Dónde | Cambio |
 |---|---|
-| **AD-22** | Canal WhatsApp para equipo **y clientes**, dos números, consentimiento, solo tras confirmar, datos y no texto, respuestas APROBAR/ACTIVAR/CAMBIAR/AYUDA por webhook, Evolution en Coolify |
+| **AD-22** | Canal WhatsApp para equipo **y clientes**, dos números (más uno de reserva) como **registros configurables** con proveedor, uso y estado; consentimiento de la persona, no del número; solo tras confirmar; datos y no texto; respuestas APROBAR/ACTIVAR/CAMBIAR/AYUDA por un único webhook con un adaptador por proveedor; Evolution en Coolify |
 | **AD-8** | El `Notificador` resuelve también canal y preferencias (por persona y por negocio) antes de crear el envío |
 | Tabla de tecnología | «Evolution API v2 en Railway…» → «Evolution API v2.3.7 en el VPS con Coolify (Postgres y Redis propios, red interna, `evo.tivuapp.com` tras Cloudflare Access)» |
 | Deferred | Sale «WhatsApp a clientes»; entran «Izipay/Culqi» y «aviso de dispositivo nuevo» |
@@ -196,7 +209,7 @@ Primero los tipos 1 y 2.
 | **4.4** Recordatorios | Se amplía: también por WhatsApp al cliente con consentimiento; cantidad según plan |
 | **4.5** A quién le llega | El equipo solo tras confirmar; al dueño no lo que hizo él |
 | **4.6** Preferencias | Mi perfil (al instante / resumen / apagado; canal) y Configuración para clientes; al menos uno con «comprobante por verificar» |
-| **4.8** WhatsApp | Coolify; dos números; activación por código; clientes; respuestas por webhook; quitar «clientes no reciben WhatsApp» |
+| **4.8** WhatsApp | Coolify; números como registros (proveedor, uso, estado) editables desde el panel de plataforma; activación por código; clientes; respuestas por webhook; quitar «clientes no reciben WhatsApp» |
 | **6.6** Reservar | Casilla de WhatsApp; el equipo no se entera hasta confirmar |
 | **6.7** Confirmar | Al confirmar: primer aviso al equipo y primer WhatsApp al cliente |
 | **7.2 / 7.3** Pagar y subir | La captura se sube en la misma web; el correo es respaldo |
@@ -228,6 +241,7 @@ Primero los tipos 1 y 2.
 1. Aplicar este cambio a los documentos (una PR).
 2. **4.2** (plantillas con marca) → **4.8** (canal WhatsApp) → **4.4** (con
    WhatsApp) → 4.5, 4.6 → **6.6 / 6.7** (reservar y confirmar).
-3. Calentar los dos números **desde ya**, en paralelo (son semanas).
+3. Calentar los **tres números** (equipo, clientes y reserva) **desde ya**, en
+   paralelo (son semanas).
 4. Épicas 7 y 8 según el plan; 8.7 antes de abrir el piloto (9.6).
 5. Después del lanzamiento: épica 10 (Mercado Pago) y épica 11 (promociones).
