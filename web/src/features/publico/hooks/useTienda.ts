@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toApiError } from "@/lib/api/client";
 import { publicoApi } from "../services/publico.api";
 import { CUALQUIER_PROFESIONAL, type ReservaPayload } from "../types";
 
@@ -17,6 +18,8 @@ export const publicoKeys = {
       "publico", slug, localId, "horarios",
       servicios.join(","), profesionalId ?? "sin-elegir", fecha,
     ] as const,
+  /** Las sedes de un negocio: para refrescar el catálogo (Story 6.5). */
+  sedesDe: (slug: string) => ["publico", slug, "sucursal"] as const,
   /** Todas las de una sede: para refrescarlas tras perder una hora. */
   horariosDe: (slug: string, localId: number) =>
     ["publico", slug, localId, "horarios"] as const,
@@ -32,12 +35,20 @@ export function useNegocioPublico(slug: string) {
   });
 }
 
-/** Una sede por su slug (o uno antiguo, o el id): Story 6.2. */
+/**
+ * Una sede por su slug (o uno antiguo, o el id): Story 6.2.
+ *
+ * Story 6.5: se vuelve a pedir cada minuto y al volver a la pestaña. Si un
+ * servicio deja de ser reservable mientras el cliente elige, la página lo
+ * quita de su selección y se lo dice.
+ */
 export function useTienda(slug: string, sede: string) {
   return useQuery({
     queryKey: publicoKeys.tienda(slug, sede),
     queryFn: () => publicoApi.tienda(slug, sede),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+    refetchOnWindowFocus: true,
     retry: false,
     enabled: sede !== "",
   });
@@ -71,6 +82,8 @@ export function useHorarios(
     staleTime: 30 * 1000,
     refetchInterval: 30 * 1000,
     refetchOnWindowFocus: true,
+    // Un 404 es «ya no se puede reservar»: reintentar no lo arregla.
+    retry: (intentos, error) => toApiError(error).status !== 404 && intentos < 2,
   });
 }
 

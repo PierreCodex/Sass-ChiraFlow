@@ -202,6 +202,19 @@ el negocio tenga que rechazar después.
 > usuario en la vista pública al agendar verá los horarios que tiene
 > disponible ese profesional"*.
 
+### Si el negocio cambia algo mientras el cliente elige (Story 6.5)
+
+El catálogo se refresca cada minuto, al volver a la pestaña y cuando
+`/horarios` responde 404. Lo que ya no se puede reservar sale de la selección y
+lo que cambió de precio o de duración se pone al día; el aviso lo dice encima
+del catálogo y dentro del asistente, sin contar el motivo exacto:
+
+> Quitamos «Barba» de tu selección: ya no se puede reservar en esta sede (el
+> negocio lo retiró o no tiene quién lo atienda).
+
+Si la selección se queda vacía, el asistente se cierra. La barra inferior
+lleva duración, total y un botón **Vaciar**.
+
 ### Comprobante
 
 Tras confirmar: código de reserva, el desglose de citas con fecha, hora y

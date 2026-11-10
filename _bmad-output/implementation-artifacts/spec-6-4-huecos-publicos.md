@@ -2,7 +2,7 @@
 title: 'Story 6.4 — Los huecos que ve el cliente son los de verdad'
 type: 'feature'
 created: '2026-11-07'
-status: 'review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'

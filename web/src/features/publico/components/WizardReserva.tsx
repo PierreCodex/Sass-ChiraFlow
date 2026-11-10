@@ -51,6 +51,8 @@ interface Props {
   localId: number;
   lineas: LineaCarrito[];
   profesionales: ProfesionalPublico[];
+  /** Story 6.5: qué cambió en la selección mientras elegía. */
+  aviso?: string | null;
   onCerrar: () => void;
   onConfirmada: (reserva: ReservaConfirmada) => void;
 }
@@ -70,6 +72,7 @@ const WizardReserva = ({
   localId,
   lineas,
   profesionales,
+  aviso = null,
   onCerrar,
   onConfirmada,
 }: Props) => {
@@ -114,6 +117,30 @@ const WizardReserva = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto, lineas]);
+
+  /*
+    Story 6.5: si el profesional elegido deja de poder atender (el catálogo
+    se refrescó), se le quita la elección en vez de pedir horas imposibles.
+  */
+  useEffect(() => {
+    const vigentes = new Set(profesionales.map((profesional) => profesional.id));
+    setAsignaciones((actuales) =>
+      actuales.some(
+        (asignacion) =>
+          asignacion.profesional_id !== null &&
+          asignacion.profesional_id !== CUALQUIER_PROFESIONAL &&
+          !vigentes.has(asignacion.profesional_id)
+      )
+        ? actuales.map((asignacion) =>
+            asignacion.profesional_id !== null &&
+            asignacion.profesional_id !== CUALQUIER_PROFESIONAL &&
+            !vigentes.has(asignacion.profesional_id)
+              ? { ...asignacion, profesional_id: null, hora_inicio: null }
+              : asignacion
+          )
+        : actuales
+    );
+  }, [profesionales]);
 
   const pasos = necesitaModo
     ? ["Modalidad", "Fecha y profesional", "Tus datos", "Confirmar"]
@@ -228,6 +255,12 @@ const WizardReserva = ({
       <Divider />
 
       <DialogContent sx={formularioCompacto}>
+        {aviso ? (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {aviso}
+          </Alert>
+        ) : null}
+
         {errorGeneral ? (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorGeneral.message}
@@ -303,8 +336,9 @@ const WizardReserva = ({
             <Box>
               <Typography variant="body2" color="textSecondary" mb={2}>
                 {lineas.length > 1
-                  ? `Reservamos ${duracionTotal} minutos seguidos para tus ${lineas.length} servicios.`
-                  : `Duración: ${duracionTotal} minutos.`}
+                  ? `Reservamos ${duracionTotal} minutos seguidos para tus ${lineas.length} servicios`
+                  : `Duración: ${duracionTotal} minutos`}
+                {` · Total: ${formatMoneda(montoTotal)}`}
               </Typography>
               <SelectorHueco
                 slug={slug}

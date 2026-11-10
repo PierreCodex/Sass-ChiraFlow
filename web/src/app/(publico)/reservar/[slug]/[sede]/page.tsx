@@ -1,5 +1,5 @@
 "use client";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -25,7 +25,7 @@ import WizardReserva from "@/features/publico/components/WizardReserva";
 import ComprobanteReserva from "@/features/publico/components/ComprobanteReserva";
 import { useCarrito } from "@/features/publico/hooks/useCarrito";
 import { useNegocioPublico, useTienda } from "@/features/publico/hooks/useTienda";
-import type { ReservaConfirmada } from "@/features/publico/types";
+import { avisoDeCambios, type ReservaConfirmada } from "@/features/publico/types";
 
 /**
  * Una sede de la tienda: `/reservar/{negocio}/{sede}` (Story 6.2), y por
@@ -60,6 +60,27 @@ export default function SedePage({
 
   const [wizardAbierto, setWizardAbierto] = useState(false);
   const [confirmada, setConfirmada] = useState<ReservaConfirmada | null>(null);
+
+  /*
+    Story 6.5: el catálogo se refresca mientras el cliente elige. Si algo de
+    su selección ya no se puede reservar (o cambió de precio), se ajusta y se
+    le dice, también dentro del asistente si lo tiene abierto.
+  */
+  const [aviso, setAviso] = useState<string | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    const texto = avisoDeCambios(
+      carrito.sincronizar(data.categorias.flatMap((categoria) => categoria.servicios))
+    );
+    if (texto) setAviso(texto);
+    // Solo cuando llega un catálogo nuevo, no cuando cambia la selección.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  // Si la selección se queda vacía, no hay nada que reservar.
+  useEffect(() => {
+    if (wizardAbierto && carrito.unidades === 0) setWizardAbierto(false);
+  }, [wizardAbierto, carrito.unidades]);
 
   if (isError) {
     return (
@@ -141,6 +162,11 @@ export default function SedePage({
 
             {/* Catálogo */}
             <Grid size={{ xs: 12, md: 8 }} id="catalogo">
+              {aviso ? (
+                <Alert severity="warning" onClose={() => setAviso(null)} sx={{ mb: 2 }}>
+                  {aviso}
+                </Alert>
+              ) : null}
               {categorias.length === 0 ? (
                 <Alert severity="info">
                   Esta sede todavía no tiene servicios publicados.
@@ -189,6 +215,7 @@ export default function SedePage({
           monto={carrito.monto}
           duracion={carrito.duracion}
           onReservar={() => setWizardAbierto(true)}
+          onVaciar={carrito.vaciar}
         />
       ) : null}
 
@@ -198,6 +225,7 @@ export default function SedePage({
         localId={idLocal}
         lineas={carrito.lineas}
         profesionales={profesionales}
+        aviso={aviso}
         onCerrar={() => setWizardAbierto(false)}
         onConfirmada={(reserva) => {
           setWizardAbierto(false);
