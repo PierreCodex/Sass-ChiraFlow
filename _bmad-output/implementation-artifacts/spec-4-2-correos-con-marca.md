@@ -2,7 +2,7 @@
 title: 'Story 4.2 — Correos que parecen del negocio y están en español'
 type: 'feature'
 created: '2026-11-10'
-status: 'review'
+status: 'done'
 route: 'full'
 review: 'thorough'
 baseline_commit: 'develop'

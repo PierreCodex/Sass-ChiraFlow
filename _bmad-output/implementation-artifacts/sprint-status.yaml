@@ -68,13 +68,13 @@ development_status:
 
   epic-4: in-progress
   4-1-un-solo-camino-para-avisar-con-registro-de-lo-enviado: done
-  4-2-correos-que-parecen-del-negocio-y-están-en-español: review
+  4-2-correos-que-parecen-del-negocio-y-están-en-español: done
   4-3-saber-si-el-correo-llegó: backlog
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: backlog
   4-5-cada-aviso-llega-a-quien-le-toca: backlog
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: backlog
   4-7-la-cuota-de-correos-no-corta-lo-importante: backlog
-  4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: backlog
+  4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: in-progress
   epic-4-retrospective: optional
 
   epic-5: backlog
