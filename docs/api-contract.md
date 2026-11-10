@@ -180,6 +180,9 @@ registro, verificación y recuperación viajan **sin** sesión):
 | POST | `/reset-password` | `{ token, email, password, password_confirmation }` | 200 |
 | PUT | `/user` | `{ nombre, apellido, telefono?, documento?, foto? }` | `{ data: Usuario }` · Mi perfil |
 | PUT | `/user/password` | `{ password_actual, password, password_confirmation }` | 200 · 422 `errors.password_actual` si no cuadra |
+| GET | `/user/whatsapp` | — | `{ data: WhatsappEquipo \| null }` · Mi perfil → Avisos por WhatsApp (Story 4.8b) |
+| PUT | `/user/whatsapp` | `{ telefono }` | `{ data: WhatsappEquipo }` en `pendiente`, con un código nuevo · 422 `errors.telefono` si el formato no vale o el plan no admite más números |
+| DELETE | `/user/whatsapp` | — | 204 · deja de recibir WhatsApp (el correo sigue) |
 
 **Validación de Mi perfil:** `nombre` y `apellido` son obligatorios, de hasta
 150 caracteres cada uno; se conservan íntegros y nunca se deducen de `name`.
@@ -193,6 +196,34 @@ existente solo en lectura y explica que la subida está pendiente. Al guardar
 otros datos **omite `foto`**, conservando su valor actual. El endpoint acepta
 una cadena de hasta 255 caracteres o null, pero no ofrece aún una subida de
 archivo. No se envían URLs temporales `blob:`. La subida queda pendiente.
+
+**Avisos por WhatsApp del equipo (Story 4.8b, AD-22).** Cada persona del
+equipo activa su número escribiendo un código al **número del equipo** de la
+plataforma: así se prueba que el número es suyo (consentimiento verificado) y
+la conversación es de ida y vuelta. Hasta entonces no recibe nada.
+
+```jsonc
+// WhatsappEquipo
+{
+  "telefono": "+51911111111",
+  "estado": "pendiente",              // pendiente | activo
+  "codigo": "482913",                 // solo en pendiente; vence a las 24 h
+  "codigo_vence_at": "2026-11-11T15:00:00Z",
+  "numero_plataforma": "+51900000001", // el número del equipo activo, o null si no hay
+  "enlace": "https://wa.me/51900000001?text=ACTIVAR%20482913", // null sin número o ya activo
+  "activado_at": null
+}
+```
+
+- `PUT` con un teléfono nuevo **vuelve a `pendiente`** con otro código (cambiar
+  de número exige volver a activar). Con el mismo teléfono y ya activo, no
+  cambia nada.
+- Cuántos números del equipo puede tener un negocio lo pone el plan
+  (`max_numeros_equipo`: Básico 1, Premium 3, Pro 10). Contados: `pendiente`
+  y `activo`.
+- La persona puede darse de baja también respondiendo **BAJA** por WhatsApp.
+- El teléfono va con `+51` y nueve dígitos, como en `PUT /user`; es el de
+  WhatsApp y puede ser distinto del de la ficha.
 
 **Los dos "restablecer contraseña" no son el mismo.** `/forgot-password` +
 `/reset-password` son para quien **no puede entrar**: van por correo y no
@@ -1078,7 +1109,7 @@ extra_profesionales: int, extra_whatsapp: int, elegible_promo: bool }`.
 
 `Plan`: `id`, `nombre`, `slug`, `descripcion` (texto comercial),
 `precio_mensual`, `precio_anual`, `precio_promo?`, `promo_duracion_meses`,
-`promo_activa`, `max_profesionales`, `max_sucursales`, `max_whatsapp_mes`,
+`promo_activa`, `max_profesionales`, `max_sucursales`, `max_whatsapp_mes`, `max_numeros_equipo` (Story 4.8b),
 `precio_profesional_extra`, `precio_whatsapp_extra`, `mensajes_whatsapp_extra`,
 `destacado`, `features: string[]` (claves; las etiquetas están en el frontend).
 

@@ -4,6 +4,7 @@ import Stack from "@mui/material/Stack";
 
 import PageContainer from "@/components/container/PageContainer";
 import EncabezadoPagina from "@/components/shared/EncabezadoPagina";
+import AvisosWhatsapp from "@/features/perfil/components/AvisosWhatsapp";
 import CambiarPassword from "@/features/perfil/components/CambiarPassword";
 import DatosPersonales from "@/features/perfil/components/DatosPersonales";
 import TarjetaCuenta from "@/features/perfil/components/TarjetaCuenta";
@@ -13,13 +14,14 @@ export default function PerfilPage() {
     <PageContainer title="Mi perfil" description="Los datos de tu cuenta">
       <EncabezadoPagina
         titulo="Mi perfil"
-        descripcion="Tus datos y tu contraseña. Los del negocio están en Configuración."
+        descripcion="Tus datos, tus avisos por WhatsApp y tu contraseña. Los del negocio están en Configuración."
       />
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7, lg: 8 }}>
           <Stack spacing={3}>
             <DatosPersonales />
+            <AvisosWhatsapp />
             <CambiarPassword />
           </Stack>
         </Grid>
