@@ -1,0 +1,84 @@
+# Evolution API (WhatsApp) para tivu, en Coolify: proyecto `tivu`, entorno
+# `production`, recurso «Docker Compose Empty» llamado `evolution`.
+#
+# Solo la API sale fuera, por https://evo.tivuapp.com (puerto 8080 en Domains),
+# detrás de Cloudflare Access (política «Solo Jean»). Postgres y Redis son
+# suyos y no tienen puertos. Laravel le habla por la red interna: en el
+# recurso, «Connect to the predefined Coolify network».
+#
+# Secretos: EVOLUTION_API_KEY y EVOLUTION_DB_PASSWORD, solo en las variables de
+# Coolify y en Bitwarden. Los volúmenes evolution_instances (la sesión de
+# WhatsApp) y evolution_postgres entran en las copias a R2 (AD-20, Story 9.5).
+# Decisión: AD-22 y cambio-2026-11-09-avisos-pagos-planes.md.
+services:
+  evolution-api:
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    depends_on:
+      evolution-postgres:
+        condition: service_healthy
+      evolution-redis:
+        condition: service_started
+    environment:
+      SERVER_TYPE: http
+      SERVER_PORT: "8080"
+      SERVER_URL: https://evo.tivuapp.com
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:?falta EVOLUTION_API_KEY}
+      TELEMETRY_ENABLED: "false"
+      LOG_LEVEL: ERROR,WARN,INFO
+      DEL_INSTANCE: "false"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://evolution:${EVOLUTION_DB_PASSWORD}@evolution-postgres:5432/evolution?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_tivu
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://evolution-redis:6379/6
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "false"
+      CACHE_LOCAL_ENABLED: "false"
+      CONFIG_SESSION_PHONE_CLIENT: tivu
+      CONFIG_SESSION_PHONE_NAME: Chrome
+    volumes:
+      - evolution_instances:/evolution/instances
+    expose:
+      - "8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
+  evolution-postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${EVOLUTION_DB_PASSWORD:?falta EVOLUTION_DB_PASSWORD}
+    volumes:
+      - evolution_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  evolution-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 192mb --maxmemory-policy allkeys-lru
+    volumes:
+      - evolution_redis:/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  evolution_instances:
+  evolution_postgres:
+  evolution_redis:

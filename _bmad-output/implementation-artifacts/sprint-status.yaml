@@ -115,6 +115,7 @@ development_status:
   8-4-entrar-al-panel-de-plataforma: backlog
   8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: backlog
   8-6-el-ciclo-de-vida-corre-solo-cada-día: backlog
+  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: backlog
   epic-8-retrospective: optional
 
   epic-9: backlog
@@ -125,6 +126,22 @@ development_status:
   9-5-producción-de-verdad-con-copias-que-se-restauran: backlog
   9-6-un-piloto-antes-de-abrir-del-todo: backlog
   epic-9-retrospective: optional
+
+  # Cambio del 2026-11-09 (cambio-2026-11-09-avisos-pagos-planes.md):
+  # épicas posteriores al lanzamiento.
+  epic-10: backlog
+  10-1-conectar-mercado-pago-con-un-botón: backlog
+  10-2-pagar-en-línea-al-reservar: backlog
+  10-3-devoluciones-desde-tivu: backlog
+  epic-10-retrospective: optional
+
+  epic-11: backlog
+  11-1-tarjeta-de-sellos: backlog
+  11-2-combos: backlog
+  11-3-descuento-por-día-u-horario: backlog
+  11-4-paquetes-de-sesiones: backlog
+  11-5-ocasiones: backlog
+  epic-11-retrospective: optional
 verificado:
   que_es: "Epica 0 del epics.md - construido, probado y en uso. No se replanifica."
   evidencia: "312 pruebas Pest en verde (backend, 2026-09-19)"
@@ -241,9 +258,10 @@ preparacion:
       nota: "hasta entonces, un negocio con pago obligatorio NO recibe reservas publicas
         (Story 6.6); no se degrada a pago en el local"
     - historias: ["4.8"]
-      bloqueado_por: "Evolution API desplegada en Railway con el numero de la plataforma
-        y consentimiento verificado"
-      desbloquea: "instancia en Railway + numero dado de alta"
+      bloqueado_por: "numeros dedicados de la plataforma (equipo, clientes y reserva)
+        dados de alta y calentados. Evolution ya desplegado en el VPS con Coolify
+        (2026-11-07); Railway descartado el 2026-11-09"
+      desbloquea: "tres numeros con semanas de uso manual"
     - historias: ["9.5"]
       bloqueado_por: "VPS de Contabo con Coolify, Resend Pro y R2 (L-1 y L-2 resueltas
         el 2026-11-03: tivuapp.com y tivuapp.store)"

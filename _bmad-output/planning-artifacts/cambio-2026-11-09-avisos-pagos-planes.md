@@ -1,7 +1,8 @@
 # Propuesta de cambio — Avisos por dos canales, cobro por WhatsApp, planes y promociones
 
 Fecha: 2026-11-09 · Flujo: corrección de rumbo (BMAD) · Estado: **aprobada por el
-equipo el 2026-11-09**, pendiente de aplicar a los documentos.
+equipo y aplicada el 2026-11-09** (PRD, arquitectura, épicas, estado del sprint,
+memlogs y `docs/infra/evolution/`).
 
 Material de apoyo, revisado y aprobado por el equipo (no forma parte del repo):
 

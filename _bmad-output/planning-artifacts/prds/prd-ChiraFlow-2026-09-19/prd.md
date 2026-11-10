@@ -605,6 +605,10 @@ Toda reserva de la tienda que **no se paga con Yape** («pagar en el local», o
 negocio que no pide pago) debe **confirmarla el cliente desde su correo**. Es
 el único modo: frena reservas falsas sin trabajo para el negocio. Realiza
 UJ-4.
+- **Cambio 2026-11-09:** hasta que se confirma, **el equipo del negocio no
+  recibe avisos** de esa reserva (la ve como «pendiente» en el panel y el hueco
+  queda reservado). Al confirmar reciben su primer aviso, y el cliente, si lo
+  aceptó, su primer WhatsApp (FR-85).
 - Al terminar, la tienda muestra: «Revisa tu correo para confirmar tu
   reserva», el correo enmascarado, el plazo con hora exacta y que el horario
   está reservado; botones **Reenviar correo** (con espera entre envíos) y
@@ -796,13 +800,15 @@ funciona; el aviso y Mi Plan no.
 El negocio ve los planes ordenados por precio, con el **sugerido** según sus
 profesionales reales (o, si no dio de alta a nadie, según lo que declaró al
 registrarse). Nunca se esconden planes. Puede añadir profesionales y paquetes
-de WhatsApp extra (0–100). Si su equipo actual no cabe en un plan, se le avisa
-antes de elegirlo.
+de WhatsApp extra (0–100). Si su equipo actual no cabe en un plan, **no puede
+elegirlo** hasta que quepa: el plan aparece bloqueado con el motivo y un botón
+para elegir qué desactivar (cambio 2026-11-09).
 
 #### FR-57: Contratar y activar — ⬜ (A-6)
-**Lanzamiento: activación manual.** El negocio pide el plan desde Mi Plan
-(«contáctanos», por WhatsApp o correo de la plataforma) y un administrador de
-la plataforma lo activa desde el panel de plataforma (FR-60, UJ-7).
+**Lanzamiento: activación manual.** El negocio elige el plan en Mi Plan, paga
+por Yape a tivu y sube la captura; el equipo de tivu la recibe por WhatsApp y
+lo activa respondiendo **ACTIVAR + código**, o desde el panel de plataforma
+(FR-60, UJ-7). Cambio 2026-11-09.
 - Todo cambio de plan registra administrador, fecha, motivo, plan anterior y
   nuevo, periodicidad, vigencia y complementos. **Activar no es cobrar**: el
   pago se registra aparte, con su referencia y evidencia.
@@ -1007,8 +1013,14 @@ Reglas:
   (FR-70) y cobro por QR (FR-44).
 - **Sede** (plan Negocio, administrador de sede): correo de respuesta,
   teléfono de contacto y horario de recordatorios.
-- **Cada usuario** (Mi perfil): reservas nuevas al instante, en resumen diario
-  o nunca; agenda del día; cambios de horario. Los de seguridad no se quitan.
+- **Cada usuario** (Mi perfil → Mis avisos): para cada aviso no esencial, al
+  instante, en resumen diario o apagado, y el canal (correo, WhatsApp o ambos);
+  agenda del día (apagada por defecto); cambios de horario. Los de seguridad no
+  se quitan. «Comprobante por verificar» se puede apagar, pero al menos una
+  persona con permiso de pagos debe tenerlo (cambio 2026-11-09).
+- **Para sus clientes**, el negocio decide lo opcional (te agendaron una cita,
+  recordatorios extra) y puede apagar el WhatsApp a clientes entero; lo
+  esencial de la cita y del pago sale siempre.
 - **Cliente**: puede dejar de recibir **recordatorios** de ese negocio desde
   el pie del correo. Los avisos del estado de su cita no se quitan.
 - **Sin correo válido**: el cliente creado por teléfono no recibe nada y el
@@ -1022,25 +1034,69 @@ Reglas:
   operativos; el consentimiento promocional se recoge (FR-39) y se guarda para
   el futuro.
 
-#### FR-83: Avisos por WhatsApp al personal del negocio — ⬜ (decisión 2026-09-19)
-El sistema avisa por WhatsApp, desde **un único número emisor de ChiraFlow**,
-a los **números internos** que cada negocio configura (recepción,
-verificación de pagos). **Nunca** escribe a clientes finales ni usa el número
-del negocio.
-- Avisos: **comprobante por verificar** (P-3) y **reserva nueva** (C-2), según
-  lo que elija cada número.
+#### FR-83: Avisos por WhatsApp al equipo del negocio — ⬜ (decisiones 2026-09-19 y 2026-11-09)
+El sistema avisa por WhatsApp, desde el **número del equipo** de la
+plataforma, a las personas del equipo de cada negocio que lo activan (dueño,
+encargados, recepción, profesionales). **Nunca** usa el número del negocio.
+- Avisos: los del equipo de los flujos aprobados (nuevas citas confirmadas,
+  cambios, cancelaciones, comprobante por verificar **con la imagen de la
+  captura**, asignaciones, agenda del día), según las preferencias de cada
+  persona (FR-75) y el plan.
+- **Responder para actuar:** el dueño o quien tiene permiso de pagos aprueba un
+  comprobante respondiendo **APROBAR + código**; queda registrado a su nombre.
 - **Consentimiento verificado:** al añadir un número, la persona envía desde
-  él un mensaje con un código («ACTIVAR 482913») al número de ChiraFlow; hasta
+  él un mensaje con un código («ACTIVAR 482913») al número del equipo; hasta
   entonces no recibe nada.
 - **Uso responsable:** límite por minuto y por destinatario, avisos
-  agrupados («3 comprobantes por verificar»), textos cortos sin enlaces
-  acortados, horario del negocio y calentamiento del número nuevo.
-- **Canal secundario:** el correo y el contador del panel se envían siempre;
-  si WhatsApp falla o el número cae, no se pierde ningún aviso, solo llega
-  más lento. La plataforma recibe una alerta si la sesión se desconecta (X-2).
-- **Proveedor del lanzamiento:** Evolution API (conexión no oficial) alojado en
-  Railway. El riesgo de bloqueo lo asume la plataforma. Cuando Meta verifique
-  la empresa, se cambia a la API oficial (Kapso) sin tocar la lógica.
+  agrupados, textos cortos sin enlaces acortados, horario del negocio y
+  calentamiento de los números nuevos.
+- **Canal de apoyo:** el correo y el panel avisan siempre; si WhatsApp falla o
+  el número cae, no se pierde ningún aviso. La plataforma recibe una alerta si
+  la sesión se desconecta (X-2).
+- **Números como configuración:** cada número es un registro (proveedor, uso
+  —equipo, clientes o ambos—, estado). Lanzamiento con tres: equipo, clientes y
+  reserva. Cambiar de número o de proveedor es reasignar el uso.
+- **Proveedor del lanzamiento:** Evolution API (conexión no oficial) en el VPS
+  con Coolify. El riesgo de bloqueo lo asume la plataforma. Cuando Meta
+  verifique la empresa, se pasa a la API oficial (Meta o Kapso) sin tocar la
+  lógica: las plantillas se aprueban antes y se reasignan los usos.
+
+#### FR-85: Avisos por WhatsApp a clientes — ⬜ (decisión 2026-11-09)
+Desde el **número de clientes** de la plataforma, además del correo:
+- **Solo con consentimiento**: casilla **desmarcada** «Recibir avisos por
+  WhatsApp» al reservar en la tienda o en el alta de cita del panel, guardada
+  con fecha en la ficha del cliente de ese negocio (Ley 29733). Se puede dar de
+  baja respondiendo o desde el correo.
+- **Solo con la cita confirmada**: por correo (FR-84) o con el pago aprobado.
+  Las reservas sin confirmar no reciben WhatsApp.
+- Avisos: C-3 confirmada, C-4 te agendaron, C-5 cambió de hora, C-6 cancelada,
+  C-8/C-9 recordatorios. Lo que lleva QR, enlaces de pago o botones, solo por
+  correo.
+- El **primer mensaje no lleva enlace** y termina con una pregunta abierta
+  («Responde CAMBIAR»); al responder recibe el enlace de gestión (FR-69). Puede
+  llevar el logo del negocio o la foto del servicio.
+- Cupo mensual según el plan; agotado, sale solo por correo.
+
+#### FR-86: Planes y promociones editables — ⬜ (decisión 2026-11-09)
+Desde el panel de plataforma, sin código: precio de cada plan, **qué funciones
+incluye** (activar o desactivar), límites, promociones con fecha, paquetes
+extra y **condiciones por negocio** (Plan Fundador, prueba extendida, mes de
+regalo), con registro de quién y por qué. Un cambio de precio afecta a los
+negocios nuevos.
+
+#### FR-87: Pago en línea por negocio — ⬜ · **posterior al lanzamiento**
+Cada negocio conecta su cuenta de **Mercado Pago** con un botón (OAuth) y
+cobra al reservar con tarjeta o Yape; la cita se confirma sola y las
+devoluciones se hacen desde tivu. Convive con el QR manual: cada negocio
+elige. Izipay o Culqi, solo a pedido.
+
+#### FR-88: Promociones y fidelidad — ⬜ · **posterior al lanzamiento**
+Cada negocio crea promociones con plantillas: **tarjeta de sellos** (N
+servicios en un periodo → recompensa), **combo**, **día u horario**,
+**paquete de sesiones** y **ocasiones** (primera visita, cumpleaños,
+referido). Recompensa gratis, % o S/; vigencia, sedes, límite por cliente y
+visibilidad en la tienda. El cliente se reconoce por su teléfono; solo cuentan
+las citas atendidas; se aplica sola. Función de Premium.
 
 #### FR-76: Cuota de correos — ⬜
 Cada plan incluye una cuota mensual de correos (propuesta en §6). Al
@@ -1113,15 +1169,22 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
 - **Cómo se cuentan los límites**: profesionales y sedes **activos**; los
   desactivados no cuentan. Correos: los aceptados por el proveedor en el mes,
   sin contar los de seguridad y suscripción.
-- **Bajar de plan o exceder la capacidad** no borra ni desactiva nada: bloquea
-  crear o activar más, deja en solo lectura lo que el plan ya no incluye y lo
-  avisa en pantalla. Tras [POR DEFINIR] (F-7) días de gracia, las sedes por
-  encima del límite dejan de aceptar reservas nuevas; sus citas siguen vivas.
+- **Bajar de plan** solo se puede si el negocio cabe en el plan nuevo
+  (cambio 2026-11-09): no existe el estado «pasado del límite». Crear o activar
+  más de lo que permite el plan actual se bloquea con el motivo.
 - **Vencimiento**: puerta de cobro para el negocio; las citas ya reservadas se
   mantienen y sus correos esenciales al cliente siguen saliendo; la tienda deja
   de aceptar reservas nuevas.
-- Prueba: 7 días en el código; propuesta de 14 (F-6). Cobro del lanzamiento:
-  manual (FR-57).
+- **3 días de gracia** tras vencer sin pagar, luego suspensión (F-7 resuelta).
+- Prueba: **7 días** con todo Premium, ampliable a 14 por negocio desde el
+  panel (F-6 resuelta). Cobro del lanzamiento: manual con ACTIVAR (FR-57).
+- **Lanzamiento (cambio 2026-11-09):** **dos planes** (Básico y Premium; Pro a
+  pedido) y **Plan Fundador** para los primeros 20–30 negocios: Premium a S/ 9
+  los 3 primeros meses, luego −50 % congelado 12 meses. Los avisos son ventaja
+  de plan sin cobrar lo esencial: números del equipo con WhatsApp (1/3/10),
+  WhatsApp a clientes al mes (—/100/500), aprobar por WhatsApp, recordatorios
+  (1/2/3), resumen diario, imagen, editar textos e informe (Pro). Precios por
+  validar con 10 dueños de Piura (F-5 sigue abierta). Todo editable (FR-86).
 
 ## 7. Lo que no es este producto (v1)
 
@@ -1132,9 +1195,9 @@ Suscripción por negocio con **tres conceptos que no se mezclan**: **plan**
   plataforma solo registra la evidencia y su verificación.
 - No cobra la suscripción con pasarela en el lanzamiento (activación manual;
   Mercado Pago después).
-- No envía WhatsApp a clientes, SMS ni campañas promocionales en el
-  lanzamiento. El único WhatsApp es el aviso al personal de cada negocio
-  (FR-83).
+- No envía SMS ni campañas promocionales en el lanzamiento. WhatsApp: al
+  equipo de cada negocio (FR-83) y a los clientes que lo aceptan, solo con la
+  cita confirmada (FR-85); el correo sale siempre.
 - No es multi-idioma ni multi-moneda.
 - No tiene tiempo real (websockets).
 - Una persona pertenece a **un solo negocio**; varios negocios por persona es
@@ -1222,8 +1285,8 @@ Aprobadas y ya incorporadas: **A-1 a A-7** (2026-09-19). Quedan
 | F-3 | ¿El profesional ve el teléfono del cliente? | FR-62, FR-74 |
 | F-4 | Correo para avisos en la ficha del profesional sin cuenta | FR-75 |
 | F-5 | Nombres, precios, cuotas y complementos de los planes | §6, FR-56 |
-| F-6 | Días de prueba (7 o 14) y uso de la promo S/9 | FR-58 |
-| F-7 | Días de gracia por vencimiento o exceso | §6, FR-58 |
+| ~~F-6~~ | **Resuelta 2026-11-09:** 7 días con todo Premium, ampliable a 14 por negocio; la promo S/9 × 3 meses es el Plan Fundador | FR-58 |
+| ~~F-7~~ | **Resuelta 2026-11-09:** 3 días de gracia por vencimiento; el exceso no existe (no se baja de plan sin caber) | §6, FR-58 |
 | F-8 | Grupos: decidir su uso o retirarlos. **Ocultos desde la 1.14** (los datos se conservan) | FR-22 |
 | Q-03 / L-4 | Tu disponibilidad semanal y el piloto → fecha | Lanzamiento |
 | L-1 | **Nombre comercial y dominio** (remitente, enlaces, subdominios) | FR-73, lanzamiento |

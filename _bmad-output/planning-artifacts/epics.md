@@ -100,8 +100,12 @@ FR67: [⬜] Regla única de reservabilidad servicio + profesional + sede.
 FR68: [⬜] Historial de la cita (eventos con actor).
 FR69: [⬜] Gestión de la cita por enlace seguro: ver, reprogramar, cancelar.
 FR70: [⬜] Política de cambios del negocio (horas mínimas para reprogramar o cancelar).
-FR83: [⬜] Avisos por WhatsApp al personal desde el número de ChiraFlow (Evolution en Railway), canal secundario con consentimiento verificado.
-FR84: [⬜] Confirmación por correo de toda reserva de la tienda sin pago en línea; si no confirma en el plazo, se libera el horario.
+FR83: [⬜] Avisos por WhatsApp al equipo del negocio desde el número del equipo de la plataforma (Evolution en el VPS con Coolify), canal de apoyo con consentimiento verificado por código.
+FR84: [⬜] Confirmación por correo de toda reserva de la tienda sin pago en línea; si no confirma en el plazo, se libera el horario. El equipo no recibe avisos de la reserva hasta que se confirma.
+FR85: [⬜] Avisos por WhatsApp a clientes con consentimiento, desde el número de clientes de la plataforma, solo con la cita ya confirmada (C-3, C-4, C-5, C-6, C-8/C-9); el correo sale siempre.
+FR86: [⬜] Planes, funciones, límites, promociones y condiciones por negocio editables desde el panel de plataforma, sin código.
+FR87: [post] Pago en línea por negocio con Mercado Pago (conectado con un botón); la cita se confirma sola.
+FR88: [post] Promociones y fidelidad configurables por negocio: tarjeta de sellos, combos, día u horario, paquetes de sesiones y ocasiones.
 FR71: [⬜] Caducidad de la reserva impaga solo con pago obligatorio; plazos desde la creación o desde «pedir otra captura», nunca después de 15 min antes de la cita; sin horarios que no dejen tiempo de pagar.
 FR72: [⬜] Cancelaciones, reprogramaciones y devoluciones con pago.
 FR73: [⬜] Envío de correo fiable (tras commit, reintentos, sin duplicados, estados, webhook, aislamiento, dominio autenticado); arreglar correos actuales.
@@ -202,7 +206,7 @@ UX-DR10: Editor de apariencia de la página de reservas (identidad, estilo de po
 | FR36–FR40, FR43 | 6 | Tienda pública completa |
 | FR41, FR42 | — | SEO y reseñas (posteriores) |
 | FR44–FR46 | 7 | Configurar, subir y verificar el pago con Yape |
-| FR47–FR50 | — | WhatsApp a clientes y caja (posteriores) |
+| FR47–FR50 | — | Módulo de WhatsApp propio del negocio (plantillas y envíos manuales) y caja (posteriores) |
 | FR52–FR54 | — | Reportes y soporte (posteriores) |
 | FR55–FR58 | 8 | Estado de la suscripción, Mi Plan, activación y ciclo de vida |
 | FR59 | — | Métricas de plataforma (posterior) |
@@ -216,7 +220,11 @@ UX-DR10: Editor de apariencia de la página de reservas (identidad, estilo de po
 | FR77–FR79, FR82 | 5 | Identidad del negocio, editor y traslado desde las sedes |
 | FR80 | — | Portada por sede (posterior) |
 | FR81 | 6 | Slug de sede y redirecciones |
-| FR83 | 4 | Avisos por WhatsApp al personal |
+| FR83 | 4 | Avisos por WhatsApp al equipo |
+| FR85 | 4 | Avisos por WhatsApp a clientes con consentimiento |
+| FR86 | 8 | Planes y promociones editables desde el panel de plataforma |
+| FR87 | 10 | Pago en línea con Mercado Pago (posterior) |
+| FR88 | 11 | Promociones y fidelidad (posterior) |
 | FR84 | 6 | Confirmación por correo de las reservas sin pago en línea |
 
 
@@ -259,9 +267,9 @@ urgente.
 ### Épica 4: Nadie se entera tarde de nada
 Clientes y equipo reciben los avisos que importan: correo fiable con su
 registro de entregas, recordatorios que se reprograman solos y WhatsApp al
-encargado cuando algo necesita su atención.
-**FRs cubiertos:** FR73–FR76, FR83.
-**Notas:** incluye arreglar los correos actuales (recuperación de contraseña en inglés, plantilla común), la agenda central de tareas y el canal de WhatsApp con Evolution en Railway. Agente sugerido: **Claude** (notificador, tareas) + **Codex** (pantallas de preferencias).
+equipo y a los clientes que lo aceptan.
+**FRs cubiertos:** FR73–FR76, FR83, FR85.
+**Notas:** incluye arreglar los correos actuales (recuperación de contraseña en inglés, plantilla común), la agenda central de tareas y el canal de WhatsApp con Evolution en el VPS con Coolify (dos números de la plataforma y uno de reserva, configurables). Cambio del 2026-11-09. Agente sugerido: **Claude** (notificador, tareas) + **Codex** (pantallas de preferencias).
 
 ### Épica 5: El negocio se ve como su negocio
 El dueño viste su página de reservas con su logo, su color y su portada, la ve
@@ -287,20 +295,32 @@ pago tardío ya resueltos.
 La plataforma deja de depender de consultas manuales: hay un panel propio con
 2FA para activar planes, registrar pagos y suspender, y el negocio ve su plan,
 sus límites y su vencimiento.
-**FRs cubiertos:** FR55–FR58, FR60.
-**Notas:** un único camino aplica los cambios (AD-10), el historial no se edita y activar nunca equivale a cobrar. Agente sugerido: **Claude** (suscripción y auditoría) + **Codex** (pantallas).
+**FRs cubiertos:** FR55–FR58, FR60, FR86.
+**Notas:** un único camino aplica los cambios (AD-10), el historial no se edita y activar nunca equivale a cobrar. Desde el 2026-11-09: no se baja de plan sin caber, el cobro manual se activa respondiendo ACTIVAR por WhatsApp y los planes se editan desde el panel (8.7). Agente sugerido: **Claude** (suscripción y auditoría) + **Codex** (pantallas).
 
 ### Épica 9: Abrir la puerta al público
 El producto se puede enseñar y contratar: landing con los planes, textos
 legales, ninguna pantalla con datos ficticios y el sistema corriendo en
 producción con copias probadas.
 **FRs cubiertos:** FR9, FR61 · **NFR:** NFR9, NFR10 · **AD:** AD-17, AD-20.
-**Notas:** incluye apagar los mocks, ocultar del menú los módulos no lanzados, el despliegue en el VPS con Coolify y entorno de pruebas, y el piloto con 2–3 negocios. Agente sugerido: **Codex** (landing) + **Claude** (despliegue y cierre).
+**Notas:** incluye apagar los mocks, ocultar del menú los módulos no lanzados, el despliegue en el VPS con Coolify y entorno de pruebas, el piloto con 2–3 negocios y el Plan Fundador para los primeros 20–30. Agente sugerido: **Codex** (landing) + **Claude** (despliegue y cierre).
+
+### Épica 10: Cobrar en línea con Mercado Pago (después del lanzamiento)
+Cada negocio puede conectar su cuenta de Mercado Pago con un botón y cobrar al
+reservar con tarjeta o Yape; la cita se confirma sola, sin capturas.
+**FRs cubiertos:** FR87.
+**Notas:** convive con el QR manual de la Épica 7: cada negocio elige. Izipay y Culqi, solo a pedido. Agente sugerido: **Claude**.
+
+### Épica 11: Promociones y fidelidad (después de la reserva pública)
+Cada negocio crea sus promociones con plantillas (sellos, combos, horarios,
+paquetes, ocasiones) y se aplican solas a sus clientes.
+**FRs cubiertos:** FR88.
+**Notas:** función de Premium. Primero sellos y combos. Agente sugerido: **Claude** (motor) + **Codex** (pantallas).
 
 ### Fuera del lanzamiento (siguen en el alcance general)
 FR18, FR26, FR41, FR42, FR47–FR50, FR52–FR54, FR59, FR80: importación de
-clientela, kardex, SEO, reseñas, WhatsApp a clientes, caja, reportes, soporte,
-métricas de plataforma y portada por sede.
+clientela, kardex, SEO, reseñas, módulo de WhatsApp propio del negocio, caja,
+reportes, soporte, métricas de plataforma y portada por sede.
 
 
 ---
@@ -914,10 +934,10 @@ el calendario clavado al motor real.
 ## Épica 4: Nadie se entera tarde de nada
 
 **Meta:** clientes y equipo reciben los avisos que importan, con registro de
-lo enviado y sin duplicados. El correo es el canal garantizado; WhatsApp al
-personal es el canal secundario.
+lo enviado y sin duplicados. El correo es el canal garantizado; WhatsApp, al
+equipo y a los clientes que lo aceptan, es el canal de apoyo.
 
-**Requisitos:** FR73–FR76, FR83 · NFR8 · AD-8, AD-9, AD-22 · UX-DR5, UX-DR6.
+**Requisitos:** FR73–FR76, FR83, FR85 · NFR8 · AD-8, AD-9, AD-22 · UX-DR5, UX-DR6.
 **Agente por defecto:** Claude (notificador y tareas); Codex en las pantallas.
 
 ### Story 4.1: Un solo camino para avisar, con registro de lo enviado
@@ -1034,6 +1054,20 @@ So that no recibir un aviso de una cita que ya no existe.
 **And** los horarios se interpretan en la zona horaria del negocio y se
 guardan en UTC (AD-16, NFR3).
 
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** un cliente que aceptó avisos por WhatsApp y cuya cita está confirmada
+**When** toca un recordatorio
+**Then** sale por correo **y** por WhatsApp desde el número de clientes (Story 4.8), con el enlace «Gestionar mi cita».
+
+**Given** el plan del negocio
+**When** se programan los recordatorios
+**Then** la cantidad y el canal salen del plan (Básico: 1 por correo, 24 h; Premium: 2 por correo y WhatsApp, 24 h y 2 h; Pro: 3 con hora a elegir), leídos de la configuración de planes, nunca del nombre del plan.
+
+**Given** que el cupo mensual de WhatsApp del negocio está agotado
+**When** sale un recordatorio
+**Then** sale solo por correo y el envío de WhatsApp queda `omitido` (`cupo_agotado`).
+
 > **Agente:** claude · **Referencias:** AD-9, AD-16, PRD FR-74, matriz C-8/C-9.
 
 ### Story 4.5: Cada aviso llega a quien le toca
@@ -1046,7 +1080,7 @@ So that nadie se entere tarde y nadie reciba ruido.
 
 **Given** la matriz de eventos de la propuesta §4.3
 **When** se implementa
-**Then** cada evento del lanzamiento (C-1 a C-12, P-1 a P-8, E-1 a E-3, S-1 a S-4, K-1 a K-4) tiene destinatarios y plantilla, y los marcados esenciales no se pueden desactivar.
+**Then** cada evento del lanzamiento (C-1 a C-12, P-1 a P-8, E-1 a E-3, S-1 a S-3, K-1 a K-4) tiene destinatarios y plantilla, y los marcados esenciales no se pueden desactivar. (S-4 desaparece: no se puede bajar de plan sin caber, Story 8.1.)
 
 **Given** un aviso de reserva pendiente (C-1, C-11, P-2, P-5)
 **When** se redacta
@@ -1063,6 +1097,20 @@ So that nadie se entere tarde y nadie reciba ruido.
 **Given** los eventos fuera del lanzamiento (X-1 a X-3 y los de planes superiores)
 **When** se revisa el alcance
 **Then** quedan declarados pero no implementados, y así consta.
+
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** una reserva de la tienda todavía sin confirmar (por correo o por pago)
+**When** se crea, se reprograma o se cancela
+**Then** el dueño y el profesional **no** reciben aviso: la ven como «pendiente» en el panel. Su primer aviso es al confirmarse (o, con cobro por adelantado, el comprobante por verificar al dueño).
+
+**Given** una acción hecha por una persona del equipo
+**When** se avisa
+**Then** a esa persona no le llega el aviso de lo que hizo ella misma.
+
+**Given** un cambio de horario de un profesional
+**When** se guarda
+**Then** el dueño solo recibe aviso si deja citas ya agendadas fuera del nuevo horario.
 
 > **Agente:** claude · **Referencias:** PRD FR-74, propuesta §4.3,
 > EXPERIENCE.md (State Patterns).
@@ -1090,6 +1138,24 @@ So that el equipo no se ahogue en correos y el cliente reciba lo justo.
 **Given** un cliente que se da de baja de los recordatorios desde el correo
 **When** pulsa el enlace
 **Then** deja de recibirlos sin perder los esenciales de sus citas.
+
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** Mi perfil → Mis avisos
+**When** una persona del equipo lo abre
+**Then** elige para cada aviso no esencial: al instante, resumen diario o apagado, y el canal (correo, WhatsApp o ambos). Los valores por defecto son los de la hoja 9 de `tivu-flujos-de-avisos.pdf`.
+
+**Given** Configuración → Notificaciones
+**When** el dueño la abre
+**Then** decide lo opcional que reciben **sus clientes** (te agendaron una cita, recordatorios extra) y puede apagar el WhatsApp a clientes de todo el negocio (el correo sigue).
+
+**Given** «Comprobante por verificar»
+**When** la última persona con permiso de pagos que lo tiene activo intenta apagarlo
+**Then** se le explica que al menos una debe recibirlo y el servidor lo rechaza.
+
+**Given** una función de aviso que el plan no incluye (resumen diario, agenda del día…)
+**When** se muestra
+**Then** aparece bloqueada con el plan que la incluye, sin esconderla.
 
 > **Agente:** codex (pantallas) con apoyo de claude (endpoints) ·
 > **Referencias:** PRD FR-75, UX-DR5, propuesta §4.4.
@@ -1128,9 +1194,9 @@ So that no tener el correo abierto todo el día.
 
 **Acceptance Criteria:**
 
-**Given** un número interno del negocio
-**When** se da de alta
-**Then** queda inactivo hasta que esa persona escriba el código de confirmación al número de ChiraFlow (consentimiento verificado).
+**Given** un número de una persona del equipo
+**When** lo da de alta en Mi perfil
+**Then** queda inactivo hasta que esa persona escriba el código de confirmación al **número del equipo** de la plataforma (consentimiento verificado).
 
 **Given** un número confirmado con el aviso activado
 **When** entra una reserva de la tienda (C-2) o un comprobante por verificar (P-3)
@@ -1140,18 +1206,35 @@ So that no tener el correo abierto todo el día.
 **When** se intenta enviar
 **Then** el correo y el panel siguen avisando igual, y el fallo se registra sin reintentar en bucle.
 
-**Given** los clientes finales
-**When** se evalúa el alcance
-**Then** **no** reciben WhatsApp en el lanzamiento (solo personal del negocio).
+**Given** un cliente que marcó «Recibir avisos por WhatsApp» y cuya cita ya está confirmada
+**When** sale C-3, C-4, C-5, C-6 o un recordatorio
+**Then** sale también por WhatsApp desde el **número de clientes**; el primer mensaje no lleva enlace y termina con una pregunta abierta («Responde CAMBIAR»). Sin consentimiento, el envío queda `omitido` (`sin_consentimiento_whatsapp`).
 
-**And** el canal corre sobre Evolution API en Railway con el número de la
-plataforma, con límite de ritmo de envío y registro de bajas.
+**Given** una respuesta entrante (APROBAR, ACTIVAR, CAMBIAR, AYUDA o una baja)
+**When** llega por el webhook del proveedor
+**Then** se resuelve el negocio y la persona por el número verificado, se comprueba su permiso y se actúa o se ignora; la acción queda registrada a su nombre.
 
-> **Agente:** claude · **Referencias:** PRD FR-83, AD-22, decisión del
-> 2026-09-19 (número propio de la plataforma; API oficial aplazada).
+**Given** los números de la plataforma
+**When** se configuran
+**Then** cada uno es un registro con proveedor (Evolution, Meta/Kapso), número, **uso** (equipo, clientes o ambos) y estado (calentando, activo, caído, retirado). El `Notificador` pide «el canal para este destinatario»; cambiar de número es reasignar el uso, sin código. Los consentimientos son de la persona, no del número.
+
+**Given** un número que cae o queda bloqueado
+**When** se detecta
+**Then** salta la alerta X-2, los avisos siguen por correo y el número de reserva puede asumir el uso desde el panel de plataforma.
+
+**And** el canal corre sobre Evolution API en el VPS con Coolify (recurso
+`evolution`, red interna), con ritmo lento por número, tope diario, horario
+del negocio y registro de bajas. El `Notificador` pasa datos con nombre, no
+texto armado, y cada plantilla admite un campo «plantilla en Meta» para la API
+oficial.
+
+> **Agente:** claude · **Referencias:** PRD FR-83, FR-85, AD-22, decisiones
+> del 2026-09-19 (número propio de la plataforma; API oficial aplazada) y del
+> 2026-11-09 (clientes con consentimiento, Coolify, números configurables).
 
 **Resumen de la Épica 4:** 8 historias. Deja el correo fiable y medido, la
-agenda de tareas funcionando y WhatsApp como apoyo, nunca como única vía.
+agenda de tareas funcionando y WhatsApp como apoyo, al equipo y a los clientes
+que lo aceptan, nunca como única vía.
 
 ---
 
@@ -1475,6 +1558,16 @@ So that no tener que registrarme para cortarme el pelo.
 **When** un cliente reserva
 **Then** sigue el camino de confirmación por correo (Story 6.7).
 
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** el formulario de reserva (y el alta de cita del panel)
+**When** se muestra
+**Then** incluye la casilla **desmarcada** «Recibir avisos por WhatsApp»; el consentimiento se guarda con fecha en la ficha del cliente de ese negocio.
+
+**Given** una reserva recién creada y todavía sin confirmar
+**When** se guarda
+**Then** el equipo del negocio **no** recibe aviso (Story 4.5); el hueco queda reservado y la cita se ve como «pendiente» en el panel.
+
 > **Agente:** claude con apoyo de codex · **Referencias:** PRD FR-39, FR-29,
 > regla no negociable 1, NFR10. El cierre en falso está prohibido por decisión
 > del usuario (2026-09-20): sin Épica 7, el pago obligatorio deshabilita la
@@ -1511,6 +1604,16 @@ So that las reservas de broma no me bloqueen la agenda.
 **Given** un cliente que abre el enlace después de vencido
 **When** lo hace
 **Then** ve «Tu reserva expiró» con el enlace para reservar de nuevo, no un error.
+
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** que el cliente confirma
+**When** la cita pasa a confirmada
+**Then** el dueño y el profesional reciben su **primer** aviso («Nueva cita»), y el cliente, si aceptó, su primer WhatsApp (C-3) sin enlace y con pregunta abierta.
+
+**Given** que vence el plazo sin confirmar
+**When** se libera el hueco
+**Then** el equipo no recibe nada: nunca se le avisó de esa reserva.
 
 > **Agente:** claude · **Referencias:** PRD FR-84, propuesta §4.3 (C-11, C-12),
 > EXPERIENCE.md. El plazo por defecto y el reenvío a petición siguen
@@ -1724,6 +1827,12 @@ So that saber exactamente qué hacer y cuánto tiempo tengo.
 **When** se ve en un móvil
 **Then** el QR se puede guardar o abrir en la app, y la cuenta atrás es legible.
 
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** la reserva con pago
+**When** se crea
+**Then** la captura se sube **en la misma pantalla** de la tienda; el correo P-1 es solo respaldo (el mismo QR y un botón para volver a esa página).
+
 > **Agente:** codex con apoyo de claude · **Referencias:** PRD FR-44 y FR-71,
 > UX-DR1, EXPERIENCE.md (Paso de pago).
 
@@ -1749,7 +1858,7 @@ So that el negocio pueda verificar que pagué.
 
 **Given** una subida correcta
 **When** termina
-**Then** el pago queda «en revisión», el cliente recibe P-2 («tu horario sigue reservado») y los avisos internos salen (P-3, correo y WhatsApp).
+**Then** el pago queda «en revisión», el cliente recibe P-2 («tu horario sigue reservado») y los avisos internos salen (P-3, correo y WhatsApp **con la imagen de la captura**, el monto esperado y «Responde APROBAR + código»).
 
 **Given** el panel
 **When** alguien con permiso abre la evidencia
@@ -1800,6 +1909,24 @@ So that no cambiar de pantalla ni apuntar nada aparte.
 
 **And** solo se admite el pago **total**; los adelantos quedan fuera del
 lanzamiento.
+
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** el WhatsApp de P-3 con la captura
+**When** el dueño o quien tiene `pagos: gestionar` responde **APROBAR + código** desde un número del equipo verificado
+**Then** el pago queda aprobado como si lo hubiera hecho en el panel (P-4 al cliente, aviso al profesional), queda registrado a su nombre y recibe «✅ Pago aprobado».
+
+**Given** una respuesta APROBAR de un número no verificado, sin permiso de pagos o con un código que no corresponde
+**When** llega
+**Then** se ignora y se registra.
+
+**Given** «Pedir otra captura» o «Rechazar y cancelar»
+**When** se quiere hacer
+**Then** sigue siendo en el panel, porque llevan un motivo para el cliente.
+
+**Given** el plan del negocio
+**When** no incluye la aprobación por WhatsApp (Básico)
+**Then** P-3 llega igual por correo y el panel, sin la opción de responder.
 
 > **Agente:** claude con apoyo de codex · **Referencias:** PRD FR-46,
 > decisión A-3, UX-DR2, propuesta §4.3 (P-4, P-5, P-8).
@@ -1897,17 +2024,21 @@ So that el estado de un negocio nunca dependa de quién lo tocó ni por dónde.
 **When** termina
 **Then** se anota una fila en `suscripcion_cambios` (solo inserción: nunca se edita ni se borra) con qué cambió, quién y cuándo.
 
-**Given** un cambio a un plan con menos cupo del que el negocio usa
-**When** se aplica
-**Then** se aplica igualmente sin desactivar a nadie, y se avisa del exceso (S-4).
+**Given** un cambio a un plan con menos cupo del que el negocio usa (profesionales, sedes u otro límite)
+**When** se intenta
+**Then** **se rechaza**, venga del negocio o del panel de plataforma, con el motivo («para pasar a Básico, deja solo 2 profesionales activos; hoy tienes 4»). No existe el estado «pasado del límite». (Cambio del 2026-11-09: sustituye «se aplica igualmente y se avisa del exceso».)
 
 **Given** que se registra un pago
 **When** se guarda
 **Then** nace con estado `pendiente` y **activar un plan nunca equivale a cobrar**: son dos acciones distintas.
 
-**Given** las plantillas S-1 y S-4, probadas con evento simulado en la Story 4.5
+**Given** la plantilla S-1, probada con evento simulado en la Story 4.5
 **When** se implementa esta historia
-**Then** se conectan a la activación real y al exceso de capacidad real, con prueba de extremo a extremo. Lo simulado no cierra la integración.
+**Then** se conecta a la activación real, con prueba de extremo a extremo. Lo simulado no cierra la integración.
+
+**Given** el cobro manual del lanzamiento
+**When** el equipo de tivu recibe por WhatsApp la captura del pago de un negocio y responde **ACTIVAR + código** desde un número verificado de la plataforma
+**Then** el plan se activa por `SuscripcionService::aplicar` como si fuera desde el panel, el pago se registra aparte con su captura, y todo queda a nombre de quien respondió.
 
 > **Agente:** claude · **Referencias:** AD-10, PRD FR-57, FR-12.
 
@@ -1954,13 +2085,17 @@ So that saber qué tengo contratado sin preguntar.
 **When** el titular abre Mi Plan
 **Then** ve su plan actual, los profesionales usados frente a su cupo, la fecha de vencimiento y el estado.
 
-**Given** que el negocio supera el cupo o se acerca
+**Given** que el negocio se acerca a su cupo
 **When** se muestra
 **Then** aparece el aviso correspondiente y el plan sugerido, sin esconder ningún plan.
 
+**Given** un plan en el que el negocio no cabe
+**When** se muestra
+**Then** aparece bloqueado con el motivo y el botón «Elegir cuáles desactivar»; se puede elegir cuando ya cabe.
+
 **Given** que el cobro aún es manual
-**When** el dueño quiere cambiar de plan
-**Then** se le ofrece «contáctanos» con el camino real, no un botón que no hace nada.
+**When** el dueño elige un plan
+**Then** ve el monto, cómo pagar por Yape a tivu y dónde **subir la captura**; el equipo de tivu la recibe por WhatsApp (Story 8.1).
 
 **Given** un usuario que no es el titular
 **When** abre Mi Plan
@@ -2035,7 +2170,7 @@ So that el cobro no dependa de la memoria de una persona.
 
 **Given** el comando diario
 **When** corre
-**Then** recorre los negocios activos y aplica: prueba vencida → aviso → suspensión, usando `SuscripcionService`.
+**Then** recorre los negocios activos y aplica: prueba o plan vencido → aviso → **3 días de gracia** → suspensión, usando `SuscripcionService`. La prueba dura 7 días, ampliable a 14 por negocio desde el panel de plataforma (F-6 y F-7 resueltas el 2026-11-09).
 
 **Given** un negocio ya avisado
 **When** el comando vuelve a correr
@@ -2049,11 +2184,49 @@ So that el cobro no dependa de la memoria de una persona.
 **When** se evalúa el alcance
 **Then** queda **fuera del lanzamiento**, declarada y sin implementar.
 
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** los hitos del ciclo de vida (negocio nuevo, prueba por vencer, vencido, suspendido, reactivado, cupo de WhatsApp agotado, fin del precio de fundador)
+**When** ocurren
+**Then** el equipo de tivu recibe un aviso por WhatsApp interno (activable), además de los avisos al dueño.
+
 > **Agente:** claude · **Referencias:** PRD FR-58, regla no negociable 3 de
 > CLAUDE.md, AD-21.
 
-**Resumen de la Épica 8:** 6 historias. El plan se activa, se cobra y se
-suspende desde una pantalla con huella, no desde una consulta SQL.
+### Story 8.7: Planes y promociones editables desde el panel de plataforma
+
+As a equipo de tivu,
+I want cambiar precios, funciones, límites y promociones sin programar,
+So that probar ofertas y premiar a los primeros negocios en minutos.
+
+**Acceptance Criteria:**
+
+**Given** el panel de plataforma
+**When** se edita un plan
+**Then** se cambian su precio mensual y anual, **qué funciones incluye** (activar o desactivar cada una del catálogo en código) y sus límites (profesionales, sedes, números del equipo con WhatsApp, WhatsApp a clientes al mes, recordatorios).
+
+**Given** una promoción (p. ej. «S/ 9 los 3 primeros meses», «−50 % por 12 meses»)
+**When** se crea
+**Then** tiene fechas de inicio y fin y a qué planes aplica, y se ofrece sola a los negocios que cumplen.
+
+**Given** un negocio concreto
+**When** se le da una condición especial (Plan Fundador, prueba extendida, mes de regalo)
+**Then** queda registrada con quién la dio, cuándo y por qué, y la aplica `SuscripcionService`.
+
+**Given** un cambio de precio
+**When** se guarda
+**Then** afecta a los negocios nuevos; los que ya pagan mantienen el suyo hasta su siguiente cambio de plan.
+
+**Given** una función nueva que todavía no existe en el catálogo
+**When** se quiere ofrecer
+**Then** requiere programarla una vez; después se activa por plan desde aquí.
+
+> **Agente:** claude (servicio y auditoría) con apoyo de codex (pantallas) ·
+> **Referencias:** PRD FR-86, `cambio-2026-11-09-avisos-pagos-planes.md` §2.7.
+
+**Resumen de la Épica 8:** 7 historias. El plan se activa, se cobra y se
+suspende desde una pantalla con huella, no desde una consulta SQL, y la oferta
+se ajusta sin programar.
 
 ---
 
@@ -2076,7 +2249,7 @@ So that decidir sin tener que preguntar por WhatsApp.
 
 **Given** la página de inicio
 **When** se abre
-**Then** explica el producto, muestra los tres planes con su precio en soles y lleva al registro.
+**Then** explica el producto, muestra **los dos planes del lanzamiento** (Básico y Premium) con su precio en soles, la oferta del **Plan Fundador** mientras esté vigente, y lleva al registro.
 
 **Given** un visitante en móvil
 **When** navega
@@ -2091,7 +2264,8 @@ So that decidir sin tener que preguntar por WhatsApp.
 **Then** se leen de un único sitio para poder cambiarlos sin tocar la maqueta.
 
 > **Agente:** codex · **Referencias:** PRD FR-61, UX-DR9, DESIGN.md.
-> Nombres y precios de los planes siguen **[POR CONFIRMAR]** (F-5, F-6, F-7).
+> Precios de los planes **[POR CONFIRMAR]** (F-5: se fijan tras hablar con 10
+> dueños de Piura). F-6 y F-7 resueltas el 2026-11-09.
 
 ### Story 9.2: Términos, privacidad y los derechos del cliente
 
@@ -2219,6 +2393,12 @@ So that descubrir los fallos con quien me perdona y no con quien me paga.
 **When** se abre al público
 **Then** siguen funcionando sin migraciones manuales ni arreglos a mano.
 
+**Cambio del 2026-11-09** (`cambio-2026-11-09-avisos-pagos-planes.md`):
+
+**Given** los primeros 20–30 negocios después del piloto
+**When** se dan de alta
+**Then** reciben el **Plan Fundador** (Premium completo a S/ 9 los 3 primeros meses, luego −50 % congelado 12 meses) como condición por negocio de la Story 8.7, y a cambio dan su opinión cada 2 semanas.
+
 > **Agente:** claude · **Referencias:** PRD §8 (alcance del lanzamiento),
 > Q-03 y Q-04 **[POR CONFIRMAR]** (fecha objetivo y alcance definitivo).
 
@@ -2227,10 +2407,166 @@ contratar y sostener.
 
 ---
 
+## Épica 10: Cobrar en línea con Mercado Pago (después del lanzamiento)
+
+**Meta:** que un negocio cobre al reservar sin revisar capturas: conecta su
+cuenta de Mercado Pago con un botón y la cita se confirma sola.
+
+**Requisitos:** FR87 · AD-10 · `cambio-2026-11-09-avisos-pagos-planes.md` §2.5.
+**Agente por defecto:** Claude.
+
+### Story 10.1: Conectar Mercado Pago con un botón
+
+As a dueño,
+I want conectar mi cuenta de Mercado Pago desde Configuración → Pagos,
+So that cobrar en línea sin pedir claves técnicas a nadie.
+
+**Acceptance Criteria:**
+
+**Given** Configuración → Pagos
+**When** el dueño pulsa «Conectar con Mercado Pago»
+**Then** autoriza en Mercado Pago (OAuth) y tivu guarda sus credenciales cifradas; nunca ve su contraseña.
+
+**Given** un negocio conectado
+**When** elige el modo de cobro
+**Then** elige entre QR manual (Épica 7) y pago en línea, nunca los dos a la vez para el mismo servicio.
+
+**Given** que el dueño revoca el acceso en Mercado Pago
+**When** llega la notificación
+**Then** tivu borra sus credenciales, vuelve al QR manual y avisa al dueño.
+
+### Story 10.2: Pagar en línea al reservar
+
+As a cliente,
+I want pagar con tarjeta o Yape al reservar,
+So that dejar mi cita lista sin enviar capturas.
+
+**Acceptance Criteria:**
+
+**Given** un negocio con pago en línea
+**When** el cliente reserva
+**Then** paga en el checkout de Mercado Pago y el dinero va a la cuenta del negocio (con la comisión de la plataforma si se configura).
+
+**Given** la notificación de pago aprobado
+**When** llega (idempotente)
+**Then** la cita se confirma sola por el mismo camino que «pago aprobado» de la Story 7.4, con sus avisos.
+
+**Given** un pago rechazado o abandonado
+**When** vence el plazo
+**Then** se libera el hueco como en la Story 7.5.
+
+### Story 10.3: Devoluciones desde tivu
+
+As a dueño,
+I want devolver un pago en línea desde la cita cancelada,
+So that no tener que entrar a Mercado Pago.
+
+**Acceptance Criteria:**
+
+**Given** una cita pagada en línea y cancelada
+**When** el dueño pulsa «Devolver»
+**Then** se pide la devolución a Mercado Pago, la cita la registra y el cliente recibe el aviso correspondiente.
+
+> **Agente:** claude · **Referencias:** PRD FR-87, FR-57 (pasarela), AD-10.
+
+**Resumen de la Épica 10:** 3 historias. El cobro en línea sustituye a la
+captura para quien lo quiera.
+
+---
+
+## Épica 11: Promociones y fidelidad (después de la reserva pública)
+
+**Meta:** que cada negocio, sea del rubro que sea, cree sus propias
+promociones con plantillas y que se apliquen solas a sus clientes.
+
+**Requisitos:** FR88 · `cambio-2026-11-09-avisos-pagos-planes.md` §2.8.
+**Agente por defecto:** Claude (motor) + Codex (pantallas).
+
+### Story 11.1: Tarjeta de sellos
+
+As a dueño de una barbería,
+I want que cada 5 cortes en el mes el siguiente sea gratis,
+So that mis clientes vuelvan.
+
+**Acceptance Criteria:**
+
+**Given** una promoción de sellos (N servicios de [estos] en [periodo] → gratis, % o S/)
+**When** el dueño la crea
+**Then** define servicios, cantidad, periodo, recompensa, vigencia, sedes, límite por cliente y si se ve en la tienda.
+
+**Given** un cliente (reconocido por su teléfono, sin cuenta)
+**When** se cuentan sus sellos
+**Then** solo cuentan las citas **atendidas**, nunca las reservas ni las canceladas.
+
+**Given** que le toca la recompensa
+**When** reserva
+**Then** la tienda lo dice, el precio se aplica solo y recepción lo ve en la ficha de la cita; caja y reportes registran el descuento.
+
+**Given** que le falta una visita
+**When** se cumple
+**Then** sale el aviso activable «Te falta 1 para tu recompensa» (correo, y WhatsApp si lo aceptó).
+
+### Story 11.2: Combos
+
+As a dueño,
+I want ofrecer «corte + barba a S/ 35»,
+So that vender más en una sola cita.
+
+**Acceptance Criteria:**
+
+**Given** un combo de servicios con precio propio
+**When** el cliente elige esos servicios juntos
+**Then** se aplica el precio del combo y se muestra el ahorro.
+
+### Story 11.3: Descuento por día u horario
+
+As a dueño,
+I want «martes −20 % en tintes»,
+So that llenar las horas flojas.
+
+**Acceptance Criteria:**
+
+**Given** un descuento por días u horas
+**When** el cliente ve los huecos que cumplen
+**Then** se marcan y el precio se aplica solo.
+
+### Story 11.4: Paquetes de sesiones
+
+As a fisioterapeuta,
+I want vender 10 sesiones por adelantado,
+So that asegurar el tratamiento completo.
+
+**Acceptance Criteria:**
+
+**Given** un paquete pagado
+**When** el cliente reserva sesiones
+**Then** se descuentan del paquete y ve cuántas le quedan.
+
+### Story 11.5: Ocasiones
+
+As a dueño,
+I want premiar la primera visita, el cumpleaños o un referido,
+So that atraer y cuidar clientes.
+
+**Acceptance Criteria:**
+
+**Given** una promoción de ocasión
+**When** se cumple la condición (primera cita, mes de cumpleaños, cliente referido)
+**Then** se aplica una sola vez por cliente y queda registrada.
+
+> **Agente:** claude con apoyo de codex · **Referencias:** PRD FR-88. Función
+> de Premium. Primero 11.1 y 11.2.
+
+**Resumen de la Épica 11:** 5 historias. Cada negocio fideliza a su manera sin
+que haya que programar su promoción.
+
+---
+
 ## Cobertura y cabos sueltos
 
 **Historias por épica:** 0 (registro, sin historias) · 1: 15 · 2: 3 · 3: 3 ·
-4: 8 · 5: 4 · 6: 11 · 7: 6 · 8: 6 · 9: 6. **Total: 62 historias.**
+4: 8 · 5: 4 · 6: 11 · 7: 6 · 8: 7 · 9: 6 · 10: 3 · 11: 5. **Total: 71 historias**
+(62 del lanzamiento + 8.7, y las épicas 10 y 11 posteriores).
 
 **Cobertura de los requisitos UX (UX-DR):**
 
