@@ -21,6 +21,8 @@ export interface Plan {
   max_profesionales: number;
   max_sucursales: number;
   max_whatsapp_mes: number;
+  /** Personas del equipo con avisos por WhatsApp (Story 4.8b). */
+  max_numeros_equipo: number;
   precio_profesional_extra: number;
   /** Precio de UN paquete de `mensajes_whatsapp_extra` mensajes. */
   precio_whatsapp_extra: number;
