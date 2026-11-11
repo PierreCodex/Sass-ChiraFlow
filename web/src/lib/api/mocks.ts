@@ -21,3 +21,13 @@ export function usarMocksPara(modulo: string): boolean {
   if (!env.usarMocks) return false;
   return !CONECTADOS.has(modulo);
 }
+
+/**
+ * ¿Esta sección del panel todavía no existe de verdad? Sin backend
+ * (`usarMocksPara`) y sin permiso para enseñar datos ficticios
+ * (`NEXT_PUBLIC_MOSTRAR_DATOS_FICTICIOS=false`, producción). La pantalla
+ * muestra entonces `ModuloProximamente` en vez de los mocks.
+ */
+export function moduloEnConstruccion(modulo: string): boolean {
+  return usarMocksPara(modulo) && !env.mostrarDatosFicticios;
+}

@@ -1,4 +1,6 @@
 "use client";
+import { moduloEnConstruccion } from "@/lib/api/mocks";
+import ModuloProximamente from "@/components/shared/ModuloProximamente";
 import { useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
@@ -23,7 +25,7 @@ import {
 import AvisoError from "@/components/shared/AvisoError";
 
 
-export default function MiPlanPage() {
+function MiPlan() {
   const { data: planes, isPending, isError, error } = usePlanes();
   const { data: suscripcion } = useSuscripcion();
   const solicitar = useSolicitarPlan();
@@ -132,4 +134,19 @@ export default function MiPlanPage() {
       )}
     </PageContainer>
   );
+}
+
+/** Sin backend todavía: en producción, «Próximamente» en vez de datos ficticios. */
+export default function MiPlanPage() {
+  if (moduloEnConstruccion("suscripcion")) {
+    return (
+      <ModuloProximamente
+        titulo="Mi plan"
+        descripcion="Elegir tu plan, sumar profesionales o WhatsApp extra y ver tus pagos."
+        nota="Ahora estás en tu prueba gratis. Para contratar un plan, escríbenos a soporte@tivuapp.com."
+      />
+    );
+  }
+
+  return <MiPlan />;
 }

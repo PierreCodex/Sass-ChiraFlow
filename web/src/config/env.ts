@@ -62,5 +62,13 @@ export const env = {
     .map((modulo) => modulo.trim())
     .filter(Boolean),
 
+  /**
+   * ¿Se ENSEÑAN los datos ficticios de los módulos sin backend? En local sí:
+   * es como se maqueta. En producción no (`=false`): un negocio real vería
+   * citas, cajas y tickets inventados. Esos módulos muestran «Próximamente»
+   * (`moduloEnConstruccion`) y el dashboard se calcula con lo conectado.
+   */
+  mostrarDatosFicticios: process.env.NEXT_PUBLIC_MOSTRAR_DATOS_FICTICIOS !== "false",
+
   isProd: process.env.NODE_ENV === "production",
 } as const;
