@@ -90,6 +90,13 @@ salida, la 4.8b el WhatsApp del equipo y la puerta de entrada, y el arreglo
 
 ## Mensajes (aprobados el 2026-11-11)
 
+**Tono** (ajustado el mismo día, tras probarlos en producción): saludo con el
+nombre, «¡Te esperamos!», y en primera persona, como un asistente
+(«respóndeme», «te ayudo»). El primer mensaje sigue **sin enlace**: un número
+que escribe por primera vez con un enlace es lo que WhatsApp toma por spam, y
+el número de clientes lo comparten todos los negocios. El enlace a «Gestionar
+mi cita» (6.8) irá en la respuesta a CAMBIAR y en los recordatorios.
+
 En negrita lo clave: negocio, servicio, fecha, hora, monto y la palabra a
 responder. El nombre del cliente va sin negrita. El primer mensaje no lleva
 enlace y termina con una pregunta.
@@ -106,15 +113,15 @@ del negocio y emoji, según el plan). Ver el cambio del 2026-11-11 en la 4.6
 
 | Plantilla | Texto (ejemplo) |
 |---|---|
-| C-3 | ✅ ¡Listo, Lucía! Tu cita en **Barbería Pepito** está **confirmada**: ✂️ **Corte clásico** con Carlos · 📅 **Lunes 9 de noviembre** · **10:00** · 📍 Av. Larco 745 · 💵 Pagas en el local: **S/ 25.00** · ¿Necesitas cambiar algo? Responde **CAMBIAR**. |
-| C-4 | 📅 Hola Lucía, **Barbería Pepito** te agendó una cita: ✂️ **Corte clásico** con Carlos · 🗓️ **Lunes 9 de noviembre** · **10:00** · 📍 … · ¿Necesitas cambiar algo? Responde **CAMBIAR**. |
-| C-5 | 🔄 Lucía, tu cita en **Barbería Pepito** cambió de hora: ~~Lunes 9 · 10:00~~ ➡️ **Martes 10 de noviembre · 16:30** · ¿Esta hora no te sirve? Responde **CAMBIAR**. |
-| C-6 | ❌ Lucía, tu cita en **Barbería Pepito** del **lunes 9** a las **10:00** se canceló. Motivo: … · Cuando quieras, reserva otra hora. ¡Te esperamos! |
-| C-8 | ⏰ Lucía, **mañana** tienes tu cita en **Barbería Pepito**: ✂️ **Corte clásico** con Carlos · **10:00** · 📍 … · ¿Necesitas cambiar algo? Responde **CAMBIAR**. |
-| C-9 | ⏰ Lucía, en **2 horas** es tu cita en **Barbería Pepito** (**10:00** con Carlos). 📍 … ¡Te esperamos! |
-| W-CAMBIAR | Para cambiar o cancelar tu cita en **Barbería Pepito**, escríbeles o llámalos: 📞 **+51 955 555 555** (+ tarjeta) |
-| W-BAJA-CLIENTE | Listo, Lucía. Ya no te enviaremos avisos de tus citas por WhatsApp desde este número. Te seguirán llegando por **correo**. 📩 _Si algún día quieres volver a recibirlos, marca la casilla al reservar._ |
-| W-AYUDA-CLIENTES | 👋 Hola, este es el número de avisos de citas de **tivu**. Puedes responder: • **CAMBIAR** … • **BAJA** … |
+| C-3 | ¡Listo, Lucía! ✅ Tu cita en **Barbería Pepito** está **confirmada**: ✂️ **Corte clásico** con Carlos · 🗓️ **Lunes 9 de noviembre** a las **10:00** · 📍 … · 💵 Pagas en el local: **S/ 25.00** · ¡Nos vemos pronto! Si te surge algo, respóndeme **CAMBIAR**. 😊 |
+| C-4 | ¡Hola, Lucía! 👋 **Barbería Pepito** te reservó una cita y ya está todo listo: ✂️ **Corte clásico** con Carlos · 🗓️ **Lunes 9 de noviembre** a las **10:00** · 📍 … · ¡Te esperamos! Si necesitas cambiar algo, respóndeme **CAMBIAR** y te ayudo. 😊 |
+| C-5 | ¡Hola, Lucía! 🔄 Tu cita en **Barbería Pepito** cambió de hora: ~~Lunes 9 · 10:00~~ ➡️ **Martes 10 de noviembre** a las **16:30** · ¿Esta hora no te queda? Respóndeme **CAMBIAR** y lo vemos. 😊 |
+| C-6 | Hola, Lucía. Tu cita en **Barbería Pepito** del **lunes 9** a las **10:00** se canceló. 😕 Motivo: … · Cuando quieras, reserva otra hora. ¡Te esperamos pronto! 🙌 |
+| C-8 | ¡Hola, Lucía! ⏰ Te recuerdo que **mañana** tienes tu cita en **Barbería Pepito**: ✂️ **Corte clásico** con Carlos · 🗓️ A las **10:00** · 📍 … · ¡Te esperamos! Si necesitas cambiar algo, respóndeme **CAMBIAR**. 😊 |
+| C-9 | ¡Hola, Lucía! ⏰ En **2 horas** es tu cita en **Barbería Pepito**: **10:00** con Carlos. 📍 … ¡Te esperamos! 🙌 |
+| W-CAMBIAR | ¡Claro, Lucía! 🙌 Para mover o cancelar tu cita, escríbele o llama a **Barbería Pepito**: 📞 **+51 955 555 555** · Te dejo su contacto aquí abajo para que lo tengas a la mano 👇 (+ tarjeta) |
+| W-BAJA-CLIENTE | Listo, Lucía 👍 Ya no te escribiré por WhatsApp. Tus avisos de citas te seguirán llegando por **correo** 📩 · Si algún día quieres volver a recibirlos aquí, solo marca la casilla al reservar. ¡Gracias! |
+| W-AYUDA-CLIENTES | ¡Hola! 👋 Soy el asistente de citas de **tivu**: te aviso de tus reservas para que no se te pase ninguna. Puedes responderme: • **CAMBIAR**: para mover o cancelar tu cita • **BAJA**: si prefieres no recibir más mensajes por aquí |
 
 El texto exacto vive en `config/whatsapp.php` (backend).
 
