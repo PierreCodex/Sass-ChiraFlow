@@ -20,6 +20,7 @@ import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
 import { toApiError } from "@/lib/api/client";
 import { useCrearCliente } from "../hooks/useClientes";
+import CasillaWhatsapp from "./CasillaWhatsapp";
 import {
   clienteSchema,
   valoresIniciales,
@@ -174,6 +175,16 @@ const ClienteFormDialog = ({ abierto, onCerrar }: Props) => {
                     error={!!errors.email}
                     helperText={errors.email?.message}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid size={12}>
+              <Controller
+                name="acepta_whatsapp"
+                control={control}
+                render={({ field }) => (
+                  <CasillaWhatsapp marcada={!!field.value} onCambiar={field.onChange} />
                 )}
               />
             </Grid>

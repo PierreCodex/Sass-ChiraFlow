@@ -1,7 +1,7 @@
 import { haceDias } from "@/lib/mock-utils";
 import type { Cliente } from "./types";
 
-export const clientesMock: Cliente[] = [
+const clientesBase: Omit<Cliente, "acepta_whatsapp">[] = [
   { id: 1, nombre: "Ana Torres Vega", telefono: "976 865 756", email: "ana.torres@gmail.com", total_citas: 2, ultima_cita: haceDias(0) },
   { id: 2, nombre: "LPUIT", telefono: "+51 981 912 809", email: "lpuit@ucvvirtual.edu.pe", total_citas: 1, ultima_cita: haceDias(0) },
   { id: 3, nombre: "manuel", telefono: "999 191 999", email: "manuel.s@ucvvirtual.edu.pe", total_citas: 1, ultima_cita: haceDias(0) },
@@ -23,3 +23,9 @@ export const clientesMock: Cliente[] = [
   { id: 19, nombre: "Rosa Medina Campos", telefono: "912 330 776", email: "rosa.medina@gmail.com", total_citas: 6, ultima_cita: haceDias(23) },
   { id: 20, nombre: "Fernando Rojas Ayala", telefono: "988 441 209", email: null, total_citas: 0, ultima_cita: null },
 ];
+
+// Uno de cada tres aceptó los avisos por WhatsApp (Story 4.8c).
+export const clientesMock: Cliente[] = clientesBase.map((c) => ({
+  ...c,
+  acepta_whatsapp: c.id % 3 === 0,
+}));

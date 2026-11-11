@@ -71,6 +71,8 @@ export interface Cita {
   cliente_nombre: string;
   cliente_telefono: string | null;
   cliente_email: string | null;
+  /** La casilla de WhatsApp del cliente (Story 4.8c): es suya, no de la cita. */
+  cliente_acepta_whatsapp: boolean;
 
   /**
    * La fuente de verdad: no existe `citas.servicio_id`, los servicios viven en
@@ -141,6 +143,8 @@ export interface CitaPayload {
   cliente_nombre: string;
   cliente_telefono: string | null;
   cliente_email: string | null;
+  /** «Recibir avisos por WhatsApp», marcada de palabra por el cliente (4.8c). */
+  acepta_whatsapp?: boolean;
   monto: number;
   estado: EstadoCita;
   notas: string | null;

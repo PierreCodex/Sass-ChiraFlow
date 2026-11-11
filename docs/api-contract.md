@@ -544,8 +544,18 @@ declarado: el backend manda claves). Quién marca cada paso:
 | `fecha_nacimiento` `notas` | string? | |
 | `total_citas` | int | `withCount` |
 | `ultima_cita` | string? | fecha de la más reciente |
+| `acepta_whatsapp` | bool | marcó «Recibir avisos por WhatsApp» (Story 4.8c). Vuelve a `false` si después respondió BAJA |
 
-**Payload**: `{ nombre, telefono?, email? }`.
+**Payload**: `{ nombre, telefono?, email?, acepta_whatsapp? }`.
+
+> **La casilla de WhatsApp** (Story 4.8c, Ley 29733) nace desmarcada y se
+> marca solo si el cliente lo aceptó. Sin la clave en el payload, no se toca;
+> `true` guarda cuándo y por dónde (`panel` o `tienda`), `false` la retira.
+> Solo se le escribe con la cita **confirmada**, desde el número de clientes de
+> tivu, y si su teléfono se entiende como internacional (un móvil peruano de 9
+> dígitos recibe el +51; un número con `+` se deja). Si responde **BAJA**, deja
+> de recibir WhatsApp de **todos** los negocios —el chat es uno solo—; volver a
+> marcar la casilla es un consentimiento nuevo.
 
 > **El teléfono es la clave natural.** Se guarda tal cual se escribe, pero el
 > backend mantiene aparte un `telefono_normalizado` UNIQUE (dígitos sin
@@ -658,6 +668,7 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | `cliente_id` | int? | informado solo si quedó vinculada a un cliente |
 | `cliente_nombre` | string | texto libre, máx. 150 |
 | `cliente_telefono` `cliente_email` | string? | máx. 30 y 150 |
+| `cliente_acepta_whatsapp` | bool | la casilla de WhatsApp **del cliente** (Story 4.8c): el diálogo la muestra como está |
 | `servicios` | `LineaServicio[]` | **la fuente de verdad** |
 | `servicio` | `LineaServicio?` | la primera línea, **como puente**. `null` si no hay ninguna |
 | `empleado` | `{ id, nombre }` | no nullable |
@@ -672,8 +683,9 @@ tenía el día que se reservó. Cambiar la tarifa del catálogo no reescribe lo 
 agendado.
 
 **Payload (JSON)**: `{ empleado_id, servicio_id, fecha, hora_inicio, local_id,
-cliente_id, cliente_nombre, cliente_telefono, cliente_email, monto, estado,
-notas, productos: [{ id, cantidad }] }`. **`hora_fin` no se acepta**: aceptarla
+cliente_id, cliente_nombre, cliente_telefono, cliente_email, acepta_whatsapp?,
+monto, estado, notas, productos: [{ id, cantidad }] }`. `acepta_whatsapp`
+(Story 4.8c) se guarda en el cliente, no en la cita; sin la clave, no se toca. **`hora_fin` no se acepta**: aceptarla
 dejaría reservar 20 minutos de un servicio de 60.
 
 > Ojo con la asimetría: el payload manda `productos[i].id`, la entidad devuelve
@@ -1245,6 +1257,7 @@ propuesto está en `vistas/tienda-publica.md`. `resenas: null` es válido.
   "cliente_telefono": "999888777",
   "cliente_email": "maria@correo.pe",
   "cliente_documento": "45678912",    // opcional (DNI)
+  "acepta_whatsapp": false,           // la casilla desmarcada (Story 4.8c; la conecta la 6.7)
   "notas": null,
   "servicios": [
     { "id": 4, "cantidad": 1, "profesional_id": 7,

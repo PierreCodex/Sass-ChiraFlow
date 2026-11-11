@@ -46,6 +46,7 @@ export const citaSchema = yup.object({
   cliente_email: textoOpcional
     .email("Escribe un correo válido")
     .max(150, "Máximo 150 caracteres"),
+  acepta_whatsapp: yup.boolean().defined(),
   monto: yup
     .number()
     .typeError("Escribe el monto")
@@ -78,6 +79,7 @@ export const valoresIniciales: CitaFormValues = {
   cliente_nombre: "",
   cliente_telefono: null,
   cliente_email: null,
+  acepta_whatsapp: false,
   monto: 0,
   estado: "pendiente",
   notas: null,

@@ -43,6 +43,7 @@ export interface OpcionCliente {
   nombre: string;
   telefono: string | null;
   email: string | null;
+  acepta_whatsapp: boolean;
 }
 
 export interface OpcionesPorColeccion {

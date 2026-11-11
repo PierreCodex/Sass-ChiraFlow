@@ -42,6 +42,7 @@ import { horarioNegocio } from "@/features/configuracion/types";
 import { ESTADOS_CITA } from "../constants";
 import { useActualizarCita, useCitasDelDia, useCrearCita } from "../hooks/useCitas";
 import { useConRetardo, useOpcionesCita } from "../hooks/useOpcionesCita";
+import CasillaWhatsapp from "@/features/clientes/components/CasillaWhatsapp";
 import HistorialCita from "./HistorialCita";
 import SelectorHuecos from "./SelectorHuecos";
 import SelectorOpcion from "./SelectorOpcion";
@@ -242,6 +243,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
             cliente_nombre: cita.cliente_nombre,
             cliente_telefono: cita.cliente_telefono,
             cliente_email: cita.cliente_email,
+            acepta_whatsapp: cita.cliente_acepta_whatsapp,
             monto: cita.monto,
             estado: cita.estado,
             notas: cita.notas,
@@ -506,8 +508,12 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     inputValue={field.value ?? ""}
                     onInputChange={(_, valor, motivo) => {
                       field.onChange(valor);
-                      // Si lo escribió a mano, deja de estar vinculado a un cliente.
-                      if (motivo === "input") setValue("cliente_id", null);
+                      // Si lo escribió a mano, deja de estar vinculado a un
+                      // cliente, y su casilla de WhatsApp no es de este.
+                      if (motivo === "input") {
+                        setValue("cliente_id", null);
+                        setValue("acepta_whatsapp", false);
+                      }
                     }}
                     onChange={(_, valor) => {
                       if (valor && typeof valor !== "string") {
@@ -515,6 +521,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                         setValue("cliente_id", valor.id);
                         setValue("cliente_telefono", valor.telefono);
                         setValue("cliente_email", valor.email);
+                        setValue("acepta_whatsapp", valor.acepta_whatsapp);
                       }
                     }}
                     renderInput={(params) => (
@@ -561,6 +568,16 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     error={!!errors.cliente_email}
                     helperText={errors.cliente_email?.message}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid size={12}>
+              <Controller
+                name="acepta_whatsapp"
+                control={control}
+                render={({ field }) => (
+                  <CasillaWhatsapp marcada={!!field.value} onCambiar={field.onChange} />
                 )}
               />
             </Grid>
