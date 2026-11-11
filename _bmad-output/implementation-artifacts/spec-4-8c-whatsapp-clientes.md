@@ -94,6 +94,16 @@ En negrita lo clave: negocio, servicio, fecha, hora, monto y la palabra a
 responder. El nombre del cliente va sin negrita. El primer mensaje no lleva
 enlace y termina con una pregunta.
 
+**El emoji del servicio sale del rubro del negocio** (su categoría): 💈
+barbería, 🦷 clínica dental, 🏋️ gimnasio… No sabemos qué tipo de negocio se
+une, y «✂️ Limpieza dental» quedaría raro. «Otro», sin categoría o una
+categoría nueva sin emoji usan ✨. La tabla está en `config/whatsapp.php`
+(`emojis_por_categoria`). En los ejemplos de abajo, ✂️ es ese emoji.
+
+**Los negocios no reescriben estos textos:** los personalizan con la 4.6 (nota
+del negocio y emoji, según el plan). Ver el cambio del 2026-11-11 en la 4.6
+(`epics.md`).
+
 | Plantilla | Texto (ejemplo) |
 |---|---|
 | C-3 | ✅ ¡Listo, Lucía! Tu cita en **Barbería Pepito** está **confirmada**: ✂️ **Corte clásico** con Carlos · 📅 **Lunes 9 de noviembre** · **10:00** · 📍 Av. Larco 745 · 💵 Pagas en el local: **S/ 25.00** · ¿Necesitas cambiar algo? Responde **CAMBIAR**. |
