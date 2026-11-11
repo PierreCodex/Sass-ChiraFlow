@@ -4,6 +4,33 @@ Guía para quien se suma a desarrollar (escrita el 2026-11-11, para Sandro). Las
 reglas valen para los **dos** repos: `Sass-ChiraFlow` (frontend, Next) y
 `Backend-Sass` (backend, Laravel).
 
+## 0. El primer día
+
+1. **Acceso:** Jean te agrega como colaborador en GitHub a los dos repos
+   (`PierreCodex/Sass-ChiraFlow` y `PierreCodex/Backend-Sass`).
+2. **Quién eres en git**, una sola vez y con **tu** cuenta de GitHub:
+   ```bash
+   git config --global user.name "Tu Nombre"
+   git config --global user.email "el-correo-de-tu-github@ejemplo.com"
+   ```
+   Así tus commits y tus PR salen a tu nombre. No hace falta escribir «soy
+   Sandro» en los mensajes: GitHub ya lo muestra.
+3. **Clonar** los dos repos y, en el frontend, `cd web && npm install`. En el
+   backend, `composer install`.
+4. **Variables locales** (`web/.env.local`, `.env` del backend): te las pasa
+   Jean por **Bitwarden**, nunca por chat ni por el repo.
+5. **BMAD:** la configuración del proyecto (`_bmad/config.toml`) y las specs
+   (`_bmad-output/`) ya vienen en el repo. Las skills (`bmad-code-review`…) se
+   generan en tu máquina al instalar BMAD, y **tu nombre va en tu propio
+   `_bmad/custom/*.user.toml`**, que git ignora: así el agente sabe que eres tú
+   sin tocar la configuración de los demás.
+6. **Cada vez que empiezas algo**, desde `develop` actualizado:
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b chore/header-sin-restos-de-plantilla
+   ```
+
 ## 1. Las ramas
 
 ```
