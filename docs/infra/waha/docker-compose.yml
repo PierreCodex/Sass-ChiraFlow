@@ -1,0 +1,49 @@
+# WAHA (WhatsApp HTTP API) para tivu, en Coolify: proyecto `tivu`, entorno
+# `production`, recurso «Docker Compose Empty» llamado `waha`. Sustituyó a
+# Evolution API el 2026-11-11 (spec-whatsapp-waha.md): sabe pasar un `…@lid`
+# (quien usa nombre de usuario y oculta su número) a teléfono y escribirle.
+#
+# Solo el dashboard sale fuera, por https://waha.tivuapp.com (puerto 3000 en
+# Domains), detrás de Cloudflare Access (política «Solo Jean») y con su propio
+# usuario y contraseña. Laravel le habla por la red interna
+# (http://waha-<uuid>:3000): en el recurso, «Connect to the predefined Coolify
+# network».
+#
+# Motor GOWS (Go): ligero, sin navegador. Cada número es una sesión
+# (`tivu-equipo`, `tivu-clientes`, `tivu-reserva`) y se guarda en el volumen
+# waha_sesiones, que entra en las copias a R2 (AD-20, Story 9.5): sin él hay
+# que volver a escanear los QR.
+#
+# Secretos: WAHA_API_KEY, WAHA_DASHBOARD_USERNAME y WAHA_DASHBOARD_PASSWORD,
+# solo en las variables de Coolify y en Bitwarden.
+services:
+  waha:
+    # Fijar la versión probada (por ejemplo la 2026.10.1) en cuanto se
+    # confirme su etiqueta en Docker Hub; `latest` cambia sin avisar.
+    image: devlikeapro/waha:latest
+    restart: unless-stopped
+    environment:
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      WHATSAPP_API_PORT: "3000"
+      WAHA_API_KEY: ${WAHA_API_KEY:?falta WAHA_API_KEY}
+      WAHA_DASHBOARD_ENABLED: "true"
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:?falta WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?falta WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_SWAGGER_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      # Tras un reinicio del contenedor, las sesiones vuelven solas.
+      WHATSAPP_RESTART_ALL_SESSIONS: "True"
+      # Las imágenes recibidas no se guardan: tivu solo lee texto.
+      WHATSAPP_FILES_LIFETIME: "180"
+    volumes:
+      - waha_sesiones:/app/.sessions
+    expose:
+      - "3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
+volumes:
+  waha_sesiones:
