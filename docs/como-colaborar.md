@@ -18,8 +18,18 @@ reglas valen para los **dos** repos: `Sass-ChiraFlow` (frontend, Next) y
    Sandro» en los mensajes: GitHub ya lo muestra.
 3. **Clonar** los dos repos y, en el frontend, `cd web && npm install`. En el
    backend, `composer install`.
-4. **Variables locales** (`web/.env.local`, `.env` del backend): te las pasa
-   Jean por **Bitwarden**, nunca por chat ni por el repo.
+4. **Variables locales: las tuyas, no las de nadie.** Nadie se pasa sus `.env`:
+   pueden tener claves reales (correo, WhatsApp, `APP_KEY`). Se arman desde los
+   ejemplos del repo:
+   - **Backend:** `cp .env.example .env` y `php artisan key:generate`. Base de
+     datos: tu **MySQL** local (Laragon), no la `sqlite` del ejemplo, porque cada
+     negocio tiene su base. `MAIL_MAILER=log` (los correos van al log) y
+     `WHATSAPP_SIMULADO=true` (no habla con WAHA ni escribe a números reales).
+   - **Frontend:** `cp web/.env.example web/.env.local`, con
+     `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api`. Con `127.0.0.1`, no
+     `localhost`: ver «Trampas» en `CLAUDE.md`.
+   - Si algún día hace falta un acceso real (p. ej. la cuenta de prueba de
+     producción), va por **Bitwarden**, nunca por chat ni por el repo.
 5. **BMAD:** la configuración del proyecto (`_bmad/config.toml`) y las specs
    (`_bmad-output/`) ya vienen en el repo. Las skills (`bmad-code-review`…) se
    generan en tu máquina al instalar BMAD, y **tu nombre va en tu propio
