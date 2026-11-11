@@ -27,7 +27,7 @@ const atencionMedico = { id: 2, nombre: "ATENCION DEL MEDICO", duracion_min: 60,
 type ServicioBase = Omit<LineaServicio, "cantidad">;
 type CitaBase = Omit<
   Cita,
-  "codigo" | "monto_total" | "servicios" | "servicio" | "local_id" | "canal" | "creada_por"
+  "codigo" | "monto_total" | "servicios" | "servicio" | "local_id" | "canal" | "creada_por" | "cliente_acepta_whatsapp"
 > & { servicio: ServicioBase };
 
 const citasBase: CitaBase[] = [
@@ -69,6 +69,7 @@ export const citasMock: Cita[] = citasBase.map((cita) => {
     servicios: [linea],
     servicio: linea,
     monto_total: cita.monto + productos,
+    cliente_acepta_whatsapp: cita.id % 3 === 0,
     // Una de cada cinco la reservó el cliente desde la tienda; el resto, el
     // panel. Así la ficha enseña los dos casos con datos ficticios.
     // Y una de cada siete, del panel por alguien a quien luego le quitaron el

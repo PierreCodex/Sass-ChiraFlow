@@ -12,6 +12,7 @@ export const clienteSchema = yup.object({
   nombre: yup.string().trim().required("El nombre es obligatorio"),
   telefono: textoOpcional,
   email: textoOpcional.email("Escribe un correo válido"),
+  acepta_whatsapp: yup.boolean().defined(),
 });
 
 export type ClienteFormValues = yup.InferType<typeof clienteSchema>;
@@ -20,4 +21,5 @@ export const valoresIniciales: ClienteFormValues = {
   nombre: "",
   telefono: null,
   email: null,
+  acepta_whatsapp: false,
 };

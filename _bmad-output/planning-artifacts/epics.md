@@ -1157,8 +1157,38 @@ So that el equipo no se ahogue en correos y el cliente reciba lo justo.
 **When** se muestra
 **Then** aparece bloqueada con el plan que la incluye, sin esconderla.
 
+**Cambio del 2026-11-11** (decidido con el equipo al cerrar la 4.8c): **los
+mensajes de WhatsApp a clientes se personalizan, no se reescriben.** El número
+de clientes es uno para todos los negocios: un texto que WhatsApp tome por
+spam lo bloquearía para todos. Además, la API oficial de Meta pide aprobar
+cada plantilla. La estructura, la salida (BAJA) y la ausencia de enlaces en el
+primer mensaje no se tocan.
+
+**Given** Configuración → Notificaciones → WhatsApp a clientes
+**When** el dueño la abre
+**Then** puede, según su plan:
+
+| Qué | Básico | Premium | Pro |
+|---|---|---|---|
+| Activar o desactivar cada aviso opcional | ✅ | ✅ | ✅ |
+| Emoji del servicio | el de su rubro, automático (4.8c) | elegir otro | elegir otro |
+| **Nota del negocio**: una línea propia al final del mensaje, máx. 80 caracteres, sin enlaces ni teléfonos (ej. «Llega 10 min antes 🙏») | — | una para todos los avisos | una por aviso |
+| Plantillas 100 % propias | — | — | más adelante, con su propio número por la API oficial |
+
+**Given** una nota del negocio con un enlace, un teléfono o más de 80 caracteres
+**When** se guarda
+**Then** se rechaza con 422 y el motivo, y se muestra cómo se verá el mensaje antes de guardar.
+
+**Given** un plan que no incluye la nota o elegir el emoji
+**When** se muestra la sección
+**Then** aparece bloqueada con el plan que la incluye, sin esconderla; los límites salen de la configuración de planes, nunca del nombre del plan.
+
+**Given** la nota del negocio
+**When** sale un aviso
+**Then** va como `💬 _nota_` antes de la pregunta final, y en Meta como una variable más de la plantilla aprobada.
+
 > **Agente:** codex (pantallas) con apoyo de claude (endpoints) ·
-> **Referencias:** PRD FR-75, UX-DR5, propuesta §4.4.
+> **Referencias:** PRD FR-75, UX-DR5, propuesta §4.4, `spec-4-8c-whatsapp-clientes.md`.
 
 ### Story 4.7: La cuota de correos no corta lo importante
 

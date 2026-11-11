@@ -49,6 +49,7 @@ async function coleccionMock<C extends ColeccionOpciones>(
         nombre: c.nombre,
         telefono: c.telefono,
         email: c.email,
+        acepta_whatsapp: c.acepta_whatsapp,
       })) as unknown as OpcionesPorColeccion[C][];
   }
 }
