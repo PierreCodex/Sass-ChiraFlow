@@ -1,4 +1,6 @@
 "use client";
+import { moduloEnConstruccion } from "@/lib/api/mocks";
+import ModuloProximamente from "@/components/shared/ModuloProximamente";
 import { useState } from "react";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
@@ -17,7 +19,7 @@ import type { Ticket } from "@/features/soporte/types";
 import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
-export default function SoportePage() {
+function Soporte() {
   const [formAbierto, setFormAbierto] = useState(false);
   const [ticketVisto, setTicketVisto] = useState<Ticket | null>(null);
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>(null);
@@ -59,4 +61,19 @@ export default function SoportePage() {
       />
     </PageContainer>
   );
+}
+
+/** Sin backend todavía: en producción, «Próximamente» en vez de datos ficticios. */
+export default function SoportePage() {
+  if (moduloEnConstruccion("soporte")) {
+    return (
+      <ModuloProximamente
+        titulo="Soporte"
+        descripcion="Tickets para escribirle al equipo de tivu y seguir su respuesta."
+        nota="Mientras tanto, escríbenos a soporte@tivuapp.com."
+      />
+    );
+  }
+
+  return <Soporte />;
 }

@@ -1,4 +1,6 @@
 "use client";
+import { moduloEnConstruccion } from "@/lib/api/mocks";
+import ModuloProximamente from "@/components/shared/ModuloProximamente";
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
@@ -34,7 +36,7 @@ import AvisoError from "@/components/shared/AvisoError";
 import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
-export default function CajaPage() {
+function Caja() {
   const [abrirDialog, setAbrirDialog] = useState(false);
   const [cerrarDialog, setCerrarDialog] = useState(false);
   const [movimientoDialog, setMovimientoDialog] = useState(false);
@@ -173,4 +175,18 @@ export default function CajaPage() {
       ) : null}
     </PageContainer>
   );
+}
+
+/** Sin backend todavía: en producción, «Próximamente» en vez de datos ficticios. */
+export default function CajaPage() {
+  if (moduloEnConstruccion("caja")) {
+    return (
+      <ModuloProximamente
+        titulo="Caja"
+        descripcion="Abrir y cerrar caja, registrar ingresos y egresos y cuadrar el arqueo del día."
+      />
+    );
+  }
+
+  return <Caja />;
 }

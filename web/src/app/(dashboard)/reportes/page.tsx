@@ -1,4 +1,6 @@
 "use client";
+import { moduloEnConstruccion } from "@/lib/api/mocks";
+import ModuloProximamente from "@/components/shared/ModuloProximamente";
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Grid from "@mui/material/Grid";
@@ -24,7 +26,7 @@ import {
 import AvisoError from "@/components/shared/AvisoError";
 
 
-export default function ReportesPage() {
+function Reportes() {
   const [rango, setRango] = useState(rangoPorDefecto);
 
   const { data, isPending, isError, error } = useReporte(rango);
@@ -99,4 +101,18 @@ export default function ReportesPage() {
       </Stack>
     </PageContainer>
   );
+}
+
+/** Sin backend todavía: en producción, «Próximamente» en vez de datos ficticios. */
+export default function ReportesPage() {
+  if (moduloEnConstruccion("reportes")) {
+    return (
+      <ModuloProximamente
+        titulo="Reportes"
+        descripcion="Tus reservas e ingresos por día, por hora, por servicio y por profesional, con exportación a CSV."
+      />
+    );
+  }
+
+  return <Reportes />;
 }

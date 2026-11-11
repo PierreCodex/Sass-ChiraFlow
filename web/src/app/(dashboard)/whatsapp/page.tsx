@@ -1,4 +1,6 @@
 "use client";
+import { moduloEnConstruccion } from "@/lib/api/mocks";
+import ModuloProximamente from "@/components/shared/ModuloProximamente";
 import { useState } from "react";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -26,7 +28,7 @@ import { toApiError } from "@/lib/api/client";
 import SoloSiGestiona from "@/components/shared/SoloSiGestiona";
 
 
-export default function WhatsappPage() {
+function WhatsappPlantillas() {
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState<PlantillaWhatsapp | null>(null);
   const [inicial, setInicial] = useState<Partial<PlantillaWhatsapp> | null>(null);
@@ -160,4 +162,19 @@ export default function WhatsappPage() {
       />
     </PageContainer>
   );
+}
+
+/** Sin backend todavía: en producción, «Próximamente» en vez de datos ficticios. */
+export default function WhatsappPage() {
+  if (moduloEnConstruccion("whatsapp")) {
+    return (
+      <ModuloProximamente
+        titulo="WhatsApp"
+        descripcion="Activar o desactivar los avisos por WhatsApp a tus clientes y añadirles una nota de tu negocio."
+        nota="Los avisos por WhatsApp ya funcionan: marca «Recibir avisos de sus citas por WhatsApp» al agendar una cita."
+      />
+    );
+  }
+
+  return <WhatsappPlantillas />;
 }
