@@ -15,7 +15,8 @@
 # que volver a escanear los QR.
 #
 # Secretos: WAHA_API_KEY, WAHA_DASHBOARD_USERNAME y WAHA_DASHBOARD_PASSWORD,
-# solo en las variables de Coolify y en Bitwarden.
+# solo en las variables de Coolify y en Bitwarden. Sin `${VAR:?mensaje}`:
+# Coolify toma ese mensaje como el valor de la variable.
 services:
   waha:
     # Fijar la versión probada (por ejemplo la 2026.10.1) en cuanto se
@@ -25,10 +26,10 @@ services:
     environment:
       WHATSAPP_DEFAULT_ENGINE: GOWS
       WHATSAPP_API_PORT: "3000"
-      WAHA_API_KEY: ${WAHA_API_KEY:?falta WAHA_API_KEY}
+      WAHA_API_KEY: ${WAHA_API_KEY}
       WAHA_DASHBOARD_ENABLED: "true"
-      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:?falta WAHA_DASHBOARD_USERNAME}
-      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?falta WAHA_DASHBOARD_PASSWORD}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
       WHATSAPP_SWAGGER_USERNAME: ${WAHA_DASHBOARD_USERNAME}
       WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
       # Tras un reinicio del contenedor, las sesiones vuelven solas.
