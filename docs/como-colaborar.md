@@ -7,7 +7,8 @@ reglas valen para los **dos** repos: `Sass-ChiraFlow` (frontend, Next) y
 ## 0. El primer día
 
 1. **Acceso:** Jean te agrega como colaborador en GitHub a los dos repos
-   (`PierreCodex/Sass-ChiraFlow` y `PierreCodex/Backend-Sass`).
+   (`PierreCodex/Sass-ChiraFlow` y `PierreCodex/Backend-Sass`). Sandro ya
+   colaboró antes como **`Saler123`**.
 2. **Quién eres en git**, una sola vez y con **tu** cuenta de GitHub:
    ```bash
    git config --global user.name "Tu Nombre"
@@ -112,6 +113,14 @@ Para no pisarnos. Se actualiza cuando alguien toma o termina algo.
 | **Sandro** | 1. `chore/header-sin-restos-de-plantilla`: quitar «Apps», «Chat», «Calendar», «Email», la bandera y la campana falsa del header (solo frontend) | por empezar |
 | **Sandro** | 2. **Story 3.3** «Un tablero que dice la verdad»: `GET /dashboard` en el backend (hoy el frontend lo calcula con varias llamadas, ver `dashboard.api.ts`) | después |
 | **Sandro** | Después: 3.2, 3.1 y la Épica 5 (marca del negocio); 9.2 (términos y privacidad) si hace falta | backlog |
+
+**Lo que Sandro (`Saler123`) ya hizo** (octubre de 2026): la landing y la
+animación del logo, el logo y los colores de la marca, los términos con la
+casilla del registro, el plan «Empresa» del prototipo (frontend); el rol
+Recepción y el permiso de pagos (1.5, 1.6), el acceso al panel de plataforma
+con código por correo (parte de la 8.4) y el checklist del onboarding (1.12)
+(backend). Entonces se integraba en `sandro/develop`; **desde el 2026-10-31 todo
+va por rama propia y PR a `develop`**.
 
 **Mejor no tocar** sin hablarlo antes: la Épica 4 (avisos), 6.6–6.12 y la
 Épica 7 (tienda y pagos) y la Épica 8 (planes): dependen de los avisos o tocan
