@@ -222,6 +222,7 @@ export default function SedePage({
       <WizardReserva
         abierto={wizardAbierto}
         slug={slug}
+        negocio={negocio.nombre}
         localId={idLocal}
         lineas={carrito.lineas}
         profesionales={profesionales}

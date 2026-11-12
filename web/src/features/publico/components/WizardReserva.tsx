@@ -12,6 +12,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormHelperText from "@mui/material/FormHelperText";
 import Grid from "@mui/material/Grid";
 import Radio from "@mui/material/Radio";
 import Stack from "@mui/material/Stack";
@@ -21,6 +23,7 @@ import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 
+import CustomCheckbox from "@/components/forms/theme-elements/CustomCheckbox";
 import CustomFormLabel from "@/components/forms/theme-elements/CustomFormLabel";
 import CustomTextField from "@/components/forms/theme-elements/CustomTextField";
 import { dialogoResponsive, formularioCompacto } from "@/components/shared/estilos-formulario";
@@ -48,6 +51,8 @@ import {
 interface Props {
   abierto: boolean;
   slug: string;
+  /** Quién usa los datos: va en el aviso de privacidad (Story 6.6). */
+  negocio: string;
   localId: number;
   lineas: LineaCarrito[];
   profesionales: ProfesionalPublico[];
@@ -64,11 +69,25 @@ const DATOS_VACIOS: DatosCliente = {
   cliente_email: "",
   cliente_documento: null,
   notas: null,
+  acepta_privacidad: false,
+  acepta_whatsapp: false,
 };
+
+/** Los campos del paso «Tus datos»: un 422 en ellos vuelve a ese paso. */
+const CAMPOS_DATOS = [
+  "cliente_nombre",
+  "cliente_apellido",
+  "cliente_telefono",
+  "cliente_email",
+  "cliente_documento",
+  "notas",
+  "acepta_privacidad",
+];
 
 const WizardReserva = ({
   abierto,
   slug,
+  negocio,
   localId,
   lineas,
   profesionales,
@@ -179,13 +198,18 @@ const WizardReserva = ({
   const validarDatos = () => {
     const nuevos: Record<string, string> = {};
     if (!datos.cliente_nombre.trim()) nuevos.cliente_nombre = "Escribe tu nombre";
-    if (!datos.cliente_telefono.trim())
+    if (!datos.cliente_telefono.trim()) {
       nuevos.cliente_telefono = "Necesitamos un teléfono de contacto";
+    } else if (!/^9\d{8}$/.test(celularPeruano(datos.cliente_telefono))) {
+      nuevos.cliente_telefono = "Escribe tu celular de 9 dígitos.";
+    }
     if (!datos.cliente_email.trim()) {
       nuevos.cliente_email = "Necesitamos un correo";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.cliente_email)) {
       nuevos.cliente_email = "Ese correo no parece válido";
     }
+    if (!datos.acepta_privacidad)
+      nuevos.acepta_privacidad = "Para reservar, acepta el aviso de privacidad.";
     setErrores(nuevos);
     return Object.keys(nuevos).length === 0;
   };
@@ -220,9 +244,24 @@ const WizardReserva = ({
             sus datos. Se refrescan las horas y se vuelve a elegir; el
             selector dice cuál se perdió.
           */
-          if (toApiError(error).errors?.hora_inicio) {
+          const apiError = toApiError(error);
+          if (apiError.errors?.hora_inicio) {
             queryClient.invalidateQueries({ queryKey: publicoKeys.horariosDe(slug, localId) });
             setPaso(necesitaModo ? 1 : 0);
+            return;
+          }
+          // Story 6.6: un dato que el servidor no aceptó se pinta en su campo.
+          const enDatos = Object.entries(apiError.errors ?? {}).filter(([campo]) =>
+            CAMPOS_DATOS.includes(campo)
+          );
+          if (enDatos.length > 0) {
+            setErrores(Object.fromEntries(enDatos.map(([campo, mensajes]) => [campo, mensajes[0]])));
+            setPaso(necesitaModo ? 2 : 1);
+            return;
+          }
+          // Story 6.5: lo elegido dejó de ser reservable; el catálogo se refresca.
+          if (apiError.status === 404) {
+            queryClient.invalidateQueries({ queryKey: publicoKeys.negocio(slug) });
           }
         },
       }
@@ -499,6 +538,74 @@ const WizardReserva = ({
                 }
               />
             </Grid>
+
+            {/* Story 6.6 (Ley 29733): las dos casillas nacen desmarcadas. */}
+            <Grid size={12}>
+              <Stack spacing={1.5} sx={{ mt: 1 }}>
+                <Box>
+                  <FormControlLabel
+                    sx={{ alignItems: "flex-start", mr: 0 }}
+                    control={
+                      <CustomCheckbox
+                        checked={datos.acepta_privacidad}
+                        onChange={(e) =>
+                          setDatos({ ...datos, acepta_privacidad: e.target.checked })
+                        }
+                        inputProps={{ "aria-label": "Acepto el aviso de privacidad" }}
+                        sx={{ mt: -0.5 }}
+                      />
+                    }
+                    label={
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          Acepto el aviso de privacidad
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" component="p">
+                          {negocio} usa tus datos solo para gestionar tus citas, y
+                          tivu los guarda por encargo suyo. No se venden ni se
+                          comparten. Puedes pedir que los corrijan o los borren
+                          escribiendo a {negocio}.
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  {errores.acepta_privacidad ? (
+                    <FormHelperText error sx={{ ml: 4 }}>
+                      {errores.acepta_privacidad}
+                    </FormHelperText>
+                  ) : null}
+                </Box>
+
+                {/* En un Box: el Stack anula el margen negativo de la casilla. */}
+                <Box>
+                <FormControlLabel
+                  sx={{ alignItems: "flex-start", mr: 0 }}
+                  control={
+                    <CustomCheckbox
+                      checked={datos.acepta_whatsapp}
+                      onChange={(e) =>
+                        setDatos({ ...datos, acepta_whatsapp: e.target.checked })
+                      }
+                      inputProps={{ "aria-label": "Recibir avisos de mis citas por WhatsApp" }}
+                      sx={{ mt: -0.5 }}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        Recibir avisos de mis citas por WhatsApp
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary" component="p">
+                        Opcional. Te escribimos desde el número de tivu cuando tu
+                        cita esté confirmada. Te das de baja respondiendo BAJA.
+                        El correo te llega igual.
+                      </Typography>
+                    </Box>
+                  }
+                />
+                </Box>
+              </Stack>
+            </Grid>
           </Grid>
         ) : null}
 
@@ -590,5 +697,11 @@ const WizardReserva = ({
     </Dialog>
   );
 };
+
+/** «+51 987-654-321» → «987654321», como lo normaliza el backend. */
+function celularPeruano(telefono: string) {
+  const digitos = telefono.replace(/\D+/g, "");
+  return digitos.length === 11 && digitos.startsWith("51") ? digitos.slice(2) : digitos;
+}
 
 export default WizardReserva;
