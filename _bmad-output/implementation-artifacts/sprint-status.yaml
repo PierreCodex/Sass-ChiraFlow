@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-20-2026 13:40
-last_updated: 11-04-2026 10:00
+last_updated: 11-11-2026 20:00
 project: ChiraFlow
 project_key: NOKEY
 tracking_system: file-system
@@ -70,11 +70,11 @@ development_status:
   4-1-un-solo-camino-para-avisar-con-registro-de-lo-enviado: done
   4-2-correos-que-parecen-del-negocio-y-están-en-español: done
   4-3-saber-si-el-correo-llegó: backlog
-  4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: backlog
+  4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: review
   4-5-cada-aviso-llega-a-quien-le-toca: backlog
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: backlog
   4-7-la-cuota-de-correos-no-corta-lo-importante: backlog
-  4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: in-progress
+  4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: done
   epic-4-retrospective: optional
 
   epic-5: backlog
