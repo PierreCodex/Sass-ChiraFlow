@@ -758,7 +758,7 @@ formulario, recortadas por el alcance de la cuenta y por `solo_propios`:
   "servicios": {"data": [{"id": 2, "nombre": "Corte", "duracion_min": 45, "precio": 30}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "locales": {"data": [{"id": 3, "nombre": "Principal", "es_principal": true}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "productos": {"data": [{"id": 4, "nombre": "Gel", "precio_venta": 12, "stock": 5}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
-  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999", "email": "luis@correo.pe"}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
+  "clientes": {"data": [{"id": 5, "nombre": "Luis Perez", "telefono": "999999999", "email": "luis@correo.pe", "acepta_whatsapp": true}], "meta": {"current_page": 1, "last_page": 1, "per_page": 20, "total": 1}},
   "agenda": {"modo_intervalo": "fijo", "intervalo_min": 15, "zona_horaria": "America/Lima"}
 } }
 ```
@@ -784,8 +784,10 @@ abajo): un profesional sale si tiene al menos un servicio que puede agendar en
 alguna sede del alcance (o en la de `local_id`), un servicio si alguien puede
 atenderlo en ella, y
 los `servicios` de cada profesional son los que él puede agendar. `locales`
-trae `es_principal`, y `clientes` trae `email`, para rellenarlo en la cita al
-elegir uno.
+trae `es_principal`, y `clientes` trae `email` y `acepta_whatsapp`, para
+rellenar en la cita su correo y la casilla de WhatsApp al elegir uno. Sin
+`acepta_whatsapp` la casilla salía desmarcada y, al guardar, le quitaba el
+consentimiento a quien ya lo había dado.
 
 En un negocio **sin sedes** (así nace todo negocio) no se filtra por sede, y
 `locales` viene vacío. `color` de cada profesional es `null` hasta que la ficha
