@@ -576,6 +576,8 @@ const WizardReserva = ({
                   ) : null}
                 </Box>
 
+                {/* En un Box: el Stack anula el margen negativo de la casilla. */}
+                <Box>
                 <FormControlLabel
                   sx={{ alignItems: "flex-start", mr: 0 }}
                   control={
@@ -601,6 +603,7 @@ const WizardReserva = ({
                     </Box>
                   }
                 />
+                </Box>
               </Stack>
             </Grid>
           </Grid>
