@@ -230,6 +230,34 @@ export function huecosDisponibles(
     .map(minutosAHora);
 }
 
+/**
+ * Las horas de la rejilla que NO se pueden elegir porque chocan con una cita
+ * ya agendada (no con un break). El selector las muestra en gris: si
+ * desaparecieran, «¿dónde quedó las 10:30?» no tendría respuesta.
+ */
+export function horasOcupadas(
+  jornada: JornadaDia,
+  ocupados: Ocupado[],
+  duracionMin: number,
+  pasoMin = PASO_AGENDA_POR_DEFECTO
+): string[] {
+  if (!jornada.trabaja || !jornada.desde || !jornada.hasta || ocupados.length === 0) return [];
+
+  const apertura = horaAMinutos(jornada.desde);
+  const cierre = horaAMinutos(jornada.hasta);
+  const breaks = jornada.breaks.map((b) => ({ ini: horaAMinutos(b.desde), fin: horaAMinutos(b.hasta) }));
+  const citas = ocupados.map((o) => ({ ini: horaAMinutos(o.inicio), fin: horaAMinutos(o.fin) }));
+
+  const horas: string[] = [];
+  for (let inicio = apertura; inicio + duracionMin <= cierre; inicio += pasoMin) {
+    const fin = inicio + duracionMin;
+    if (breaks.some((b) => seSolapan(inicio, fin, b.ini, b.fin))) continue;
+    if (citas.some((c) => seSolapan(inicio, fin, c.ini, c.fin))) horas.push(minutosAHora(inicio));
+  }
+
+  return horas;
+}
+
 /** Resta o suma minutos a una hora "HH:mm", con tope en 00:00 y 23:59. */
 export function desplazarHora(hora: string, minutos: number) {
   const [h, m] = hora.split(":").map(Number);

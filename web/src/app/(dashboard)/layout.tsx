@@ -59,6 +59,10 @@ export default function RootLayout({
       <PageWrapper
         className="page-wrapper"
         sx={{
+          // Sin esto, en la fila flex con el sidebar el contenido no se
+          // encoge: una tabla ancha (citas, 1000 px) empuja la página entera
+          // y sale un scroll horizontal. Con 0, la tabla scrollea en su caja.
+          minWidth: 0,
           ...(isCollapse === "mini-sidebar" && {
             [theme.breakpoints.up("lg")]: {
               ml: `${MiniSidebarWidth}px`,

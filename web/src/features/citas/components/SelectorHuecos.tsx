@@ -4,10 +4,13 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 interface Props {
   huecos: string[];
+  /** Horas que chocan con otra cita: se ven en gris y no se pueden elegir. */
+  ocupadas?: string[];
   valor: string;
   onChange: (hora: string) => void;
   cargando?: boolean;
@@ -26,6 +29,7 @@ interface Props {
  */
 const SelectorHuecos = ({
   huecos,
+  ocupadas = [],
   valor,
   onChange,
   cargando = false,
@@ -50,6 +54,10 @@ const SelectorHuecos = ({
       ? [horaActual, ...huecos].sort()
       : huecos;
 
+  // Las libres y las ocupadas, en orden: el día se ve entero.
+  const libres = new Set(opciones);
+  const todas = [...new Set([...opciones, ...ocupadas])].sort();
+
   if (opciones.length === 0) {
     return (
       <Alert severity="info" variant="outlined">
@@ -61,21 +69,36 @@ const SelectorHuecos = ({
   return (
     <Box>
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        {opciones.map((hora) => (
-          <Chip
-            key={hora}
-            label={hora}
-            clickable
-            color={valor === hora ? "primary" : "default"}
-            variant={valor === hora ? "filled" : "outlined"}
-            onClick={() => onChange(hora)}
-          />
-        ))}
+        {todas.map((hora) =>
+          libres.has(hora) ? (
+            <Chip
+              key={hora}
+              label={hora}
+              clickable
+              color={valor === hora ? "primary" : "default"}
+              variant={valor === hora ? "filled" : "outlined"}
+              onClick={() => onChange(hora)}
+            />
+          ) : (
+            // El span deja que el tooltip funcione sobre un chip deshabilitado.
+            <Tooltip key={hora} title="Ocupado: ya hay una cita a esta hora">
+              <span>
+                <Chip
+                  label={hora}
+                  disabled
+                  variant="outlined"
+                  sx={{ textDecoration: "line-through" }}
+                />
+              </span>
+            </Tooltip>
+          )
+        )}
       </Stack>
 
       {duracionMin ? (
         <Typography variant="caption" color="textSecondary" display="block" mt={1}>
           Cada cita ocupa {duracionMin} min.
+          {ocupadas.length ? " Las tachadas ya están ocupadas." : ""}
         </Typography>
       ) : null}
     </Box>
