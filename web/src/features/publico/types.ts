@@ -158,6 +158,10 @@ export interface DatosCliente {
   cliente_email: string;
   cliente_documento: string | null;
   notas: string | null;
+  /** Story 6.6 (Ley 29733): sin esto el backend no guarda nada. */
+  acepta_privacidad: boolean;
+  /** Nace desmarcada; si la marca, los avisos le llegan también por WhatsApp. */
+  acepta_whatsapp: boolean;
 }
 
 export interface ReservaPayload extends DatosCliente {
@@ -176,6 +180,8 @@ export interface ReservaPayload extends DatosCliente {
 export interface ReservaConfirmada {
   codigo: string;
   modo: ModoReserva;
+  /** Story 6.6: la tienda siempre crea `pendiente`; se confirma con la 6.7. */
+  estado?: "pendiente";
   total: number;
   citas: {
     id: number;

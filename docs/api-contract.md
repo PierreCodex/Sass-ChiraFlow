@@ -405,6 +405,46 @@ duplicarla.
 | GET | `/publico/{slug}/sucursal/{sede}/horarios` | `?profesional_id&fecha&duracion_min` | `{ data: string[] }` — `["09:00","09:45",…]` |
 | POST | `/publico/{slug}/sucursal/{sede}/reservar` | `ReservaPayload` | `{ data: ReservaConfirmada }` |
 
+#### Reservar desde la tienda (Story 6.6)
+
+```json
+// POST /publico/pepito/sucursal/balta/reservar
+{
+  "modo": "unica",                      // "unica": una cita seguida · "separada": una por servicio
+  "servicios": [
+    { "id": 2, "cantidad": 1, "profesional_id": null, "fecha": "2026-11-20", "hora_inicio": "10:00" }
+  ],                                    // profesional_id null = cualquiera: lo asigna el servidor
+  "cliente_nombre": "Lucía", "cliente_apellido": "Ramos",
+  "cliente_telefono": "987654321",      // celular peruano de 9 dígitos (+51 se acepta)
+  "cliente_email": "lucia@correo.pe", "cliente_documento": null, "notas": null,
+  "acepta_privacidad": true,            // obligatoria (Ley 29733)
+  "acepta_whatsapp": false              // opcional, nace desmarcada
+}
+// 201
+{ "data": { "codigo": "K7M2P9QX", "modo": "unica", "estado": "pendiente", "total": 25,
+  "citas": [{ "id": 31, "codigo": "K7M2P9QX", "servicio": "Corte", "profesional": "Ana",
+              "fecha": "2026-11-20", "hora_inicio": "10:00", "hora_fin": "10:30" }] } }
+```
+
+- La cita entra **`pendiente`**, con `canal = tienda` y sin autor. Al equipo
+  no le llega nada hasta que se confirme (4.5); el correo para confirmarla es
+  la 6.7.
+- Mismo anti-solape que el panel, en una transacción: si una de las citas no
+  cabe, no se guarda ninguna ni la ficha del cliente.
+- La ficha se busca por teléfono o se crea. De una que ya existe no se cambia
+  el nombre; se completa el correo y el documento si faltaban, se anota
+  `privacidad_aceptada_at` y, si marcó la casilla, el consentimiento de
+  WhatsApp (desmarcarla no quita uno anterior: para eso está BAJA).
+- Sin profesional elegido atiende el libre con **menos citas ese día**.
+
+| Respuesta | Cuándo |
+|---|---|
+| 201 | reservada |
+| 422 `errors.hora_inicio` | la hora ya no está libre o ya pasó: la tienda refresca las horas |
+| 422 en los datos | `cliente_*`, `acepta_privacidad`: se pintan en su campo |
+| 404 `no_reservable` | un servicio oculto o que nadie presta en la sede: la tienda refresca el catálogo |
+| 429 | más de 10 reservas por minuto desde la misma IP |
+
 **`{sede}` es el slug de la sede, único dentro de su negocio** (`balta`;
 Story 6.2, PRD FR-81). Se acepta también un slug **antiguo** de esa sede y, en
 transición, su **id numérico**: en los dos casos la respuesta trae en
