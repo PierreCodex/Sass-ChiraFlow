@@ -56,6 +56,15 @@ export function formatFechaLarga(fechaISO: string) {
  * Siempre en 24h: los horarios de trabajo y las citas se manejan así en todo
  * el sistema, y `es-PE` por defecto formatearía "02:30 p. m.".
  */
+/**
+ * «4:00 pm»: lo que lee el cliente en la tienda y en los avisos (decisión del
+ * 2026-11-12). Recibe «HH:mm».
+ */
+export function formatHora12(hora: string) {
+  const [h, m] = hora.slice(0, 5).split(":").map(Number);
+  return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${h < 12 ? "am" : "pm"}`;
+}
+
 export function formatHora(hora: string) {
   if (hora.includes("T")) {
     const fecha = new Date(hora);

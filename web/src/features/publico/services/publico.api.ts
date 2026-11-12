@@ -11,6 +11,7 @@ import {
   type Ocupado,
 } from "@/features/calendario/disponibilidad";
 import type {
+  ConfirmacionReserva,
   LocalPublico,
   NegocioPublico,
   ReservaConfirmada,
@@ -204,6 +205,35 @@ export const publicoApi = {
     const { data } = await api.post<{ data: ReservaConfirmada }>(
       `/publico/${slug}/sucursal/${localId}/reservar`,
       payload
+    );
+    return data.data;
+  },
+
+  /**
+   * Story 6.7: el enlace del correo C-11. Confirmar dos veces no cambia nada;
+   * fuera de plazo responde `expirada`. Firma o código inválidos: 404.
+   */
+  confirmar: async (slug: string, codigo: string, firma: string): Promise<ConfirmacionReserva> => {
+    if (usarMocksPara("publico")) {
+      await delay(600);
+      return {
+        resultado: firma === "vencida" ? "expirada" : "confirmada",
+        negocio: negocioMock.nombre,
+        cita: {
+          codigo,
+          servicio: "Consulta general",
+          profesional: "Dra. Carmen",
+          sede: "Local 1",
+          fecha: "2026-11-16",
+          hora_inicio: "11:30",
+        },
+        sede_slug: "local-1",
+      };
+    }
+
+    const { data } = await api.post<{ data: ConfirmacionReserva }>(
+      `/publico/${slug}/reserva/${encodeURIComponent(codigo)}/confirmar`,
+      { f: firma }
     );
     return data.data;
   },

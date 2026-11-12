@@ -13,6 +13,11 @@ export interface ConfiguracionAgenda {
   modo_intervalo: ModoIntervalo;
   /** Solo aplica con `modo_intervalo: "fijo"`. */
   intervalo_min: number;
+  /**
+   * Story 6.7: minutos que tiene el cliente para confirmar por correo una
+   * reserva de la tienda. 30 por defecto, de 15 a 120.
+   */
+  plazo_confirmacion_min: number;
 }
 
 /**
