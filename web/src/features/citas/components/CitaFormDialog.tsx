@@ -33,6 +33,7 @@ import { toApiError } from "@/lib/api/client";
 import { formatMoneda } from "@/lib/format";
 import { usePermisos } from "@/features/capacidades/hooks/useCapacidades";
 import {
+  horasOcupadas,
   huecosDisponibles,
   jornadaDelDia,
   pasoDeAgenda,
@@ -169,16 +170,17 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
    * Huecos en los que cabe esta cita: jornada del profesional, menos sus
    * breaks, menos lo que ya tiene agendado.
    */
-  const { huecos, motivoVacio } = useMemo(() => {
+  const { huecos, ocupadas, motivoVacio } = useMemo(() => {
     if (!empleadoId) {
       return {
         huecos: [] as string[],
+        ocupadas: [] as string[],
         motivoVacio: "Elige un profesional para ver sus horarios disponibles.",
       };
     }
 
     const profesional = profesionalElegido;
-    if (!profesional) return { huecos: [], motivoVacio: null };
+    if (!profesional) return { huecos: [], ocupadas: [], motivoVacio: null };
 
     const jornada = jornadaDelDia(
       profesional,
@@ -188,6 +190,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     if (!jornada.trabaja) {
       return {
         huecos: [],
+        ocupadas: [],
         motivoVacio:
           jornada.nota ?? `${profesional.nombre} no atiende este día.`,
       };
@@ -201,15 +204,12 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
 
     const duracion = servicioElegido?.duracion_min ?? 30;
 
-    const libres = huecosDisponibles(
-      jornada,
-      ocupados,
-      duracion,
-      pasoDeAgenda(configuracion?.agenda, duracion)
-    );
+    const paso = pasoDeAgenda(configuracion?.agenda, duracion);
+    const libres = huecosDisponibles(jornada, ocupados, duracion, paso);
 
     return {
       huecos: libres,
+      ocupadas: horasOcupadas(jornada, ocupados, duracion, paso),
       motivoVacio: libres.length
         ? null
         : `${profesional.nombre} tiene la agenda llena este día.`,
@@ -457,6 +457,7 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                   <>
                     <SelectorHuecos
                       huecos={huecos}
+                      ocupadas={ocupadas}
                       valor={field.value}
                       onChange={field.onChange}
                       cargando={cargandoAgenda && !!empleadoId}
