@@ -121,6 +121,11 @@ export const configuracionSchema = yup.object({
     .min(15, "Mínimo 15 minutos")
     .max(120, "Máximo 120 minutos")
     .required("Di cuántos minutos tiene el cliente para confirmar"),
+  /* Story 6.8/6.9: una de las opciones del selector. */
+  cambios_hasta_min: yup
+    .number()
+    .oneOf([15, 30, 60, 120, 360, 720, 1440, 2880])
+    .required(),
 });
 
 export type ConfiguracionFormValues = yup.InferType<typeof configuracionSchema>;
@@ -139,7 +144,7 @@ export const CAMPOS_POR_PESTANA: Record<number, string[]> = {
     "longitud",
     "zona_horaria",
   ],
-  1: ["horario_apertura", "horario_cierre", "modo_intervalo", "intervalo_min", "plazo_confirmacion_min"],
+  1: ["horario_apertura", "horario_cierre", "modo_intervalo", "intervalo_min", "plazo_confirmacion_min", "cambios_hasta_min"],
   2: ["logo", "cover", "color_primario", "color_secundario"],
   3: ["sitio_publico_activo", "mostrar_en_marketplace", "terminos_servicio"],
 };

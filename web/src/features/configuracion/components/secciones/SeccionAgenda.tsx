@@ -17,6 +17,19 @@ const CAMPOS: CampoConfiguracion[] = [
   "modo_intervalo",
   "intervalo_min",
   "plazo_confirmacion_min",
+  "cambios_hasta_min",
+];
+
+/** Story 6.8/6.9: hasta cuándo antes el cliente cambia o cancela su cita. */
+const OPCIONES_CAMBIOS = [
+  { valor: 15, texto: "15 minutos antes" },
+  { valor: 30, texto: "30 minutos antes" },
+  { valor: 60, texto: "1 hora antes" },
+  { valor: 120, texto: "2 horas antes" },
+  { valor: 360, texto: "6 horas antes" },
+  { valor: 720, texto: "12 horas antes" },
+  { valor: 1440, texto: "1 día antes" },
+  { valor: 2880, texto: "2 días antes" },
 ];
 
 /** El horario de respaldo del negocio y cómo se generan los huecos. */
@@ -33,6 +46,7 @@ export default function SeccionAgenda() {
       modo_intervalo: valores.modo_intervalo,
       intervalo_min: valores.intervalo_min,
       plazo_confirmacion_min: valores.plazo_confirmacion_min,
+      cambios_hasta_min: valores.cambios_hasta_min,
     },
   }));
 
@@ -139,7 +153,6 @@ export default function SeccionAgenda() {
       <SeccionCampos
         titulo="Confirmación de reservas"
         descripcion="Cuánto tiempo tiene el cliente para confirmar desde su correo una reserva de la tienda."
-        sinSeparador
       >
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 5 }}>
@@ -154,6 +167,47 @@ export default function SeccionAgenda() {
               vuelve a quedar libre. El plazo nunca termina a menos de 15
               minutos de la cita, y la tienda no ofrece horas tan cercanas que
               no den tiempo a confirmar.
+            </Alert>
+          </Grid>
+        </Grid>
+      </SeccionCampos>
+
+      {/* Story 6.8/6.9 */}
+      <SeccionCampos
+        titulo="Cambios y cancelaciones del cliente"
+        descripcion="Hasta cuándo puede el cliente mover o cancelar su cita desde el enlace de sus correos."
+        sinSeparador
+      >
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 7 }}>
+            <CustomFormLabel htmlFor="cambios_hasta_min">
+              Puede cambiarla o cancelarla hasta
+            </CustomFormLabel>
+            <Controller
+              name="cambios_hasta_min"
+              control={s.control}
+              render={({ field }) => (
+                <CustomTextField
+                  {...field}
+                  value={field.value ?? 15}
+                  select
+                  id="cambios_hasta_min"
+                  fullWidth
+                >
+                  {OPCIONES_CAMBIOS.map((opcion) => (
+                    <MenuItem key={opcion.valor} value={opcion.valor}>
+                      {opcion.texto}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              )}
+            />
+          </Grid>
+          <Grid size={12}>
+            <Alert severity="info" variant="outlined">
+              Pasado ese momento, el cliente solo puede ver su cita y le
+              mostramos tu WhatsApp. Desde el panel tú siempre puedes moverla o
+              cancelarla.
             </Alert>
           </Grid>
         </Grid>

@@ -18,6 +18,11 @@ export interface ConfiguracionAgenda {
    * reserva de la tienda. 30 por defecto, de 15 a 120.
    */
   plazo_confirmacion_min: number;
+  /**
+   * Story 6.8/6.9: hasta cuántos minutos antes de la cita puede el cliente
+   * cambiarla o cancelarla por su cuenta. 15 por defecto.
+   */
+  cambios_hasta_min: number;
 }
 
 /**

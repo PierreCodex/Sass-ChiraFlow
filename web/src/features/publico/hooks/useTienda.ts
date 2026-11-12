@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toApiError } from "@/lib/api/client";
 import { publicoApi } from "../services/publico.api";
 import { CUALQUIER_PROFESIONAL, type ReservaPayload } from "../types";
@@ -105,4 +105,44 @@ export function useConfirmarReserva(slug: string, codigo: string, firma: string)
     refetchOnWindowFocus: false,
     retry: (intentos, error) => toApiError(error).status !== 404 && intentos < 2,
   });
+}
+
+/** Story 6.8: la cita del enlace «Gestionar mi cita». */
+export function useMiCita(slug: string, token: string) {
+  return useQuery({
+    queryKey: ["publico", slug, "mi-cita", token] as const,
+    queryFn: () => publicoApi.miCita(slug, token),
+    refetchOnWindowFocus: true,
+    retry: (intentos, error) => ![404, 410].includes(toApiError(error).status ?? 0) && intentos < 2,
+  });
+}
+
+export function useHorariosMiCita(slug: string, token: string, fecha: string | null) {
+  return useQuery({
+    queryKey: ["publico", slug, "mi-cita", token, "horarios", fecha] as const,
+    queryFn: () => publicoApi.horariosMiCita(slug, token, fecha!),
+    enabled: !!fecha,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useCambiarMiCita(slug: string, token: string) {
+  const queryClient = useQueryClient();
+  const clave = ["publico", slug, "mi-cita", token] as const;
+  const alTerminar = (cita: Awaited<ReturnType<typeof publicoApi.miCita>>) => {
+    queryClient.setQueryData(clave, cita);
+    queryClient.invalidateQueries({ queryKey: [...clave, "horarios"] });
+  };
+
+  return {
+    reprogramar: useMutation({
+      mutationFn: ({ fecha, hora }: { fecha: string; hora: string }) =>
+        publicoApi.reprogramarMiCita(slug, token, fecha, hora),
+      onSuccess: alTerminar,
+    }),
+    cancelar: useMutation({
+      mutationFn: () => publicoApi.cancelarMiCita(slug, token),
+      onSuccess: alTerminar,
+    }),
+  };
 }

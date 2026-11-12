@@ -35,6 +35,7 @@ export const configuracionMock: Configuracion = {
     modo_intervalo: "duracion_servicio",
     intervalo_min: 15,
     plazo_confirmacion_min: 30,
+    cambios_hasta_min: 15,
   },
 };
 

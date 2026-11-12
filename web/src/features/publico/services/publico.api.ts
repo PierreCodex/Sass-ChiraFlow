@@ -12,6 +12,7 @@ import {
 } from "@/features/calendario/disponibilidad";
 import type {
   ConfirmacionReserva,
+  MiCita,
   LocalPublico,
   NegocioPublico,
   ReservaConfirmada,
@@ -237,7 +238,84 @@ export const publicoApi = {
     );
     return data.data;
   },
+
+  /**
+   * Story 6.8: «Gestionar mi cita» por el enlace secreto. Ver no cambia nada;
+   * caducado o revocado responde 410 con el contacto del negocio.
+   */
+  miCita: async (slug: string, token: string): Promise<MiCita> => {
+    if (usarMocksPara("publico")) {
+      await delay(500);
+      return miCitaMock(token);
+    }
+    const { data } = await api.get<{ data: MiCita }>(`/publico/${slug}/mi-cita/${token}`);
+    return data.data;
+  },
+
+  horariosMiCita: async (slug: string, token: string, fecha: string): Promise<string[]> => {
+    if (usarMocksPara("publico")) {
+      await delay(300);
+      return ["09:00", "09:30", "11:00", "15:00", "15:30", "16:00"];
+    }
+    const { data } = await api.get<{ data: string[] }>(
+      `/publico/${slug}/mi-cita/${token}/horarios`,
+      { params: { fecha } }
+    );
+    return data.data;
+  },
+
+  reprogramarMiCita: async (
+    slug: string,
+    token: string,
+    fecha: string,
+    hora_inicio: string
+  ): Promise<MiCita> => {
+    if (usarMocksPara("publico")) {
+      await delay(600);
+      const cita = miCitaMock(token);
+      return { ...cita, cita: { ...cita.cita, fecha, hora_inicio, hora_fin: sumarMinutos(hora_inicio, 30) } };
+    }
+    const { data } = await api.post<{ data: MiCita }>(
+      `/publico/${slug}/mi-cita/${token}/reprogramar`,
+      { fecha, hora_inicio }
+    );
+    return data.data;
+  },
+
+  cancelarMiCita: async (slug: string, token: string): Promise<MiCita> => {
+    if (usarMocksPara("publico")) {
+      await delay(600);
+      return { ...miCitaMock(token), situacion: "cancelada", estado: "cancelada", puede_cambiar: false };
+    }
+    const { data } = await api.post<{ data: MiCita }>(`/publico/${slug}/mi-cita/${token}/cancelar`);
+    return data.data;
+  },
 };
+
+/** En mock: «tarde» da una cita fuera de plazo; el resto, una activa. */
+function miCitaMock(token: string): MiCita {
+  const fuera = token.startsWith("tarde");
+  return {
+    situacion: fuera ? "fuera_de_plazo" : "activa",
+    estado: "confirmada",
+    puede_cambiar: !fuera,
+    politica: "15 minutos",
+    cita: {
+      codigo: "K7M2P9QX",
+      servicio: "Consulta general",
+      profesional: "Dra. Carmen",
+      sede: "Local 1",
+      direccion: "Av. Grau 123, Piura",
+      fecha: "2026-11-16",
+      fecha_texto: "Lunes 16 de noviembre",
+      hora_inicio: "11:30",
+      hora_fin: "12:00",
+      monto: 60,
+    },
+    negocio: { nombre: negocioMock.nombre, telefono: "976645666", whatsapp: "976645666" },
+    sede_slug: "local-1",
+  };
+}
 
 function sumarMinutos(hora: string, minutos: number) {
   const [h, m] = hora.split(":").map(Number);

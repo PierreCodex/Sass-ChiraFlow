@@ -281,3 +281,34 @@ export interface ConfirmacionReserva {
   /** A dónde ir para reservar de nuevo (la sede de la cita). */
   sede_slug: string | null;
 }
+
+/** Story 6.8: lo que muestra la página «Gestionar mi cita». */
+export type SituacionMiCita = "activa" | "fuera_de_plazo" | "cancelada" | "pasada";
+
+export interface ContactoNegocio {
+  nombre: string;
+  telefono: string | null;
+  whatsapp: string | null;
+}
+
+export interface MiCita {
+  situacion: SituacionMiCita;
+  estado: string;
+  puede_cambiar: boolean;
+  /** «15 minutos», «2 horas», «1 día»: hasta cuándo antes puede cambiarla. */
+  politica: string;
+  cita: {
+    codigo: string;
+    servicio: string;
+    profesional: string | null;
+    sede: string | null;
+    direccion: string | null;
+    fecha: string;
+    fecha_texto: string;
+    hora_inicio: string;
+    hora_fin: string;
+    monto: number;
+  };
+  negocio: ContactoNegocio;
+  sede_slug: string | null;
+}
