@@ -26,6 +26,7 @@ function valoresDesde(configuracion: Configuracion): ConfiguracionFormValues {
     cover: cover_url ? [{ url: cover_url }] : [],
     modo_intervalo: agenda.modo_intervalo,
     intervalo_min: agenda.intervalo_min,
+    plazo_confirmacion_min: agenda.plazo_confirmacion_min ?? 30,
   } as ConfiguracionFormValues;
 }
 

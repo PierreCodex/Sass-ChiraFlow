@@ -93,3 +93,16 @@ export function useReservar(slug: string, localId: number) {
       publicoApi.reservar(slug, localId, payload),
   });
 }
+
+/** Story 6.7: confirma al abrir el enlace del correo. Una sola vez por visita. */
+export function useConfirmarReserva(slug: string, codigo: string, firma: string) {
+  return useQuery({
+    queryKey: ["publico", slug, "confirmar", codigo, firma] as const,
+    queryFn: () => publicoApi.confirmar(slug, codigo, firma),
+    enabled: !!codigo && !!firma,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    retry: (intentos, error) => toApiError(error).status !== 404 && intentos < 2,
+  });
+}

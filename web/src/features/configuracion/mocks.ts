@@ -34,6 +34,7 @@ export const configuracionMock: Configuracion = {
     // que evita dejar huecos que nadie puede reservar.
     modo_intervalo: "duracion_servicio",
     intervalo_min: 15,
+    plazo_confirmacion_min: 30,
   },
 };
 

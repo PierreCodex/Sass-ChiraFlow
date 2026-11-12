@@ -16,6 +16,7 @@ const CAMPOS: CampoConfiguracion[] = [
   "horario_cierre",
   "modo_intervalo",
   "intervalo_min",
+  "plazo_confirmacion_min",
 ];
 
 /** El horario de respaldo del negocio y cómo se generan los huecos. */
@@ -31,6 +32,7 @@ export default function SeccionAgenda() {
     agenda: {
       modo_intervalo: valores.modo_intervalo,
       intervalo_min: valores.intervalo_min,
+      plazo_confirmacion_min: valores.plazo_confirmacion_min,
     },
   }));
 
@@ -88,7 +90,6 @@ export default function SeccionAgenda() {
       <SeccionCampos
         titulo="Huecos de reserva"
         descripcion="Cada cuánto se le ofrece un turno al cliente en la tienda."
-        sinSeparador
       >
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 7 }}>
@@ -129,6 +130,30 @@ export default function SeccionAgenda() {
               {modo === "fijo"
                 ? "Rejilla fija: más opciones para el cliente, pero puede dejar huecos que nadie llene."
                 : "Los turnos se encadenan con la duración de cada servicio, para no dejar huecos muertos."}
+            </Alert>
+          </Grid>
+        </Grid>
+      </SeccionCampos>
+
+      {/* Story 6.7 */}
+      <SeccionCampos
+        titulo="Confirmación de reservas"
+        descripcion="Cuánto tiempo tiene el cliente para confirmar desde su correo una reserva de la tienda."
+        sinSeparador
+      >
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 5 }}>
+            {campo("plazo_confirmacion_min", "Plazo para confirmar (min)", {
+              type: "number",
+              slotProps: { htmlInput: { min: 15, max: 120 } },
+            })}
+          </Grid>
+          <Grid size={12}>
+            <Alert severity="info" variant="outlined">
+              Si no confirma a tiempo, la reserva se cancela sola y el horario
+              vuelve a quedar libre. El plazo nunca termina a menos de 15
+              minutos de la cita, y la tienda no ofrece horas tan cercanas que
+              no den tiempo a confirmar.
             </Alert>
           </Grid>
         </Grid>

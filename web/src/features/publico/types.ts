@@ -182,6 +182,11 @@ export interface ReservaConfirmada {
   modo: ModoReserva;
   /** Story 6.6: la tienda siempre crea `pendiente`; se confirma con la 6.7. */
   estado?: "pendiente";
+  /**
+   * Story 6.7: hasta cuándo puede confirmar desde su correo, en la hora del
+   * negocio («2026-11-16 10:45»). `null` si el negocio no pide confirmar.
+   */
+  confirmar_hasta?: string | null;
   total: number;
   citas: {
     id: number;
@@ -257,4 +262,22 @@ export function duracionCarrito(lineas: LineaCarrito[]) {
 
 export function unidadesCarrito(lineas: LineaCarrito[]) {
   return lineas.reduce((suma, linea) => suma + linea.cantidad, 0);
+}
+
+/** Story 6.7: lo que pasa al abrir el enlace del correo «Confirma tu reserva». */
+export type ResultadoConfirmacion = "confirmada" | "ya_confirmada" | "expirada";
+
+export interface ConfirmacionReserva {
+  resultado: ResultadoConfirmacion;
+  negocio: string;
+  cita: {
+    codigo: string;
+    servicio: string;
+    profesional: string | null;
+    sede: string | null;
+    fecha: string;
+    hora_inicio: string;
+  };
+  /** A dónde ir para reservar de nuevo (la sede de la cita). */
+  sede_slug: string | null;
 }

@@ -422,6 +422,7 @@ duplicarla.
 }
 // 201
 { "data": { "codigo": "K7M2P9QX", "modo": "unica", "estado": "pendiente", "total": 25,
+  "confirmar_hasta": "2026-11-12 10:30",  // Story 6.7: hora del negocio
   "citas": [{ "id": 31, "codigo": "K7M2P9QX", "servicio": "Corte", "profesional": "Ana",
               "fecha": "2026-11-20", "hora_inicio": "10:00", "hora_fin": "10:30" }] } }
 ```
@@ -444,6 +445,35 @@ duplicarla.
 | 422 en los datos | `cliente_*`, `acepta_privacidad`: se pintan en su campo |
 | 404 `no_reservable` | un servicio oculto o que nadie presta en la sede: la tienda refresca el catálogo |
 | 429 | más de 10 reservas por minuto desde la misma IP |
+
+#### Confirmar la reserva desde el correo (Story 6.7)
+
+La reserva de la tienda queda `pendiente` con un plazo (`confirmar_hasta`) y
+el cliente recibe el correo C-11 con el botón «Confirmar mi reserva»:
+`{slug}.tivuapp.store/reserva/{codigo}?f={firma}`. La página llama a:
+
+```json
+// POST /publico/pepito/reserva/K7M2P9QX/confirmar   { "f": "<firma del correo>" }
+{ "data": {
+  "resultado": "confirmada",            // "confirmada" · "ya_confirmada" · "expirada"
+  "negocio": "Barbería Pepito",
+  "cita": { "codigo": "K7M2P9QX", "servicio": "Corte", "profesional": "Ana", "sede": "Balta",
+            "fecha": "2026-11-12", "hora_inicio": "11:30" },
+  "sede_slug": "balta"                  // para «Reservar de nuevo»
+} }
+```
+
+- `confirmada`: pasó a confirmada ahora; salen la C-3 al cliente y el primer
+  «Nueva cita» al equipo (4.5a). `ya_confirmada`: abrirlo otra vez no cambia
+  nada. `expirada`: venció el plazo (si la tarea aún no la había cancelado, se
+  cancela ahí mismo).
+- 404 si el código no existe o la firma no es suya. Tope de 20 por minuto.
+- Plazo: `agenda.plazo_confirmacion_min` (30 por defecto, 15–120). Nunca
+  termina a menos de 15 min de la cita, y `/horarios` no ofrece horas antes de
+  «ahora + plazo + 15 min» (la reserva lo vuelve a comprobar: 422
+  `hora_inicio`).
+- Al vencer, la cita se cancela, el hueco se libera y el cliente recibe la
+  C-12 con «Reservar de nuevo». El equipo no recibe nada.
 
 **`{sede}` es el slug de la sede, único dentro de su negocio** (`balta`;
 Story 6.2, PRD FR-81). Se acepta también un slug **antiguo** de esa sede y, en
@@ -1208,7 +1238,9 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
     versión.
 - **Sitio público**: `sitio_publico_activo`, `mostrar_en_marketplace`,
   `terminos_servicio?`
-- **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min }`
+- **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min, plazo_confirmacion_min }`
+  — `plazo_confirmacion_min` (Story 6.7): minutos para confirmar por correo una
+  reserva de la tienda, 30 por defecto, de 15 a 120.
   — ⚠️ **no existe en el backend anterior**, hay que crearlo
 
 El `PUT` es un **parche**: llega lo que llega y se toca solo eso. El objeto

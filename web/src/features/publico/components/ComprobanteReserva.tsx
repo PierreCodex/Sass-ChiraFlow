@@ -9,7 +9,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { IconCircleCheck } from "@tabler/icons-react";
 
-import { formatFechaLarga, formatMoneda } from "@/lib/format";
+import { formatFechaLarga, formatHora12, formatMoneda } from "@/lib/format";
 import type { ReservaConfirmada } from "../types";
 
 interface Props {
@@ -32,9 +32,15 @@ const ComprobanteReserva = ({ reserva, onVolver }: Props) => (
         Código <strong>{reserva.codigo}</strong>
       </Typography>
 
-      <Alert severity="info" sx={{ my: 3, textAlign: "left" }}>
-        Tu reserva queda <strong>pendiente de confirmación</strong>. El negocio
-        la revisará y te avisará por correo o WhatsApp.
+      {/* Story 6.7: la confirma el cliente desde su correo, no el negocio. */}
+      <Alert severity="warning" sx={{ my: 3, textAlign: "left" }}>
+        <strong>Revisa tu correo y confirma tu reserva</strong>
+        {reserva.confirmar_hasta
+          ? ` antes de las ${formatHora12(reserva.confirmar_hasta.slice(11, 16))}`
+          : ""}
+        . Hasta entonces tu horario queda separado; si no la confirmas, se
+        libera para otra persona. Si no ves el correo, mira en Spam o
+        Promociones.
       </Alert>
 
       <Stack spacing={2} sx={{ textAlign: "left" }}>

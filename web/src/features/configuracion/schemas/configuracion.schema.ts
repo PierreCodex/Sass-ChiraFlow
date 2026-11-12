@@ -112,6 +112,15 @@ export const configuracionSchema = yup.object({
       otherwise: (esquema) => esquema.notRequired(),
     })
     .defined(),
+  /* Story 6.7: el suelo de 15 lo decidió el usuario (2026-09-19). */
+  plazo_confirmacion_min: yup
+    .number()
+    .transform((valor, original) => (original === "" ? undefined : valor))
+    .typeError("Escribe los minutos")
+    .integer("Debe ser un número entero")
+    .min(15, "Mínimo 15 minutos")
+    .max(120, "Máximo 120 minutos")
+    .required("Di cuántos minutos tiene el cliente para confirmar"),
 });
 
 export type ConfiguracionFormValues = yup.InferType<typeof configuracionSchema>;
@@ -130,7 +139,7 @@ export const CAMPOS_POR_PESTANA: Record<number, string[]> = {
     "longitud",
     "zona_horaria",
   ],
-  1: ["horario_apertura", "horario_cierre", "modo_intervalo", "intervalo_min"],
+  1: ["horario_apertura", "horario_cierre", "modo_intervalo", "intervalo_min", "plazo_confirmacion_min"],
   2: ["logo", "cover", "color_primario", "color_secundario"],
   3: ["sitio_publico_activo", "mostrar_en_marketplace", "terminos_servicio"],
 };
