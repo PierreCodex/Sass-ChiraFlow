@@ -59,6 +59,25 @@ import {
   type CitaPayload,
 } from "../types";
 
+/**
+ * Hoy y la hora de ahora en la zona del negocio («2026-11-13», «10:20»). El
+ * panel no agenda en el pasado (decisión del 2026-11-13); el backend lo exige
+ * igual, esto solo evita ofrecer lo que va a rechazar.
+ */
+function ahoraEnZona(zona: string): { fecha: string; hora: string } {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: zona,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const de = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "00";
+  return { fecha: `${de("year")}-${de("month")}-${de("day")}`, hora: `${de("hour")}:${de("minute")}` };
+}
+
 interface Props {
   abierto: boolean;
   cita?: Cita | null;
@@ -182,6 +201,18 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     const profesional = profesionalElegido;
     if (!profesional) return { huecos: [], ocupadas: [], motivoVacio: null };
 
+    // El pasado no se ofrece. Una cita pasada que se edita sin cambiarle el
+    // día se deja como está: cerrarla (completada, no asistió) sí se puede.
+    const ahora = ahoraEnZona(configuracion?.zona_horaria || "America/Lima");
+    const mismoDiaQueAntes = !!cita && fechaElegida === cita.fecha;
+    if (fechaElegida && fechaElegida < ahora.fecha && !mismoDiaQueAntes) {
+      return {
+        huecos: [],
+        ocupadas: [],
+        motivoVacio: "Ese día ya pasó. Elige hoy o un día que viene.",
+      };
+    }
+
     const jornada = jornadaDelDia(
       profesional,
       fechaElegida,
@@ -205,14 +236,20 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
     const duracion = servicioElegido?.duracion_min ?? 30;
 
     const paso = pasoDeAgenda(configuracion?.agenda, duracion);
-    const libres = huecosDisponibles(jornada, ocupados, duracion, paso);
+    const todas = huecosDisponibles(jornada, ocupados, duracion, paso);
+    // Hoy, solo las horas que aún no pasan (la de la cita que se edita la
+    // conserva el selector aunque no esté en la lista).
+    const esHoy = fechaElegida === ahora.fecha;
+    const libres = esHoy ? todas.filter((hora) => hora >= ahora.hora) : todas;
 
     return {
       huecos: libres,
       ocupadas: horasOcupadas(jornada, ocupados, duracion, paso),
       motivoVacio: libres.length
         ? null
-        : `${profesional.nombre} tiene la agenda llena este día.`,
+        : esHoy && todas.length
+          ? "Ya no quedan horas hoy. Elige otro día."
+          : `${profesional.nombre} tiene la agenda llena este día.`,
     };
   }, [
     empleadoId,
@@ -424,6 +461,10 @@ const CitaFormDialog = ({ abierto, cita, preseleccion, onCerrar }: Props) => {
                     id="fecha"
                     type="date"
                     fullWidth
+                    // Los días anteriores salen deshabilitados en el calendario.
+                    slotProps={{
+                      htmlInput: { min: ahoraEnZona(configuracion?.zona_horaria || "America/Lima").fecha },
+                    }}
                     error={!!errors.fecha}
                     helperText={errors.fecha?.message}
                   />
