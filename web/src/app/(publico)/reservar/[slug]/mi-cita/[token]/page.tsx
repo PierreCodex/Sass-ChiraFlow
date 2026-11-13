@@ -1,5 +1,5 @@
 "use client";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import type { AxiosError } from "axios";
 import Alert from "@mui/material/Alert";
@@ -110,6 +110,20 @@ function Gestion({
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+
+  /*
+   * Los botones del correo (diseño del 2026-11-13) llegan con `#mover` o
+   * `#cancelar`: se abre directo esa opción, si aún se puede cambiar. Después
+   * se quita el ancla, para que recargar no la vuelva a abrir.
+   */
+  useEffect(() => {
+    const ancla = window.location.hash;
+    if (ancla !== "#mover" && ancla !== "#cancelar") return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (!data.puede_cambiar) return;
+    if (ancla === "#mover") setMoviendo(true);
+    else setCancelando(true);
+  }, [data.puede_cambiar]);
 
   const horarios = useHorariosMiCita(slug, token, moviendo ? fecha : null);
   const { reprogramar, cancelar } = useCambiarMiCita(slug, token);
