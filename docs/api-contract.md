@@ -475,6 +475,42 @@ el cliente recibe el correo C-11 con el botón «Confirmar mi reserva»:
 - Al vencer, la cita se cancela, el hueco se libera y el cliente recibe la
   C-12 con «Reservar de nuevo». El equipo no recibe nada.
 
+#### Gestionar mi cita (Story 6.8, con la política de la 6.9)
+
+El enlace de los correos y WhatsApp: `{slug}.tivuapp.store/mi-cita/{secreto}`
+(40 caracteres; en la base solo su sha256; sin ids). Caduca 7 días después de
+la cita y se puede revocar.
+
+| Método | Ruta | Qué |
+|---|---|---|
+| GET | `/publico/{slug}/mi-cita/{secreto}` | ver; no cambia nada |
+| GET | `/publico/{slug}/mi-cita/{secreto}/horarios?fecha` | horas a las que la puede mover (mismo profesional y duración) |
+| POST | `/publico/{slug}/mi-cita/{secreto}/reprogramar` | `{ fecha, hora_inicio }` |
+| POST | `/publico/{slug}/mi-cita/{secreto}/cancelar` | — |
+
+```json
+{ "data": {
+  "situacion": "activa",            // "activa" · "fuera_de_plazo" · "cancelada" · "pasada"
+  "estado": "confirmada",
+  "puede_cambiar": true,
+  "politica": "15 minutos",         // hasta cuándo antes puede cambiarla
+  "cita": { "codigo": "K7M2P9QX", "servicio": "Corte", "profesional": "Ana", "sede": "Balta",
+            "direccion": "Av. Balta 123", "fecha": "2026-11-16", "fecha_texto": "Lunes 16 de noviembre",
+            "hora_inicio": "11:30", "hora_fin": "12:00", "monto": 25 },
+  "negocio": { "nombre": "Barbería Pepito", "telefono": "+51 955 555 555", "whatsapp": "955555555" },
+  "sede_slug": "balta"
+} }
+```
+
+- Reprogramar y cancelar devuelven la misma forma, ya actualizada.
+- 422 `hora_inicio`: la hora no está libre o está dentro del plazo. 422
+  `cita`: ya no se puede cambiar (cancelada, pasada o fuera de plazo).
+- 404 si el secreto no existe. 410 `{ codigo: "caducado"|"revocado", negocio }`
+  sin datos de la cita.
+- Mover anota `cita.modificada` con el cliente como actor (C-5 al cliente,
+  «Te movieron una cita» al profesional). Cancelar: C-6 al cliente, «Se liberó
+  tu hueco» al profesional y C-6D «… canceló su cita» al dueño.
+
 **`{sede}` es el slug de la sede, único dentro de su negocio** (`balta`;
 Story 6.2, PRD FR-81). Se acepta también un slug **antiguo** de esa sede y, en
 transición, su **id numérico**: en los dos casos la respuesta trae en
@@ -1241,6 +1277,9 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
 - **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min, plazo_confirmacion_min }`
   — `plazo_confirmacion_min` (Story 6.7): minutos para confirmar por correo una
   reserva de la tienda, 30 por defecto, de 15 a 120.
+  — `cambios_hasta_min` (Story 6.8/6.9): hasta cuántos minutos antes de la cita
+  el cliente puede cambiarla o cancelarla desde su enlace: 15, 30, 60, 120,
+  360, 720, 1440 o 2880. 15 por defecto. Al panel no le limita.
   — ⚠️ **no existe en el backend anterior**, hay que crearlo
 
 El `PUT` es un **parche**: llega lo que llega y se toca solo eso. El objeto

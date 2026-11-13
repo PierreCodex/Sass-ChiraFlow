@@ -27,6 +27,7 @@ function valoresDesde(configuracion: Configuracion): ConfiguracionFormValues {
     modo_intervalo: agenda.modo_intervalo,
     intervalo_min: agenda.intervalo_min,
     plazo_confirmacion_min: agenda.plazo_confirmacion_min ?? 30,
+    cambios_hasta_min: agenda.cambios_hasta_min ?? 15,
   } as ConfiguracionFormValues;
 }
 
