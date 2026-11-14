@@ -347,7 +347,7 @@ DELETE /{path}/{id}                                              → 204
 | Recurso | `path` | FormData | Busca por | Filtros | Notas |
 |---|---|---|---|---|---|
 | Clientes | `clientes` | no | nombre, apellido, teléfono, email | — | soft delete; el teléfono es único |
-| Citas | `citas` | no | nombre, apellido o teléfono del cliente | `fecha`, `estado` | `DELETE` borra de verdad (no soft delete) |
+| Citas | `citas` | no | nombre, apellido o teléfono del cliente | `fecha`, `desde`, `hasta`, `estado` | `DELETE` borra de verdad (no soft delete) |
 | Servicios | `servicios` | **sí** | nombre | `categoria_id` | soft delete |
 | Categorías | `categorias-servicios` | **sí** | nombre, descripción | — | |
 | Usuarios | `usuarios` | no | nombre, apellido, email | — | solo el administrador general (403 al resto) |
@@ -372,7 +372,8 @@ duplicarla.
 | Método | Ruta | Query / payload | Respuesta | Consumidor |
 |---|---|---|---|---|
 | GET | `/dashboard` | — | `{ data: ResumenDashboard }` | Dashboard (una sola request para los 4 widgets) |
-| GET | `/citas` | `?fecha=YYYY-MM-DD&per_page=200` | `{ data: Cita[] }` | Calendario y selector de huecos |
+| GET | `/citas` | `?fecha=YYYY-MM-DD&per_page=200` | `{ data: Cita[] }` | Calendario (día) y selector de huecos |
+| GET | `/citas` | `?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&per_page=200&page` | `{ data: Cita[], meta }` | Calendario de v2 (mes, semana, lista). Ambas incluidas y opcionales; `hasta ≥ desde` y como mucho **62 días**, si no 422 en `hasta` |
 | GET | `/capacidades` | — | `{ data: Capacidades }` | **el menú y los botones**: lo que puede hacer quien mira, ya resuelto |
 | GET | `/profesionales/resumen` | — | `{ data: ResumenPlanProfesionales }` | tarjeta "Profesionales activos en tu plan" |
 | POST | `/usuarios/{id}/invitacion` | — | `{ message }` | reenviar la invitación |
