@@ -170,7 +170,9 @@ Por eso el payload lleva `cliente_id`:
 
 Parámetros: `page`, `per_page`, `search` (nombre, **apellido** o teléfono del
 cliente, o el **código** exacto de la cita sin distinguir mayúsculas — Story
-3.1), `fecha`, `estado`.
+3.1), `fecha`, `estado`, y el rango `desde`/`hasta` (`AAAA-MM-DD`, ambas
+incluidas, como mucho 62 días; lo usa el calendario de v2 para mes y semana —
+2026-11-14).
 
 ```json
 {
