@@ -1,7 +1,7 @@
 # Despliegue del frontend en Coolify
 
 > **⛔ Sustituido el 2026-11-15.** Es el despliegue del frontend v1, hoy apagado.
-> El vigente es el de tivu v2: `D:\PERSONAL_JEAN	ivu.v2\docs\despliegue.md`
+> El vigente es el de tivu v2: `docs/despliegue.md` del repo `PierreCodex/tivu.v2`
 > (un recurso `web` con Dockerfile; la regla de las tiendas en el proxy).
 > Se conserva como historia: varias decisiones de red siguen valiendo.
 
