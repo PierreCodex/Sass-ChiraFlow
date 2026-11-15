@@ -1,5 +1,22 @@
 # Mi SaaS — guía para trabajar en este repo
 
+> ## ⛔ `web/` está obsoleto desde el 2026-11-15
+>
+> El frontend en producción es **tivu v2**, en su propio repo:
+> **`D:\PERSONAL_JEAN\tivu.v2`** (GitHub `PierreCodex/tivu.v2`). Sirve
+> `tivuapp.com`, `app.tivuapp.com` y `*.tivuapp.store`; el v1 de aquí está
+> apagado en Coolify. Cómo está montado: `tivu.v2/docs/despliegue.md`.
+>
+> - **No tocar `web/`**: ni historias, ni arreglos. Todo código de frontend va
+>   en `tivu.v2` (rama desde `develop`, PR a `develop`). `web/` no tiene nada
+>   que v2 no tenga: v2 se copió de aquí (`fb4c638`) y después no hubo cambios.
+> - **Este repo sigue vivo como documentación:** `docs/` (el contrato
+>   `api-contract.md`, las fichas de `vistas/`, las guías de `infra/`) y
+>   `_bmad-output/` (épicas, historias y `sprint-status.yaml`). El backend los
+>   lee por ruta absoluta; moverlos queda para después del lanzamiento (25-11).
+> - Lo de abajo sobre `web/` (Modernize, arquitectura, trampas) es historia:
+>   las reglas vigentes del frontend están en el `CLAUDE.md` de `tivu.v2`.
+
 SaaS de reservas para negocios que venden tiempo de personas (clínicas,
 salones, barberías). Mercado peruano: soles, DNI, WhatsApp.
 
