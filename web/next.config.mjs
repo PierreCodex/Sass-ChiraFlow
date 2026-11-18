@@ -16,6 +16,8 @@ const nextConfig = {
   // Producción (Coolify): server.js mínimo con solo lo necesario. Ver
   // web/Dockerfile y docs/infra/despliegue-web.md.
   output: "standalone",
+  // Permite cargar los archivos de desarrollo al abrir la app por estas IP locales.
+  allowedDevOrigins: ["192.168.1.2", "172.22.80.1"],
   images: { unoptimized: true },
   redirects() {
     return [
