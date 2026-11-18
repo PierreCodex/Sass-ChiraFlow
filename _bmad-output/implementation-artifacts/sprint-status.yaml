@@ -286,6 +286,66 @@ sprint_5:
     - "Precio Fundador de Premium en S/ 3 para pruebas: volver a S/ 9 antes de promocionar"
   quedan_segun_el_plan: ["4.3", "4.5b", "4.6", "4.7", "5.x", "6.10", "6.12", "7.x", "8.4", "8.5", "8.7", "9.3", "9.4", "9.6", "épica 10"]
 
+  # -------------------------------------------------------------------------
+  # Cola de Codex (asignada por Jean el 2026-11-17). Codex trabaja en
+  # D:/PERSONAL_JEAN/tivu.v2 (frontend) y toma la PRIMERA con estado
+  # «lista». Reglas comunes:
+  #   - Rama desde origin/develop con el nombre indicado; PR a develop.
+  #     Nunca push ni merge a develop/main. typecheck en verde antes de la PR.
+  #   - No tocar D:/PERSONAL_JEAN/Backend-Sass (Claude trabaja ahí).
+  #   - Si hace falta un endpoint o un campo que no está en
+  #     D:/PERSONAL_JEAN/Sass-ChiraFlow/docs/api-contract.md: PARAR y anotarlo
+  #     en «bloqueo» de la historia; lo resuelve Claude (contrato primero).
+  #   - Codex NO edita este archivo (es de otro repo): al terminar, deja en
+  #     la descripción de su PR la historia y lo que quedó pendiente. Los
+  #     estados de aquí los actualiza Claude al revisar la PR.
+  #   - Datos de ejemplo: se mantienen marcados con «Ejemplo» (decisión del
+  #     2026-11-15). Nada se borra sin que Jean lo apruebe.
+  # -------------------------------------------------------------------------
+  cola_codex:
+    - historia: "3.2"
+      titulo: "El calendario del día por profesional"
+      estado: lista
+      rama: "sprint-5/3-2-calendario-por-profesional"
+      que_hacer: >-
+        Ya existe en v2 (PR tivu.v2 #5, rango desde/hasta del backend #49).
+        Cotejar cada criterio de epics.md § Story 3.2 contra lo construido,
+        hacer lo que falte (columna «cerrada» del profesional sin jornada,
+        clic en hueco libre → formulario con profesional, sede y hora,
+        descansos) y verificarlo en el navegador. Sin arrastrar (Q-19). El
+        caso dorado con Vitest solo si docs/fixtures/ ya existe; si no,
+        anotarlo en «bloqueo» y seguir con lo demás.
+      pr: null
+      bloqueo: null
+    - historia: "9.3"
+      titulo: "Ninguna pantalla miente (fase 1: inventario y guardia)"
+      estado: lista
+      rama: "sprint-5/9-3-inventario-de-ejemplos"
+      que_hacer: >-
+        NO quitar datos de ejemplo. (1) Inventario: una tabla en
+        docs/pantallas-con-ejemplo.md de tivu.v2 con cada pantalla o tarjeta
+        que pinta datos de ejemplo o mocks, si lleva la marca «Ejemplo» y
+        qué endpoint le falta. (2) Marcar con «Ejemplo» lo que se vea sin
+        marca. (3) Una comprobación automática (script en package.json) que
+        falle si la construcción de producción sirve mocks sin marcar. Lo de
+        quitar módulos del menú vía GET /capacidades queda para la fase 2,
+        con Jean.
+      pr: null
+      bloqueo: null
+    - historia: "5.1"
+      titulo: "La marca del negocio, en todos los planes"
+      estado: bloqueada
+      rama: "sprint-5/5-1-marca-del-negocio"
+      bloqueo: "falta el contrato: campos de logo, color y estilo de portada del negocio (Claude, backend)"
+    - historia: "5.3"
+      titulo: "Ver cómo queda antes de que lo vea nadie"
+      estado: bloqueada
+      bloqueo: "después de la 5.1"
+    - historia: "9.4"
+      titulo: "Los primeros pasos, explicados"
+      estado: bloqueada
+      bloqueo: "falta el texto del tutorial de los seis pasos (Jean)"
+
 # ---------------------------------------------------------------------------
 # Migrado de docs/estado.md (ultimo apunte 2026-09-06). Ese archivo queda
 # SUSTITUIDO y pasa a ser historial de solo lectura.
