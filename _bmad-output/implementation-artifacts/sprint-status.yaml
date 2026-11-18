@@ -64,7 +64,7 @@ development_status:
   # obsoleto). «done» = mergeado a develop en Backend-Sass y en tivu.v2.
   epic-3: in-progress
   3-1-el-código-de-la-cita-a-mano: done  # backend #12; v2: código en la bandeja, con copiar
-  3-2-el-calendario-del-día-por-profesional: review  # v2 #5 (día por profesional) + backend #49 (desde/hasta); falta cotejar los criterios de epics.md
+  3-2-el-calendario-del-día-por-profesional: review  # v2 #57 (Codex) + #58; falta el caso dorado compartido en Vitest y Pest (docs/fixtures/, AD-19)
   3-3-un-tablero-que-dice-la-verdad: done  # backend #55, v2 #45
   epic-3-retrospective: optional
 
@@ -305,7 +305,7 @@ sprint_5:
   cola_codex:
     - historia: "3.2"
       titulo: "El calendario del día por profesional"
-      estado: lista
+      estado: hecha
       rama: "sprint-5/3-2-calendario-por-profesional"
       que_hacer: >-
         Ya existe en v2 (PR tivu.v2 #5, rango desde/hasta del backend #49).
@@ -315,8 +315,11 @@ sprint_5:
         descansos) y verificarlo en el navegador. Sin arrastrar (Q-19). El
         caso dorado con Vitest solo si docs/fixtures/ ya existe; si no,
         anotarlo en «bloqueo» y seguir con lo demás.
-      pr: null
-      bloqueo: null
+      pr: "tivu.v2 #57 (mergeada 2026-11-18); revisión: tivu.v2 #58 (paginación de opciones)"
+      bloqueo: >-
+        Queda el caso dorado compartido: no existe docs/fixtures/ (lo crea
+        Claude, AD-19). Además `npm run test:reservabilidad` espera nombres de
+        sede de mocks viejos («la molina», «Sucursal Miraflores»).
     - historia: "9.3"
       titulo: "Ninguna pantalla miente (fase 1: inventario y guardia)"
       estado: lista
