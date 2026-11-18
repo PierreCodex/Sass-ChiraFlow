@@ -1295,7 +1295,11 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
     sí cumple **dentro del mensaje** («…El tono más cercano que sí se lee es
     #767676.» para #7F7F7F): el editor puede extraer el hex y proponerlo.
   - «Publicar» es este mismo `PUT`: no existe borrador en el servidor en esta
-    versión.
+    versión (el editor recuerda lo no publicado en el navegador, Story 5.3).
+  - **`apariencia_publicada`** (Story 5.3, solo lectura): `{ por, en } | null`
+    — el nombre de quien publicó y cuándo (ISO 8601). Se actualiza cuando el
+    `PUT` toca la apariencia (color, logo, portada, `apariencia.*`,
+    `adoptar_logo_de_sede`); guardar otra sección no cuenta.
   - **Transición hasta la 5.4**: `color_secundario`, `cover_url` (y `cover`,
     `cover_eliminar` en el payload) **siguen** funcionando para no romper la
     pantalla actual; la 5.4 los retira. Lo nuevo no los usa.

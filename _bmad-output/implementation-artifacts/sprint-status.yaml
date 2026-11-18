@@ -80,10 +80,10 @@ development_status:
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-la-marca-del-negocio-en-todos-los-planes: review  # backend #69; frontend tivu.v2 #61; falta probarla en producción
+  5-1-la-marca-del-negocio-en-todos-los-planes: done  # backend #69, #73 (URL públicas); v2 #61; probada en producción 2026-11-18
   5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: backlog
-  5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: backlog
-  5-4-las-sedes-dejan-de-tener-identidad-propia: in-progress  # backend hecho (migración + aviso, Backend-Sass sprint-5/5-4-identidad-al-negocio); frontend en la cola de Codex
+  5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: review  # Claude: backend #74, v2 #66 (Codex en pausa)
+  5-4-las-sedes-dejan-de-tener-identidad-propia: done  # backend #70, #72 (la sede conserva su color); v2 #63; queda la limpieza de color/banner/logo de Local
   epic-5-retrospective: optional
 
   epic-6: in-progress
@@ -363,11 +363,12 @@ sprint_5:
       bloqueo: null
     - historia: "5.3"
       titulo: "Ver cómo queda antes de que lo vea nadie"
-      estado: bloqueada
-      bloqueo: "después de la 5.1 (es solo frontend: vista previa en vivo y «Descartar cambios»)"
+      estado: hecha
+      pr: "Hecha por Claude (Codex en pausa, 2026-11-18): Backend-Sass #74, tivu.v2 #66"
+      bloqueo: null
     - historia: "5.4"
       titulo: "Las sedes dejan de tener identidad propia (parte de frontend)"
-      estado: lista
+      estado: hecha
       orden: "después de la 5.1"
       rama: "sprint-5/5-4-sedes-sin-identidad"
       que_hacer: >-
@@ -384,7 +385,7 @@ sprint_5:
         Apariencia. (3) La ficha de la sede ya no ofrece color, banner ni
         logo: dice «Usa el logo, el color y la portada del negocio» con
         enlace a Apariencia. (4) Quitar el color secundario de toda pantalla.
-      pr: null
+      pr: "tivu.v2 #63 (revisada por Claude); backend #70 y #72"
       bloqueo: null
     - historia: "9.4"
       titulo: "Los primeros pasos, explicados"
