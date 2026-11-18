@@ -110,6 +110,13 @@ libera de una cita. La rejilla por sí sola no las habría ofrecido.
 > 27 y los 9— y se anotan aquí porque sin ellas el ejemplo no lo puede volver a
 > comprobar nadie.
 
+> **Desde el 2026-11-18 está en `docs/fixtures/disponibilidad.json`**, junto
+> con un caso por cada nivel de la precedencia y la rejilla fija con borde.
+> Lo leen `tivu.v2/scripts/disponibilidad.test.mjs` (`npm run
+> test:disponibilidad`, en CI) y `Backend-Sass/tests/Feature/Agenda/CasoDoradoTest.php`.
+> Cada repo guarda una copia y comprueba que es idéntica al original cuando
+> los repos están juntos: **un caso nuevo se añade aquí y se copia a los dos**.
+
 ### La misma regla, escrita dos veces
 
 `disponibilidad.ts` calcula estos huecos para pintar el selector, y

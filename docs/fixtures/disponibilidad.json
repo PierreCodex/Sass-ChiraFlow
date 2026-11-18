@@ -1,0 +1,730 @@
+{
+  "descripcion": "Caso dorado del motor de huecos (AD-19). Lo leen la prueba del frontend (tivu.v2: disponibilidad.ts) y la del backend (Backend-Sass: AppServicesDisponibilidad); las dos tienen que dar exactamente estos huecos. Original único: Sass-ChiraFlow/docs/fixtures/. Cada repo guarda una copia y su prueba comprueba que es idéntica a esta cuando Sass-ChiraFlow está al lado.",
+  "formato": {
+    "fecha": "YYYY-MM-DD (2027-09-06 es lunes, ISO 1)",
+    "negocio.horario": "apertura/cierre del negocio, o null para los de aplicación (09:00–20:00)",
+    "negocio.agenda": "configuración de agenda del negocio",
+    "profesional.dias": "su horario por día de la semana (1 = lunes), o null si no tiene horario propio",
+    "profesional.excepciones": "excepciones por fecha",
+    "ocupados": "citas que ya ocupan al profesional ese día",
+    "esperado.origen": "de dónde sale la jornada (personalizado, excepcion, excepcion_inactiva, no_laborable, negocio)"
+  },
+  "casos": [
+    {
+      "id": "rosa-hemograma",
+      "descripcion": "El caso de docs/vistas/citas.md: Rosa, 09:00–18:00 con break 13:00–14:00 y dos citas. Hemograma de 15 min: 27 opciones.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 2,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 3,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 4,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 5,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": []
+      },
+      "ocupados": [
+        {
+          "inicio": "10:00",
+          "fin": "10:15"
+        },
+        {
+          "inicio": "14:30",
+          "fin": "15:30"
+        }
+      ],
+      "duracion_min": 15,
+      "esperado": {
+        "origen": "personalizado",
+        "huecos": [
+          "09:00",
+          "09:15",
+          "09:30",
+          "09:45",
+          "10:15",
+          "10:30",
+          "10:45",
+          "11:00",
+          "11:15",
+          "11:30",
+          "11:45",
+          "12:00",
+          "12:15",
+          "12:30",
+          "12:45",
+          "14:00",
+          "14:15",
+          "15:30",
+          "15:45",
+          "16:00",
+          "16:15",
+          "16:30",
+          "16:45",
+          "17:00",
+          "17:15",
+          "17:30",
+          "17:45"
+        ]
+      }
+    },
+    {
+      "id": "rosa-limpieza",
+      "descripcion": "El mismo día, Limpieza dental de 45 min: 9 opciones; 10:15 y 15:30 son bordes (cuando Rosa se libera).",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 2,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 3,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 4,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 5,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": []
+      },
+      "ocupados": [
+        {
+          "inicio": "10:00",
+          "fin": "10:15"
+        },
+        {
+          "inicio": "14:30",
+          "fin": "15:30"
+        }
+      ],
+      "duracion_min": 45,
+      "esperado": {
+        "origen": "personalizado",
+        "huecos": [
+          "09:00",
+          "10:15",
+          "10:30",
+          "11:15",
+          "12:00",
+          "15:30",
+          "15:45",
+          "16:30",
+          "17:15"
+        ]
+      }
+    },
+    {
+      "id": "nivel-1-excepcion-no-disponible",
+      "descripcion": "Nivel 1: una excepción con disponible=false manda sobre todo: no atiende.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 2,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 3,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 4,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 5,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "13:00",
+                "hasta": "14:00"
+              }
+            ]
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": [
+          {
+            "fecha": "2027-09-06",
+            "disponible": false,
+            "desde": null,
+            "hasta": null,
+            "nota": "Vacaciones"
+          }
+        ]
+      },
+      "ocupados": [],
+      "duracion_min": 30,
+      "esperado": {
+        "origen": "excepcion_inactiva",
+        "huecos": []
+      }
+    },
+    {
+      "id": "nivel-2-excepcion-disponible",
+      "descripcion": "Nivel 2: una excepción disponible trae su propio turno y NO arrastra los breaks del día habitual.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": [
+              {
+                "desde": "16:00",
+                "hasta": "16:30"
+              }
+            ]
+          },
+          {
+            "dia": 2,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 3,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 4,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 5,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": [
+          {
+            "fecha": "2027-09-06",
+            "disponible": true,
+            "desde": "15:00",
+            "hasta": "18:00",
+            "nota": "Refuerzo"
+          }
+        ]
+      },
+      "ocupados": [],
+      "duracion_min": 60,
+      "esperado": {
+        "origen": "excepcion",
+        "huecos": [
+          "15:00",
+          "16:00",
+          "17:00"
+        ]
+      }
+    },
+    {
+      "id": "nivel-3-horario-propio",
+      "descripcion": "Nivel 3: horario propio y el día activo, con su break.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": {
+          "apertura": "07:00",
+          "cierre": "22:00"
+        },
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "13:00",
+            "breaks": [
+              {
+                "desde": "11:00",
+                "hasta": "11:30"
+              }
+            ]
+          },
+          {
+            "dia": 2,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 3,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 4,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 5,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": []
+      },
+      "ocupados": [],
+      "duracion_min": 30,
+      "esperado": {
+        "origen": "personalizado",
+        "huecos": [
+          "09:00",
+          "09:30",
+          "10:00",
+          "10:30",
+          "11:30",
+          "12:00",
+          "12:30"
+        ]
+      }
+    },
+    {
+      "id": "nivel-4-dia-no-laborable",
+      "descripcion": "Nivel 4: tiene horario propio, pero ese día no lo trabaja.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 2,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "18:00",
+            "breaks": []
+          },
+          {
+            "dia": 3,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 4,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 5,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": []
+      },
+      "ocupados": [],
+      "duracion_min": 30,
+      "esperado": {
+        "origen": "no_laborable",
+        "huecos": []
+      }
+    },
+    {
+      "id": "nivel-5-horario-del-negocio",
+      "descripcion": "Nivel 5: sin horario propio rige el del negocio.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": {
+          "apertura": "10:00",
+          "cierre": "14:00"
+        },
+        "agenda": {
+          "modo_intervalo": "duracion_servicio",
+          "intervalo_min": 15
+        }
+      },
+      "profesional": {
+        "dias": null,
+        "excepciones": []
+      },
+      "ocupados": [],
+      "duracion_min": 60,
+      "esperado": {
+        "origen": "negocio",
+        "huecos": [
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00"
+        ]
+      }
+    },
+    {
+      "id": "rejilla-fija-con-borde",
+      "descripcion": "Modo fijo cada 30 min: una cita de 50 min desde las 09:00 deja libre las 09:50 (borde), que la rejilla sola no ofrecería.",
+      "fecha": "2027-09-06",
+      "negocio": {
+        "horario": null,
+        "agenda": {
+          "modo_intervalo": "fijo",
+          "intervalo_min": 30
+        }
+      },
+      "profesional": {
+        "dias": [
+          {
+            "dia": 1,
+            "activo": true,
+            "desde": "09:00",
+            "hasta": "12:00",
+            "breaks": []
+          },
+          {
+            "dia": 2,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 3,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 4,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 5,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 6,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          },
+          {
+            "dia": 7,
+            "activo": false,
+            "desde": null,
+            "hasta": null,
+            "breaks": []
+          }
+        ],
+        "excepciones": []
+      },
+      "ocupados": [
+        {
+          "inicio": "09:00",
+          "fin": "09:50"
+        }
+      ],
+      "duracion_min": 50,
+      "esperado": {
+        "origen": "personalizado",
+        "huecos": [
+          "09:50",
+          "10:00",
+          "10:30",
+          "11:00"
+        ]
+      }
+    }
+  ]
+}

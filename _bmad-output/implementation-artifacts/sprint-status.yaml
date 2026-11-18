@@ -64,7 +64,7 @@ development_status:
   # obsoleto). «done» = mergeado a develop en Backend-Sass y en tivu.v2.
   epic-3: in-progress
   3-1-el-código-de-la-cita-a-mano: done  # backend #12; v2: código en la bandeja, con copiar
-  3-2-el-calendario-del-día-por-profesional: review  # v2 #57 (Codex) + #58; falta el caso dorado compartido en Vitest y Pest (docs/fixtures/, AD-19)
+  3-2-el-calendario-del-día-por-profesional: done  # v2 #57 (Codex) + #58; caso dorado compartido en docs/fixtures/ (node --test y Pest, AD-19)
   3-3-un-tablero-que-dice-la-verdad: done  # backend #55, v2 #45
   epic-3-retrospective: optional
 
@@ -317,9 +317,10 @@ sprint_5:
         anotarlo en «bloqueo» y seguir con lo demás.
       pr: "tivu.v2 #57 (mergeada 2026-11-18); revisión: tivu.v2 #58 (paginación de opciones)"
       bloqueo: >-
-        Queda el caso dorado compartido: no existe docs/fixtures/ (lo crea
-        Claude, AD-19). Además `npm run test:reservabilidad` espera nombres de
-        sede de mocks viejos («la molina», «Sucursal Miraflores»).
+        Caso dorado hecho por Claude (2026-11-18): docs/fixtures/disponibilidad.json,
+        leído por tivu.v2 (npm run test:disponibilidad) y por Pest. Queda
+        `npm run test:reservabilidad`, que espera nombres de sede de mocks
+        viejos («la molina», «Sucursal Miraflores»).
     - historia: "9.3"
       titulo: "Ninguna pantalla miente (fase 1: inventario y guardia)"
       estado: lista
