@@ -1250,8 +1250,9 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
   profesional no tiene horario propio; por defecto 09:00–20:00)
 - **Marca**: `color_primario?`, `color_secundario?`, `logo_url?`, `cover_url?`
 
-  ⚠️ **Cambio aprobado el 2026-09-19, pendiente de implementar** (PRD FR-77 a FR-79, FR-82): la marca pasa a ser
-  **`apariencia`**, la misma en todas las sedes y en todos los planes:
+  **Apariencia (Story 5.1, implementada en el backend el 2026-11-18;** PRD
+  FR-77 a FR-79): la marca es **del negocio**, la misma en todas las sedes y
+  en todos los planes:
   ```jsonc
   "color_primario": "#9B2C5A",          // el texto encima se calcula (AA)
   "texto_sobre_color": "claro",          // "claro" | "oscuro" — solo lectura
@@ -1265,15 +1266,39 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
     }
   }
   ```
-  - `color_secundario` **se retira** de la respuesta y del payload.
-  - Payload multipart: `color_primario`, `logo: File`, `portada: File`,
+  - **`texto_sobre_color`**: `claro` (blanco) si llega a 4.5:1; si no,
+    `oscuro` (`#0B2A45`, el `store-ink-dark-button` de DESIGN.md). `null` en
+    Configuración si el color guardado no permite ninguno (un color de antes de
+    la 5.1): el editor lo marca para corregirlo. En la tienda nunca es `null`.
+  - **Payload multipart**: `color_primario`, `logo: File`, `portada: File`,
     `apariencia[portada_estilo]`, `apariencia[degradado]`,
-    `apariencia[enfoque][x|y]`, más `logo_eliminar` y `portada_eliminar`.
-  - 422: logo que no sea PNG, JPG o WebP, de más de 1 MB o menor de 256 × 256;
-    portada de más de 5 MB o menor de 1600 × 600; color sin contraste posible
-    (`errors.color_primario`).
+    `apariencia[enfoque][x]` y `[y]` (van juntos), más `logo_eliminar` y
+    `portada_eliminar`. Parche, como el resto: lo que no llega no se toca.
+  - **Sin foto, nunca un hueco**: `portada_estilo: "foto"` sin foto da 422 en
+    `portada` («Sube una foto…»). Si se quita la foto, la respuesta cae a
+    `degradado` (si hay uno elegido) o a `solido`. Elegir `degradado` sin
+    clave guarda `de_mi_color`.
+  - **Los ocho degradados** (clave → desde, hasta; todo el recorrido aguanta
+    texto blanco a 4.5:1, lo comprueba una prueba del backend). Los pinta el
+    frontend, a 135°: `atardecer` #B4235A→#C2410C · `oceano` #0E4C92→#0F766E ·
+    `bosque` #166534→#115E59 · `uva` #6D28D9→#9D174D · `noche`
+    #1E1B4B→#4338CA · `coral` #BE123C→#9A3412 · `cielo` #1D4ED8→#0369A1 ·
+    `grafito` #1F2937→#475569. `de_mi_color`: lo genera el frontend a partir
+    de `color_primario`.
+  - **Imágenes (FR-79)**: el logo se guarda en WebP a 512 px de lado mayor; la
+    portada en WebP a 2400, 1600 y 800 px de ancho (nunca se agranda), sin
+    metadatos. Reemplazar o quitar borra las versiones anteriores. Al subir una
+    portada el enfoque arranca en el centro (0.5, 0.5) si no llega otro.
+  - **422**: logo que no sea PNG, JPG o WebP, de más de 1 MB o menor de
+    256 × 256; portada de más de 5 MB o menor de 1600 × 600; color sin
+    contraste posible en `errors.color_primario`, con el tono más cercano que
+    sí cumple **dentro del mensaje** («…El tono más cercano que sí se lee es
+    #767676.» para #7F7F7F): el editor puede extraer el hex y proponerlo.
   - «Publicar» es este mismo `PUT`: no existe borrador en el servidor en esta
     versión.
+  - **Transición hasta la 5.4**: `color_secundario`, `cover_url` (y `cover`,
+    `cover_eliminar` en el payload) **siguen** funcionando para no romper la
+    pantalla actual; la 5.4 los retira. Lo nuevo no los usa.
 - **Sitio público**: `sitio_publico_activo`, `mostrar_en_marketplace`,
   `terminos_servicio?`
 - **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min, plazo_confirmacion_min }`
@@ -1330,10 +1355,13 @@ de `tenants`.
 // banner_url?, logo_url?, latitud?, longitud?, color?, horario_desde?,
 // horario_hasta?   (`slug` desde la Story 6.2)
 //
-// ⚠️ Cambio aprobado el 2026-09-19, pendiente de implementar (FR-77, FR-81, FR-82):
-// negocio gana: logo_url, color_primario, texto_sobre_color, apariencia (igual
-//   que en Configuración); es la identidad de TODAS las sedes.
-// LocalPublico pierde banner_url, logo_url y color (el `slug` ya está, 6.2).
+// Story 5.1 (hecho en el backend el 2026-11-18): `negocio` gana logo_url,
+//   color_primario, texto_sobre_color y apariencia (igual que en
+//   Configuración); es la identidad de TODAS las sedes. Viaja en
+//   GET /publico/{slug}, en /sucursal/{sede}, en la página de la cita y en el
+//   423 de la tienda cerrada.
+// ⚠️ Pendiente (Story 5.4, FR-82): LocalPublico pierde banner_url, logo_url y
+//   color. Hasta entonces siguen saliendo; la tienda debe usar los del negocio.
 
 // GET /publico/{slug}/sucursal/{sede}  → TiendaLocal   ({sede}: slug, slug antiguo o id)
 {
