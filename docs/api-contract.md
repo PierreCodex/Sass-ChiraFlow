@@ -884,6 +884,7 @@ buscan aquí en vez de traer listas enteras:
 | `{coleccion}_search` | filtra esa colección por nombre (`profesionales`, `servicios`, `productos`, `clientes`). En clientes busca también apellido y teléfono; `search` a secas se sigue aceptando |
 | `{coleccion}_ids` | `1,2,3`: solo esos. Para enseñar lo ya elegido aunque no esté en la primera página |
 | `solo` | `profesionales,clientes`: solo esas colecciones. Lo usa cada búsqueda, para no recalcular las demás |
+| `{coleccion}_page` | la página de esa colección (`profesionales_page=2`…): cada una pagina por separado. `page` a secas **no** vale aquí: devuelve siempre la 1 |
 | `local_id` | la sede elegida en el formulario (Story 2.2): `profesionales` y `servicios` traen solo lo reservable **en ella**. Una sede fuera del alcance no da nada. `locales` sigue trayendo todas |
 
 `profesionales` y `servicios` traen **solo lo reservable** (Story 2.2, ver
