@@ -1299,6 +1299,31 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
   - **Transición hasta la 5.4**: `color_secundario`, `cover_url` (y `cover`,
     `cover_eliminar` en el payload) **siguen** funcionando para no romper la
     pantalla actual; la 5.4 los retira. Lo nuevo no los usa.
+  - **Traslado de las sedes (Story 5.4, FR-82; backend hecho el 2026-11-18)**.
+    Una migración de tenant copió al negocio el logo, el color y el banner de
+    su sede principal (solo lo que el negocio no tenía o seguía en el
+    predeterminado; las sedes **no pierden nada**). Lo cuenta, una vez:
+    ```jsonc
+    "aviso_traslado": {                   // null: nada que contar, o ya visto
+      "cambios": ["logo", "color", "portada"],   // lo que pasó al negocio
+      "sedes": [                          // sedes con color o logo distintos
+        { "id": 3, "nombre": "Norte", "color": "#1D4ED8", "logo_url": "…" }
+      ]
+    }
+    ```
+    El editor muestra «Tus sedes tenían colores o logos distintos; ahora todas
+    usan los del negocio», con «Usar el de esta sede» en cada una:
+    - color → `PUT` con `color_primario` = el de la sede (puede dar el 422 de
+      contraste: el color trasladado que no cumple se marca, no se rechaza al
+      leerlo, `texto_sobre_color: null`);
+    - logo → `PUT` con **`adoptar_logo_de_sede: <id>`**: se copia al negocio
+      (la sede conserva el suyo). 422 si la sede no existe o no tiene logo.
+    - Cerrar el aviso → `PUT` con **`aviso_traslado_visto: true`**.
+  - ⚠️ Pendiente de la 5.4 en el frontend: la ficha de la sede deja de
+    ofrecer color, banner y logo y dice que hereda los del negocio. Cuando
+    eso y la tienda de la 5.1 estén en producción, el backend deja de emitir
+    `color`/`banner_url`/`logo_url` de `Local` y retira `color_secundario` y
+    `cover` (limpieza aparte).
 - **Sitio público**: `sitio_publico_activo`, `mostrar_en_marketplace`,
   `terminos_servicio?`
 - **`agenda`**: `{ modo_intervalo: "duracion_servicio"|"fijo", intervalo_min, plazo_confirmacion_min }`

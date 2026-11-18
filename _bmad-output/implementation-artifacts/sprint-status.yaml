@@ -83,7 +83,7 @@ development_status:
   5-1-la-marca-del-negocio-en-todos-los-planes: in-progress  # backend hecho (Backend-Sass sprint-5/5-1-apariencia-del-negocio); frontend en la cola de Codex
   5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: backlog
   5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: backlog
-  5-4-las-sedes-dejan-de-tener-identidad-propia: backlog
+  5-4-las-sedes-dejan-de-tener-identidad-propia: in-progress  # backend hecho (migración + aviso, Backend-Sass sprint-5/5-4-identidad-al-negocio); frontend en la cola de Codex
   epic-5-retrospective: optional
 
   epic-6: in-progress
@@ -364,6 +364,27 @@ sprint_5:
       titulo: "Ver cómo queda antes de que lo vea nadie"
       estado: bloqueada
       bloqueo: "después de la 5.1 (es solo frontend: vista previa en vivo y «Descartar cambios»)"
+    - historia: "5.4"
+      titulo: "Las sedes dejan de tener identidad propia (parte de frontend)"
+      estado: lista
+      orden: "después de la 5.1"
+      rama: "sprint-5/5-4-sedes-sin-identidad"
+      que_hacer: >-
+        El backend ya está (Backend-Sass, rama
+        sprint-5/5-4-identidad-al-negocio): comprobar que su PR está en
+        develop; si no, parar. Contrato: docs/api-contract.md § Configuración
+        del negocio → «Traslado de las sedes». (1) En Apariencia, si
+        `aviso_traslado` no es null: el aviso «Tus sedes tenían colores o
+        logos distintos; ahora todas usan los del negocio», la lista de
+        `sedes` con «Usar el de esta sede» (color → PUT color_primario; logo
+        → PUT adoptar_logo_de_sede) y cerrar → PUT aviso_traslado_visto. Si
+        `texto_sobre_color` es null, marcar el color para corregirlo. (2) Al
+        entrar al panel con `aviso_traslado` pendiente, un aviso que lleva a
+        Apariencia. (3) La ficha de la sede ya no ofrece color, banner ni
+        logo: dice «Usa el logo, el color y la portada del negocio» con
+        enlace a Apariencia. (4) Quitar el color secundario de toda pantalla.
+      pr: null
+      bloqueo: null
     - historia: "9.4"
       titulo: "Los primeros pasos, explicados"
       estado: bloqueada
