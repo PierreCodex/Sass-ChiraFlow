@@ -80,7 +80,7 @@ development_status:
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-la-marca-del-negocio-en-todos-los-planes: in-progress  # backend hecho (Backend-Sass sprint-5/5-1-apariencia-del-negocio); frontend en la cola de Codex
+  5-1-la-marca-del-negocio-en-todos-los-planes: review  # backend #69; frontend tivu.v2 #61; falta probarla en producción
   5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: backlog
   5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: backlog
   5-4-las-sedes-dejan-de-tener-identidad-propia: in-progress  # backend hecho (migración + aviso, Backend-Sass sprint-5/5-4-identidad-al-negocio); frontend en la cola de Codex
@@ -337,7 +337,7 @@ sprint_5:
       bloqueo: null
     - historia: "5.1"
       titulo: "La marca del negocio, en todos los planes"
-      estado: lista
+      estado: hecha
       rama: "sprint-5/5-1-marca-del-negocio"
       que_hacer: >-
         El backend ya lo da (Backend-Sass, rama
@@ -358,7 +358,7 @@ sprint_5:
         0.55 sobre la foto (DESIGN.md store-hero). (3) Sin identidad
         configurada: la apariencia por defecto, sin huecos rotos.
         Verificar en el navegador en móvil y escritorio.
-      pr: null
+      pr: "tivu.v2 #61 (revisada por Claude 2026-11-18); backend Backend-Sass #69"
       bloqueo: null
     - historia: "5.3"
       titulo: "Ver cómo queda antes de que lo vea nadie"
