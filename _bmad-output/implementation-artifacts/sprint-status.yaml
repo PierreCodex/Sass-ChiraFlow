@@ -71,7 +71,7 @@ development_status:
   epic-4: in-progress
   4-1-un-solo-camino-para-avisar-con-registro-de-lo-enviado: done
   4-2-correos-que-parecen-del-negocio-y-están-en-español: done
-  4-3-saber-si-el-correo-llegó: review  # Claude: webhook de Resend firmado + índice central; cliente marcado y aviso en el panel
+  4-3-saber-si-el-correo-llegó: done  # webhook de Resend firmado + índice central; RESEND_WEBHOOK_SECRET puesto en producción (2026-11-18)
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
   4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: review  # Claude: 4.6a (preferencias, esenciales, baja, nota y emoji) y 4.6b (resumen diario y agenda de hoy) mergeadas; falta «comprobante por verificar» con la épica 7
@@ -102,9 +102,9 @@ development_status:
   epic-6-retrospective: optional
 
   epic-7: backlog
-  7-1-configurar-el-cobro-por-qr: backlog
-  7-2-pagar-al-reservar: backlog
-  7-3-subir-el-comprobante-sin-tener-cuenta: backlog
+  7-1-configurar-el-cobro-por-qr: review  # Claude: backend #86, v2 #82
+  7-2-pagar-al-reservar: review  # Claude: backend #86, v2 #82 (pagar ahora usa el plazo de pago también en opcional)
+  7-3-subir-el-comprobante-sin-tener-cuenta: review  # Claude: backend #86, v2 #82; falta el WhatsApp de P-3 (7.4)
   7-4-verificar-un-pago-en-dos-clics: backlog
   7-5-la-reserva-impaga-no-bloquea-el-hueco-para-siempre: backlog
   7-6-cambios-y-devoluciones-cuando-ya-hay-dinero-de-por-medio: backlog
