@@ -75,13 +75,13 @@ development_status:
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
   4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: review  # Claude: 4.6a (preferencias, esenciales, baja, nota y emoji) y 4.6b (resumen diario y agenda de hoy) mergeadas; falta «comprobante por verificar» con la épica 7
-  4-7-la-cuota-de-correos-no-corta-lo-importante: review  # Claude: max_correos_mes por plan, opcionales en pausa, X-3 una vez por mes, banner
+  4-7-la-cuota-de-correos-no-corta-lo-importante: done  # backend #82 + #83 (WhatsApp al equipo de tivu), v2 #79
   4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: done
   epic-4-retrospective: optional
 
   epic-5: backlog
   5-1-la-marca-del-negocio-en-todos-los-planes: done  # backend #69, #73 (URL públicas); v2 #61; probada en producción 2026-11-18
-  5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: backlog
+  5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: review  # Claude: firma y 40 MP, R2 con claves opacas (img.tivuapp.com), imagenes:a-r2; falta crear el bucket (Jean)
   5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: done  # Claude: backend #74, v2 #66 + #67 (hora); probada en producción 2026-11-18
   5-4-las-sedes-dejan-de-tener-identidad-propia: done  # backend #70, #72 (la sede conserva su color); v2 #63; queda la limpieza de color/banner/logo de Local
   epic-5-retrospective: optional
