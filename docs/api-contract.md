@@ -121,6 +121,23 @@ interceptor recargaría la propia pantalla y se comería el mensaje.
 El **403** del login es "correo sin verificar": no es un fallo del formulario
 sino un paso que falta, así que la pantalla ofrece ahí mismo el reenvío del
 enlace (`POST /email/reenviar`, con su cooldown).
+- **429** (Story 6.10): se pasó un límite. Dice cuánto esperar, y lo repite
+  en `reintentar_en` (segundos) y en la cabecera `Retry-After`. Se muestra
+  `message` tal cual: no hardcodear «espera un minuto».
+
+  ```json
+  { "message": "Demasiados intentos seguidos. Espera 42 segundos y vuelve a intentarlo.",
+    "codigo": "limite_solicitudes", "reintentar_en": 42 }
+  ```
+
+  Todos los límites tienen nombre y cuentan por IP **y por recurso** (la
+  tienda, la sede, el token, el correo, el celular). Valores y porqués:
+  `Backend-Sass/docs/limites-publicos.md`.
+- **Turnstile** (Story 6.10): registro, login, `forgot-password` y la reserva
+  pública aceptan `turnstile_token` (el token del widget de Cloudflare).
+  Cuando el backend tiene `TURNSTILE_SECRET_KEY`, sin token o con uno que no
+  vale responde **422** `{ codigo: "turnstile", errors: { turnstile: [...] } }`.
+  El token es de un solo uso: el formulario pide otro tras cada envío.
 - Cualquier otro estado: se muestra `message`; si no hay respuesta,
   "No se pudo conectar con el servidor."
 
@@ -157,12 +174,12 @@ Dos niveles: lo que pide el navegador y lo que el BFF pide a Laravel.
 
 | Del navegador al BFF | Payload | Respuesta |
 |---|---|---|
-| POST `/api/auth/login` | `{ email, password, remember? }` | `{ data: Usuario }` + cookie httpOnly |
+| POST `/api/auth/login` | `{ email, password, remember?, turnstile_token? }` | `{ data: Usuario }` + cookie httpOnly |
 | POST `/api/auth/logout` | — | 204, cookie borrada |
 
 | Del BFF a Laravel | Payload | Respuesta que se espera |
 |---|---|---|
-| POST `/login` | `{ email, password }` | `{ data: { token, usuario } }` · 422 credenciales · 403 sin verificar · 429 (10/min) |
+| POST `/login` | `{ email, password, turnstile_token? }` | `{ data: { token, usuario } }` · 422 credenciales · 422 `turnstile` · 403 sin verificar · 429 (5/min por correo e IP) |
 | POST `/logout` | — (Bearer) | 204 · revoca **ese** token, no todos |
 
 El resto pasa por el proxy sin trato especial, con el `Bearer` puesto (las de
@@ -176,7 +193,7 @@ registro, verificación y recuperación viajan **sin** sesión):
 | POST | `/email/verificar` | `{ id, hash, expires, signature }` (del enlace del correo) | 200 · **dispara el provisioning** |
 | POST | `/email/reenviar` | `{ email }` | 200 `{ message, retry_after }` · 429 si hay cooldown |
 | GET | `/user` | — | `{ data: Usuario }` · 401 si no hay sesión |
-| POST | `/forgot-password` | `{ email }` | 200 |
+| POST | `/forgot-password` | `{ email, turnstile_token? }` | 200 · 422 `turnstile` · 429 (3/min por correo) |
 | POST | `/reset-password` | `{ token, email, password, password_confirmation }` | 200 |
 | PUT | `/user` | `{ nombre, apellido, telefono?, documento?, foto? }` | `{ data: Usuario }` · Mi perfil |
 | PUT | `/user/password` | `{ password_actual, password, password_confirmation }` | 200 · 422 `errors.password_actual` si no cuadra |
@@ -445,7 +462,8 @@ duplicarla.
 | 422 `errors.hora_inicio` | la hora ya no está libre o ya pasó: la tienda refresca las horas |
 | 422 en los datos | `cliente_*`, `acepta_privacidad`: se pintan en su campo |
 | 404 `no_reservable` | un servicio oculto o que nadie presta en la sede: la tienda refresca el catálogo |
-| 429 | más de 10 reservas por minuto desde la misma IP |
+| 422 `turnstile` | falta el token de Turnstile o no vale (si el backend lo tiene encendido) |
+| 429 | más de 5 por minuto o 20 por hora desde la misma IP **en esa tienda**, o más de 5 por hora con el mismo celular en esa tienda |
 
 #### Confirmar la reserva desde el correo (Story 6.7)
 

@@ -96,7 +96,7 @@ development_status:
   6-7-confirmar-la-reserva-desde-el-correo: done  # backend #41; v2 #23
   6-8-gestionar-mi-cita-desde-un-enlace-seguro: done  # backend #42; v2 #22
   6-9-el-negocio-pone-sus-reglas-de-cambio: done  # dentro de la 6.8
-  6-10-la-puerta-pública-aguanta-el-ruido: backlog
+  6-10-la-puerta-pública-aguanta-el-ruido: review  # Claude: backend límites con nombre + Turnstile, v2 widget + IP en SSR; Turnstile se enciende con las claves de Jean
   6-11-cuando-la-tienda-no-está-disponible-se-dice: done  # backend #57; v2 #48
   6-12-el-negocio-usa-su-propio-dominio: backlog
   epic-6-retrospective: optional
