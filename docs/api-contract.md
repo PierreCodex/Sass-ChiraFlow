@@ -596,10 +596,19 @@ todo host de tienda que no nombra a un negocio (`tivuapp.store`,
 negocio (`SLUG_INEXISTENTE` en `web/src/lib/tienda/host.ts`): con `tienda`
 reservado eso es siempre «no encontrado».
 
-**Imágenes.** Hoy las URLs de logo y banner van a Laravel
-(`/api/archivos/{id-del-negocio}/…`), así que llevan el id interno. Se cambia en
-la Story 5.2 (claves opacas en R2 detrás de Cloudflare), antes de que la 6.3
-muestre fotos en la tienda.
+**Imágenes (Story 5.2).** Con R2 configurado (`IMAGENES_BUCKET`), toda
+`*_url` de imagen (logo, portada y sus anchos, fotos de sedes, profesionales,
+categorías y servicios) es `https://img.tivuapp.com/{32 hex}.webp`: una clave
+opaca, sin el id del negocio, servida por Cloudflare e inmutable (reemplazar
+una imagen da otra URL). Sin R2, y para lo que aún no se movió con
+`imagenes:a-r2`, sigue siendo `/api/archivos/{id-del-negocio}/…`. El frontend
+no distingue: pinta la URL que llega.
+
+Subidas: además de `image`, `mimes` y `max`, el tipo se comprueba **por firma**
+(JPG, PNG, WebP o GIF; un SVG o un archivo renombrado da 422 «El archivo no es
+una imagen JPG, PNG o WebP válida.») y hay un tope de **40 megapíxeles** (422
+«La imagen es demasiado grande: hasta 40 megapíxeles…»). Lo guardado se
+re-codifica a WebP sin metadatos.
 
 ---
 
