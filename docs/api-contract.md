@@ -506,6 +506,7 @@ la cita y se puede revocar.
 | GET | `/publico/{slug}/mi-cita/{secreto}/horarios?fecha` | horas a las que la puede mover (mismo profesional y duración) |
 | POST | `/publico/{slug}/mi-cita/{secreto}/reprogramar` | `{ fecha, hora_inicio }` |
 | POST | `/publico/{slug}/mi-cita/{secreto}/cancelar` | — |
+| POST | `/publico/{slug}/mi-cita/{secreto}/baja-recordatorios` | — · Story 4.6a: deja de recibir recordatorios (C-8, C-9); lo esencial le sigue llegando. El GET trae `recordatorios: bool` y el correo del recordatorio enlaza con `#recordatorios` |
 
 ```json
 { "data": {
@@ -1378,6 +1379,37 @@ calcula `Intl`.
 
 Los colores por defecto son **`#4f46e5`** y **`#06b6d4`**, los de las columnas
 de `tenants`.
+
+### Preferencias de avisos (Story 4.6a)
+
+Lo que no está aquí es **esencial**: siempre sale y se enseña bloqueado
+(`esenciales: [{ titulo, porque }]`). Valores por defecto: hoja 9 de
+«Flujos de avisos».
+
+| Método | Ruta | Quién | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/avisos/mis-avisos` | cada persona | `{ data: { grupos: [{ clave, titulo, detalle, modo, canal }], esenciales, modos, canales, whatsapp_activo } }` |
+| PUT | `/avisos/mis-avisos` | cada persona | `{ clave, modo: "instante"\|"apagado", canal: "correo"\|"whatsapp"\|"ambos" }` · 422 si la clave es esencial o no le toca. `resumen` llega con la 4.6b |
+| GET | `/avisos/negocio` | `configuracion` | `{ data: { avisos: [{ clave, titulo, detalle, activo, defecto }], esenciales, whatsapp: { nota, nota_max, nota_incluida, emoji, emoji_incluido, emoji_rubro, plan_que_lo_incluye } } }` |
+| PUT | `/avisos/negocio` | `configuracion,gestionar` | `{ clave, activo }` (agendada_panel, recordatorio, recordatorios_extra, whatsapp) o `{ clave: "whatsapp_nota"\|"whatsapp_emoji", valor }` · 422: esencial, nota con enlace/teléfono/>80, emoji inválido o plan que no lo incluye |
+
+| GET | `/avisos/cuota` | `configuracion` | Story 4.7: `{ data: { usados, maximo, alcanzada, se_reinicia } }`. También va como `cuota` dentro de `/avisos/negocio` |
+
+**Story 4.6b:** `modo: "resumen"` (si el plan incluye `resumen_diario`) junta
+los avisos del día en un correo a las 7:00 pm (R-1). El grupo `agenda_hoy`
+(`tipo: "agenda"`, plan con `agenda_del_dia`) lleva `hora` (`horas_agenda`:
+06:00–10:00) y manda las citas del día (R-2). `GET /avisos/mis-avisos` añade
+por grupo `tipo`, `hora`, `incluido`, y `resumen_incluido`, `horas_agenda`,
+`plan_que_lo_incluye`.
+
+**Story 4.7 (cuota de correos):** `planes.max_correos_mes` (Básico 1 000,
+Premium 5 000, Pro 15 000). Al llegar, los opcionales quedan `omitido ·
+cuota_correos`; lo esencial sale igual. X-3 al titular y a la plataforma, una
+vez por mes.
+
+Grupos del equipo: `citas_negocio` (dueño: C-2, C-6D), `mis_citas`
+(profesional: C-2P, C-5P, C-6P), `asignaciones` (C-7P). La nota sale en los
+WhatsApp a clientes como `💬 _nota_` antes del cierre.
 
 ### Ticket de soporte
 
