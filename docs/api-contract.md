@@ -506,6 +506,7 @@ la cita y se puede revocar.
 | GET | `/publico/{slug}/mi-cita/{secreto}/horarios?fecha` | horas a las que la puede mover (mismo profesional y duración) |
 | POST | `/publico/{slug}/mi-cita/{secreto}/reprogramar` | `{ fecha, hora_inicio }` |
 | POST | `/publico/{slug}/mi-cita/{secreto}/cancelar` | — |
+| POST | `/publico/{slug}/mi-cita/{secreto}/baja-recordatorios` | — · Story 4.6a: deja de recibir recordatorios (C-8, C-9); lo esencial le sigue llegando. El GET trae `recordatorios: bool` y el correo del recordatorio enlaza con `#recordatorios` |
 
 ```json
 { "data": {
@@ -1378,6 +1379,23 @@ calcula `Intl`.
 
 Los colores por defecto son **`#4f46e5`** y **`#06b6d4`**, los de las columnas
 de `tenants`.
+
+### Preferencias de avisos (Story 4.6a)
+
+Lo que no está aquí es **esencial**: siempre sale y se enseña bloqueado
+(`esenciales: [{ titulo, porque }]`). Valores por defecto: hoja 9 de
+«Flujos de avisos».
+
+| Método | Ruta | Quién | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/avisos/mis-avisos` | cada persona | `{ data: { grupos: [{ clave, titulo, detalle, modo, canal }], esenciales, modos, canales, whatsapp_activo } }` |
+| PUT | `/avisos/mis-avisos` | cada persona | `{ clave, modo: "instante"\|"apagado", canal: "correo"\|"whatsapp"\|"ambos" }` · 422 si la clave es esencial o no le toca. `resumen` llega con la 4.6b |
+| GET | `/avisos/negocio` | `configuracion` | `{ data: { avisos: [{ clave, titulo, detalle, activo, defecto }], esenciales, whatsapp: { nota, nota_max, nota_incluida, emoji, emoji_incluido, emoji_rubro, plan_que_lo_incluye } } }` |
+| PUT | `/avisos/negocio` | `configuracion,gestionar` | `{ clave, activo }` (agendada_panel, recordatorio, recordatorios_extra, whatsapp) o `{ clave: "whatsapp_nota"\|"whatsapp_emoji", valor }` · 422: esencial, nota con enlace/teléfono/>80, emoji inválido o plan que no lo incluye |
+
+Grupos del equipo: `citas_negocio` (dueño: C-2, C-6D), `mis_citas`
+(profesional: C-2P, C-5P, C-6P), `asignaciones` (C-7P). La nota sale en los
+WhatsApp a clientes como `💬 _nota_` antes del cierre.
 
 ### Ticket de soporte
 

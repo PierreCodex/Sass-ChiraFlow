@@ -74,7 +74,7 @@ development_status:
   4-3-saber-si-el-correo-llegó: review  # Claude: webhook de Resend firmado + índice central; cliente marcado y aviso en el panel
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
   4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
-  4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: backlog
+  4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: in-progress  # Claude: 4.6a (preferencias, esenciales, baja de recordatorios, nota y emoji) en revisión; 4.6b resumen diario y agenda de hoy; «comprobante por verificar» con la épica 7
   4-7-la-cuota-de-correos-no-corta-lo-importante: backlog
   4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: done
   epic-4-retrospective: optional
