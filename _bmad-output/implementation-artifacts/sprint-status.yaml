@@ -105,8 +105,8 @@ development_status:
   7-1-configurar-el-cobro-por-qr: review  # Claude: backend #86, v2 #82
   7-2-pagar-al-reservar: review  # Claude: backend #86, v2 #82 (pagar ahora usa el plazo de pago también en opcional)
   7-3-subir-el-comprobante-sin-tener-cuenta: review  # Claude: backend #86, v2 #82; falta el WhatsApp de P-3 (7.4)
-  7-4-verificar-un-pago-en-dos-clics: backlog
-  7-5-la-reserva-impaga-no-bloquea-el-hueco-para-siempre: backlog
+  7-4-verificar-un-pago-en-dos-clics: in-progress  # Claude: backend #87, v2 #83 (panel, P-4/P-5/P-8); falta el WhatsApp de P-3 y APROBAR (textos en revisión)
+  7-5-la-reserva-impaga-no-bloquea-el-hueco-para-siempre: review  # Claude: con #86 y #87 (caduca sin captura, no con ella, P-6)
   7-6-cambios-y-devoluciones-cuando-ya-hay-dinero-de-por-medio: backlog
   epic-7-retrospective: optional
 
