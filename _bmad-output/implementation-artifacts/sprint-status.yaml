@@ -71,7 +71,7 @@ development_status:
   epic-4: in-progress
   4-1-un-solo-camino-para-avisar-con-registro-de-lo-enviado: done
   4-2-correos-que-parecen-del-negocio-y-están-en-español: done
-  4-3-saber-si-el-correo-llegó: backlog
+  4-3-saber-si-el-correo-llegó: review  # Claude: webhook de Resend firmado + índice central; cliente marcado y aviso en el panel
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
   4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: backlog
@@ -124,7 +124,7 @@ development_status:
   9-1-una-landing-que-explica-y-convierte: done  # v2 #27, #37, #40 (preventa hasta el 25-11)
   9-2-términos-privacidad-y-los-derechos-del-cliente: done  # backend #54; v2 #43, #44, #47
   9-3-ninguna-pantalla-miente: done  # v2 #68 (USE_MOCKS=false, 404 reales, check:ejemplos en prebuild); probada en producción 2026-11-18
-  9-4-los-primeros-pasos-explicados: backlog
+  9-4-los-primeros-pasos-explicados: done  # Claude: «¿Cómo se hace?» en cada paso, tarjeta de Inicio, QR con logo; paso 5 espera al servicio (#71, #73)
   9-5-producción-de-verdad-con-copias-que-se-restauran: done  # backend #51 (copias a R2)
   9-6-un-piloto-antes-de-abrir-del-todo: backlog
   epic-9-retrospective: optional

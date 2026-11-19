@@ -670,6 +670,7 @@ declarado: el backend manda claves). Quién marca cada paso:
 | `total_citas` | int | `withCount` |
 | `ultima_cita` | string? | fecha de la más reciente |
 | `acepta_whatsapp` | bool | marcó «Recibir avisos por WhatsApp» (Story 4.8c). Vuelve a `false` si después respondió BAJA |
+| `correo_estado` | `"rebotado" \| "queja" \| null` | Story 4.3: su correo no recibe (rebote duro o lo marcó como spam). No se le escribe mientras lo tenga; se borra al cambiar el `email` |
 
 **Payload**: `{ nombre, telefono?, email?, acepta_whatsapp? }`.
 
@@ -794,6 +795,7 @@ galeria: File[], galeria_conservar: number[], empleado_ids: number[] }`.
 | `cliente_nombre` | string | texto libre, máx. 150 |
 | `cliente_telefono` `cliente_email` | string? | máx. 30 y 150 |
 | `cliente_acepta_whatsapp` | bool | la casilla de WhatsApp **del cliente** (Story 4.8c): el diálogo la muestra como está |
+| `cliente_correo_estado` | `"rebotado" \| "queja" \| null` | Story 4.3: el correo del cliente no recibe; el detalle avisa para llamarle |
 | `servicios` | `LineaServicio[]` | **la fuente de verdad** |
 | `servicio` | `LineaServicio?` | la primera línea, **como puente**. `null` si no hay ninguna |
 | `empleado` | `{ id, nombre }` | no nullable |
