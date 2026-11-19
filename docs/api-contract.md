@@ -1393,6 +1393,20 @@ Lo que no está aquí es **esencial**: siempre sale y se enseña bloqueado
 | GET | `/avisos/negocio` | `configuracion` | `{ data: { avisos: [{ clave, titulo, detalle, activo, defecto }], esenciales, whatsapp: { nota, nota_max, nota_incluida, emoji, emoji_incluido, emoji_rubro, plan_que_lo_incluye } } }` |
 | PUT | `/avisos/negocio` | `configuracion,gestionar` | `{ clave, activo }` (agendada_panel, recordatorio, recordatorios_extra, whatsapp) o `{ clave: "whatsapp_nota"\|"whatsapp_emoji", valor }` · 422: esencial, nota con enlace/teléfono/>80, emoji inválido o plan que no lo incluye |
 
+| GET | `/avisos/cuota` | `configuracion` | Story 4.7: `{ data: { usados, maximo, alcanzada, se_reinicia } }`. También va como `cuota` dentro de `/avisos/negocio` |
+
+**Story 4.6b:** `modo: "resumen"` (si el plan incluye `resumen_diario`) junta
+los avisos del día en un correo a las 7:00 pm (R-1). El grupo `agenda_hoy`
+(`tipo: "agenda"`, plan con `agenda_del_dia`) lleva `hora` (`horas_agenda`:
+06:00–10:00) y manda las citas del día (R-2). `GET /avisos/mis-avisos` añade
+por grupo `tipo`, `hora`, `incluido`, y `resumen_incluido`, `horas_agenda`,
+`plan_que_lo_incluye`.
+
+**Story 4.7 (cuota de correos):** `planes.max_correos_mes` (Básico 1 000,
+Premium 5 000, Pro 15 000). Al llegar, los opcionales quedan `omitido ·
+cuota_correos`; lo esencial sale igual. X-3 al titular y a la plataforma, una
+vez por mes.
+
 Grupos del equipo: `citas_negocio` (dueño: C-2, C-6D), `mis_citas`
 (profesional: C-2P, C-5P, C-6P), `asignaciones` (C-7P). La nota sale en los
 WhatsApp a clientes como `💬 _nota_` antes del cierre.
