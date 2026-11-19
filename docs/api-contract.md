@@ -422,6 +422,15 @@ duplicarla.
 | GET | `/publico/{slug}/sucursal/{sede}` | — | `{ data: TiendaLocal }` |
 | GET | `/publico/{slug}/sucursal/{sede}/horarios` | `?profesional_id&fecha&duracion_min` | `{ data: string[] }` — `["09:00","09:45",…]` |
 | POST | `/publico/{slug}/sucursal/{sede}/reservar` | `ReservaPayload` | `{ data: ReservaConfirmada }` |
+| GET | `/publico/{slug}/reserva/{codigo}/pago` | `?f=` (firma) | Story 7.2: `{ data: { codigo, estado, vencida, negocio, citas, sede_slug, pago } }`. 404 si la firma no es suya |
+| POST | `/publico/{slug}/reserva/{codigo}/comprobante` | multipart `{ f, captura, operacion? }` | Story 7.3: la misma forma que el GET, con `pago.estado: "comprobante_subido"`. 422 en `captura` (no es imagen, >5 MB, ya hay una en revisión o la reserva ya no espera pago). 429 por IP o por reserva |
+
+#### Cobrar por adelantado con Yape (Épica 7, 7.1–7.3)
+
+- **Configuración → Pagos:** `GET /configuracion/pagos` → `{ data: { modo, qr_url, instrucciones, plazo_minutos, plazo_minimo, plazo_maximo } }`; `POST /configuracion/pagos` (multipart: `modo`, `instrucciones`, `plazo_minutos` 15–240, `qr`, `qr_eliminar`). `modo`: `no_pedido` \| `opcional` \| `obligatorio`. Los dos últimos exigen QR e instrucciones (422 en cada campo). Requiere `configuracion: gestionar` para guardar.
+- **En la tienda:** `negocio.pagos` (en `/publico/{slug}` y en la sede) = `{ modo, qr_url, instrucciones, plazo_minutos }`, o `null` si no pide pago.
+- **Reservar:** `pago: "ahora" | "local"`. Con `opcional` es obligatorio elegir; con `obligatorio`, `"local"` da 422. Si paga ahora, `ReservaConfirmada.pago = { estado, monto, pagar_hasta, qr_url, instrucciones, firma, url }`: el plazo es el de pago (no hay confirmación por correo), sale la P-1 en lugar de la C-11 y, con pago obligatorio, no se ofrecen horas antes de «ahora + plazo + 15 min».
+- **La captura** va al disco privado del negocio (nunca pública). `estado_pago`: `pendiente` → `comprobante_subido` (P-2 al cliente, P-3 a quien verifica). Con la captura subida la reserva no caduca; si vence sin ella, se cancela con «No se pagó a tiempo» y aún la admite (`vencida: true`, rescate de la 7.6).
 
 #### Reservar desde la tienda (Story 6.6)
 
