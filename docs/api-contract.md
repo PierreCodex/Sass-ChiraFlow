@@ -414,6 +414,23 @@ duplicarla.
 | GET | `/planes` | — | `{ data: Plan[] }` | ordenados por `precio_mensual` |
 | POST | `/plan/{planId}/solicitar` | `{ extra_profesionales, extra_whatsapp }` | 200 | **no cobra**: abre un ticket de soporte |
 
+### Panel de plataforma — Story 8.4, bajo `/plataforma/*`
+
+Su propia sesión (AD-12): un token de Sanctum de `platform_admins` con la
+habilidad `plataforma`, que **solo** sale tras el segundo factor. Sin tenancy.
+En tivu.v2 vive en la cookie `tivu_plataforma`, aparte de la del negocio.
+
+| Método | Ruta | Payload | Respuesta |
+|---|---|---|---|
+| POST | `/plataforma/acceso/codigo` | `{ email, password }` | 202 `{ message, minutos }` y el código de 6 dígitos por correo. 422 en `email` si no coincide (sin decir qué falló) |
+| POST | `/plataforma/acceso/verificar` | `{ email, codigo }` | `{ data: { token, admin: { id, nombre, email, rol } } }` (el BFF guarda el token y devuelve solo `admin`). 422 en `codigo`. Un código vale 10 min, una vez, 5 intentos |
+| GET | `/plataforma/yo` | — | `{ data: admin }` |
+| POST | `/plataforma/salir` | — | revoca el token |
+
+- Una cuenta de **negocio** en `/plataforma/*` recibe **404** (y queda en el log). El token de plataforma en el panel de un negocio, también 404.
+- Cada acción de plataforma deja huella en `soporte_acciones` (quién, qué, sobre qué negocio, cuándo).
+- Crear un administrador: `php artisan plataforma:crear-admin correo --nombre= --rol=superadmin|soporte`.
+
 ### Tienda pública — sin sesión, bajo `/publico/*`
 
 | Método | Ruta | Query / payload | Respuesta |
