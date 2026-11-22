@@ -1924,6 +1924,43 @@ Una promoción con `tipo: "combo"`: sus servicios (2 a 6) y su `precio` juntos, 
 - El precio se reparte entre sus líneas en proporción a su precio de lista (en céntimos; el último se lleva el redondeo). Cada línea guarda `promocion_id` y `precio_lista` en `cita_servicio`.
 - Vale también con citas separadas. Las citas del panel (un servicio) no llevan combos.
 
+### Paquetes con cupo por servicio
+
+`POST /promociones` de `tipo: "paquete"` acepta `cupos: [{ servicio_id, sesiones }]` en lugar de `servicio_ids` + `cantidad` («3 masajes + 2 faciales»). `servicio_ids` y `cantidad` (la suma, de 2 a 50) salen de los cupos.
+
+- El paquete vendido copia los cupos. En `PaqueteActivo` llega `cupos: [{ servicio_id, nombre, sesiones, usadas, quedan }]` (null si no tiene).
+- `POST /fidelidad/paquetes/usar` pide además `servicio_id` si el paquete tiene cupos (422 en `servicio_id` si falta o si de ese servicio ya no queda).
+- La cita atendida descuenta del primer servicio de la cita que aún tenga cupo.
+
+### Descuento por día u horario — Story 11.3
+
+| Método | Ruta | Cuerpo / respuesta |
+|---|---|---|
+| POST · PUT | `/promociones[/{id}]` | `{ tipo: "horario", nombre, servicio_ids[], dias[] (1 = lunes … 7 = domingo), hora_desde, hora_hasta ("HH:MM"), recompensa_tipo: "porcentaje" \| "monto", recompensa_valor, vigente_desde?, vigente_hasta?, visible_tienda }`. La respuesta añade `aplicadas` (reservas con el descuento) |
+| GET | `/publico/{slug}/sucursal/{sede}` | añade `descuentos: [{ id, nombre, servicio_ids[], dias[], desde, hasta, tipo, valor, vigente_hasta }]` |
+
+- Vale para la hora de **inicio** dentro de [desde, hasta) del día indicado. Si caben varios, el que deja el precio más bajo.
+- Se aplica por línea de la reserva de la tienda (guarda `promocion_id` y `precio_lista` como los combos). Una línea que entró en un combo no lleva además este descuento.
+- La tienda marca los huecos con descuento (`rebajaEn` en el frontend, la misma regla que `App\Promociones\Descuentos::para`).
+
+### Ocasiones — Story 11.5
+
+| Método | Ruta | Cuerpo / respuesta |
+|---|---|---|
+| POST · PUT | `/promociones[/{id}]` | `{ tipo: "ocasion", nombre, ocasion: "primera_visita" \| "cumpleanos" \| "referido", recompensa_tipo: "porcentaje" \| "monto", recompensa_valor, vigente_desde?, vigente_hasta?, visible_tienda }`. La respuesta añade `aplicadas` |
+| GET | `/publico/{slug}/sucursal/{sede}` | añade `ocasiones: [{ id, nombre, ocasion, tipo, valor }]` |
+| POST | `/publico/{slug}/sucursal/{sede}/reservar` | acepta `referido` (el token de la tarjeta del cliente que invita; la tienda lo toma de `?ref=`) |
+| GET | `/publico/{slug}/tarjeta/{token}` | añade `referido: { tipo, valor, … } \| null`: si hay premio por invitar, la tarjeta ofrece «Invita a un amigo» |
+
+**Reglas (`App\Promociones\Ocasiones`):**
+- **Primera visita:** el cliente no tiene ninguna cita anterior que siga en pie (las canceladas no cuentan).
+- **Cumpleaños:** su `fecha_nacimiento` (de la ficha) cae en el mes de la cita. Una vez por año.
+- **Referido:** llega con el token de la tarjeta de **otro** cliente y es su primera visita. Se guarda quién lo trajo (`referido_por_cliente_id`).
+- Una sola vez por cliente (el cumpleaños, una por año), registrada en `promocion_ocasiones`. Si la cita se cancela, vuelve a estar disponible.
+- Si cumple varias, la que más descuenta. Va a la **primera cita** de la reserva como `citas.descuento` (+ `descuento_promocion_id`), sobre lo que ya cuesta con combos y horario; `monto_total` ya lo resta y lo sigue restando si se edita la cita.
+
+**Todas las promociones de la tienda (combos, horario, ocasiones)** se aplican solo si el plan del negocio trae `promociones`; si no, la tienda no las enseña ni el servidor las cobra. Las citas creadas desde el panel no las llevan.
+
 ---
 
 ## 6. Lo que todavía no está cableado
