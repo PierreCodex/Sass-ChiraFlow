@@ -138,10 +138,10 @@ development_status:
   epic-10-retrospective: optional
 
   epic-11: in-progress
-  11-1-tarjeta-de-sellos: review  # Claude: tarjeta con QR, escáner, sello por cita atendida; falta el aviso «te falta 1» (texto por aprobar)
+  11-1-tarjeta-de-sellos: review  # backend #95, v2 #90 (+ #91 tamaño); probada en producción 2026-11-22 salvo cámara y canje; faltan los avisos (textos por aprobar)
   11-2-combos: backlog
   11-3-descuento-por-día-u-horario: backlog
-  11-4-paquetes-de-sesiones: backlog
+  11-4-paquetes-de-sesiones: review  # Claude: plantilla, venta en el local (ajustable por cliente), descuento por cita atendida o a mano. Pendiente (Jean 2026-11-22, después de los combos): paquetes con cupo por servicio («3 masajes + 2 faciales»)
   11-5-ocasiones: backlog
   epic-11-retrospective: optional
 verificado:
