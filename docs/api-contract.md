@@ -431,6 +431,65 @@ En tivu.v2 vive en la cookie `tivu_plataforma`, aparte de la del negocio.
 - Cada acción de plataforma deja huella en `soporte_acciones` (quién, qué, sobre qué negocio, cuándo).
 - Crear un administrador: `php artisan plataforma:crear-admin correo --nombre= --rol=superadmin|soporte`.
 
+### Negocios y pagos desde plataforma — Story 8.5
+
+Mismo token y misma guardia que la 8.4. Toda acción pide **motivo** (salvo
+registrar un pago), pasa por `SuscripcionService` (queda en `suscripcion_cambios`)
+y se anota en `soporte_acciones`. El historial **no se edita**: no hay rutas para eso.
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| GET | `/plataforma/negocios?search&plan&estado&page&per_page` | — | `{ data: [fila], meta }`. `search` mira nombre, dirección, correo y titular. `plan` es el slug. `estado`: `prueba · activo · por_confirmar · vencido · suspendido` |
+| GET | `/plataforma/negocios/{id}` | — | `{ data: ficha }` |
+| POST | `…/{id}/plan` | `{ plan, meses (1–12), motivo, pago_id? }` | `{ data: ficha }`. Activa el plan desde hoy |
+| POST | `…/{id}/prueba` | `{ dias (1–7), motivo }` | `{ data: ficha }`. La prueba no pasa de 14 días |
+| POST | `…/{id}/pagos` | `{ plan, meses, monto, metodo: yape·plin·transferencia·efectivo·otro, fecha_pago (≤ hoy), nota? }` | 201 `{ data: ficha }`. El pago queda `por_confirmar` |
+| POST | `…/{id}/suspender` | `{ motivo }` | `{ data: ficha }`. S-3 al titular **con el motivo** |
+| POST | `…/{id}/reactivar` | `{ hasta (≥ hoy), motivo }` | `{ data: ficha }`. Solo si está suspendido; sin pago. S-4 al titular |
+| GET | `/plataforma/pagos?estado=por_confirmar·confirmado·rechazado` | — | `{ data: [pago + negocio], meta }`, 30 por página |
+| POST | `/plataforma/pagos/{id}/confirmar` | — | `{ data: pago }`. Activa el plan del pago por sus meses; el pago queda `pagado` |
+| POST | `/plataforma/pagos/{id}/rechazar` | `{ motivo }` | `{ data: pago }`. El motivo se suma a `nota` |
+
+```jsonc
+// fila (lista) — la ficha añade cambios, pagos, acciones y planes
+{
+  "id": "9b1f…", "nombre": "Barbería Pepito", "slug": "pepito", "tienda": "pepito.tivuapp.store",
+  "rubro": "Barbería", "titular": "Pepe Ruiz", "correo": "pepe@…", "telefono": "+51…",
+  "plan": { "slug": "premium", "nombre": "Premium" }, "fundador": false,
+  "estado": "activo", "dias_restantes": 24,
+  "sedes": 1, "profesionales": 3, "max_profesionales": 5, "citas_mes": 41, // null si su base aún no existe
+  "alta": "2026-11-10", "vence": "2026-12-15",
+  "cambios": [{ "id": 7, "tipo": "activar", "plan_anterior": "Prueba", "plan_nuevo": "Premium",
+               "estado_anterior": "prueba", "estado_nuevo": "activa", "vence_anterior": "…", "vence_nuevo": "…",
+               "pago_id": 12, "actor": "plataforma: Jean", "motivo": "…", "cuando": "ISO" }],
+  "pagos": [{ "id": 12, "negocio_id": "9b1f…", "fecha": "2026-11-21", "plan": "Premium", "meses": 1, "periodo": "1 mes",
+              "metodo": "yape", "monto": 149, "estado": "confirmado", "con_promo": false, "nota": null,
+              "revisado_por": "plataforma: Jean", "revisado_el": "ISO" }],
+  "acciones": [{ "accion": "cambiar_plan", "por": "Jean", "detalle": { … }, "cuando": "ISO" }],
+  "planes": [{ "slug": "basico", "nombre": "Básico", "precio_mensual": 99 }]
+}
+```
+
+El estado se calcula en este orden: suspendido → `por_confirmar` (tiene un pago
+pendiente) → `vencido` (venció y no está suspendido) → `activo` → `prueba`.
+
+### Planes y promociones editables — Story 8.7
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| GET | `/plataforma/planes` | — | `{ data: [plan], catalogo: [clave] }`. Todos los planes, también la prueba y los que no se venden, con `negocios` y `promo_cupos_usados` |
+| PUT | `/plataforma/planes/{id}` | cualquiera de: `nombre, descripcion, precio_mensual, precio_anual, max_profesionales, max_sucursales, max_whatsapp_mes, max_numeros_equipo, max_correos_mes, precio_profesional_extra, precio_whatsapp_extra, mensajes_whatsapp_extra, promo_activa, precio_promo, promo_duracion_meses, promo_hasta, promo_cupos, features[], activo, destacado` | `{ data: plan }`. 422: `features.*` fuera del catálogo, la prueba no se vende, promo activa sin precio o sin meses |
+
+**Reglas:**
+- **Precio congelado.** El primer pago de un plan guarda su precio de lista en `tenants.precio_pactado` (y `precio_pactado_plan_id`). Si el equipo cambia el precio, ese negocio sigue con el suyo hasta cambiar de plan. El fundador congela el precio normal del día de su primer pago, así que tras la promo paga eso para siempre.
+- **La promo se cierra sola** al pasar `promo_hasta` o al llenarse `promo_cupos` (negocios distintos que pagaron con promo). Quien ya la empezó, termina sus meses.
+- **El seeder ya no pisa los planes** en cada despliegue: solo crea los que faltan. Los precios se cambian desde aquí.
+- **Cada guardado** queda en `soporte_acciones` (`editar_plan`) con el antes y el después.
+- **El catálogo** de funciones vive en `App\Support\CatalogoFunciones`: una función nueva se programa una vez y desde aquí se activa por plan.
+- `GET /publico/planes` añade `promo_hasta`, `promo_cupos`, `promo_cupos_restantes` y `promo_abierta`. `GET /suscripcion` añade `precio_pactado`.
+
+**Precios de lanzamiento (2026-11-22):** Básico S/ 30 · Premium S/ 45 · Plan Fundador = Premium a S/ 15 los 3 primeros meses, 30 cupos · extras S/ 5 por profesional y S/ 9 por 50 WhatsApp.
+
 ### Tienda pública — sin sesión, bajo `/publico/*`
 
 | Método | Ruta | Query / payload | Respuesta |

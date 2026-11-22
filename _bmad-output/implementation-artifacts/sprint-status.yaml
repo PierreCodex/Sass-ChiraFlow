@@ -110,14 +110,14 @@ development_status:
   7-6-cambios-y-devoluciones-cuando-ya-hay-dinero-de-por-medio: done  # Claude: backend #88, v2 #84 (devolución pendiente, P-7, rescate o devolución del pago tardío)
   epic-7-retrospective: optional
 
-  epic-8: in-progress
+  epic-8: done
   8-1-un-único-camino-aplica-los-cambios-de-plan: done  # backend #52
   8-2-avisar-antes-de-cortar: done  # junto con la 8.6: backend #62
   8-3-mi-plan-en-el-panel-del-negocio: done  # Mercado Pago (Yape + tarjeta): backend #58-#61, v2 #46-#54. Izipay (#53) queda sin usar
   8-4-entrar-al-panel-de-plataforma: done  # backend #89 (cerrar la #4), v2 #85; crear el admin con plataforma:crear-admin
-  8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: backlog
+  8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: done  # backend #93, v2 #88
   8-6-el-ciclo-de-vida-corre-solo-cada-día: done  # backend #62 + #63, v2 #55. SIN días de gracia (Jean, 2026-11-16): se corta a las 12:05 am del día siguiente al vencimiento
-  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: backlog
+  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: done  # backend #94, v2 #89; precios del 22-11 (30/45/Fundador 15×3)
   epic-8-retrospective: optional
 
   epic-9: in-progress
