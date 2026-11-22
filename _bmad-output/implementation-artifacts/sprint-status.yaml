@@ -74,14 +74,14 @@ development_status:
   4-3-saber-si-el-correo-llegó: done  # webhook de Resend firmado + índice central; RESEND_WEBHOOK_SECRET puesto en producción (2026-11-18)
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
   4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
-  4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: review  # Claude: 4.6a (preferencias, esenciales, baja, nota y emoji) y 4.6b (resumen diario y agenda de hoy) mergeadas; falta «comprobante por verificar» con la épica 7
+  4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: done  # 4.6a y 4.6b mergeadas; «al menos una persona recibe los pagos por verificar» en backend #90, v2 #86
   4-7-la-cuota-de-correos-no-corta-lo-importante: done  # backend #82 + #83 (WhatsApp al equipo de tivu), v2 #79
   4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: done
   epic-4-retrospective: optional
 
   epic-5: backlog
   5-1-la-marca-del-negocio-en-todos-los-planes: done  # backend #69, #73 (URL públicas); v2 #61; probada en producción 2026-11-18
-  5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: review  # Claude: firma y 40 MP, R2 con claves opacas (img.tivuapp.com), imagenes:a-r2; falta crear el bucket (Jean)
+  5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: done  # backend #84, #85, v2 #80; R2 activo en producción (img.tivuapp.com), imagenes:a-r2 corrido con --limpiar el 2026-11-19
   5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: done  # Claude: backend #74, v2 #66 + #67 (hora); probada en producción 2026-11-18
   5-4-las-sedes-dejan-de-tener-identidad-propia: done  # backend #70, #72 (la sede conserva su color); v2 #63; queda la limpieza de color/banner/logo de Local
   epic-5-retrospective: optional
@@ -105,19 +105,19 @@ development_status:
   7-1-configurar-el-cobro-por-qr: done  # Claude: backend #86, v2 #82
   7-2-pagar-al-reservar: done  # Claude: backend #86, v2 #82 (pagar ahora usa el plazo de pago también en opcional)
   7-3-subir-el-comprobante-sin-tener-cuenta: done  # Claude: backend #86, v2 #82; falta el WhatsApp de P-3 (7.4)
-  7-4-verificar-un-pago-en-dos-clics: in-progress  # Claude: backend #87, v2 #83 (panel, P-4/P-5/P-8); falta el WhatsApp de P-3 y APROBAR (textos en revisión)
+  7-4-verificar-un-pago-en-dos-clics: done  # backend #87 + #91 (P-3 con captura por WhatsApp y APROBAR, P-4 por WhatsApp), v2 #83
   7-5-la-reserva-impaga-no-bloquea-el-hueco-para-siempre: done  # Claude: con #86 y #87 (caduca sin captura, no con ella, P-6)
   7-6-cambios-y-devoluciones-cuando-ya-hay-dinero-de-por-medio: done  # Claude: backend #88, v2 #84 (devolución pendiente, P-7, rescate o devolución del pago tardío)
   epic-7-retrospective: optional
 
-  epic-8: in-progress
+  epic-8: done
   8-1-un-único-camino-aplica-los-cambios-de-plan: done  # backend #52
   8-2-avisar-antes-de-cortar: done  # junto con la 8.6: backend #62
   8-3-mi-plan-en-el-panel-del-negocio: done  # Mercado Pago (Yape + tarjeta): backend #58-#61, v2 #46-#54. Izipay (#53) queda sin usar
-  8-4-entrar-al-panel-de-plataforma: review  # Claude: backend #89 (sobre la #4, que se puede cerrar), v2 #85
-  8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: review
+  8-4-entrar-al-panel-de-plataforma: done  # backend #89 (cerrar la #4), v2 #85; crear el admin con plataforma:crear-admin
+  8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: done  # backend #93, v2 #88
   8-6-el-ciclo-de-vida-corre-solo-cada-día: done  # backend #62 + #63, v2 #55. SIN días de gracia (Jean, 2026-11-16): se corta a las 12:05 am del día siguiente al vencimiento
-  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: review
+  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: done  # backend #94, v2 #89; precios del 22-11 (30/45/Fundador 15×3)
   epic-8-retrospective: optional
 
   epic-9: in-progress
@@ -137,8 +137,8 @@ development_status:
   10-3-devoluciones-desde-tivu: backlog
   epic-10-retrospective: optional
 
-  epic-11: backlog
-  11-1-tarjeta-de-sellos: backlog
+  epic-11: in-progress
+  11-1-tarjeta-de-sellos: review  # Claude: tarjeta con QR, escáner, sello por cita atendida; falta el aviso «te falta 1» (texto por aprobar)
   11-2-combos: backlog
   11-3-descuento-por-día-u-horario: backlog
   11-4-paquetes-de-sesiones: backlog
