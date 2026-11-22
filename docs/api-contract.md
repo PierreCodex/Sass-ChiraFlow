@@ -1892,6 +1892,23 @@ Función de Premium (`funcion:promociones`; sin ella, **403** `{ message, funcio
 - Canjear descuenta los sellos de la recompensa (`promocion_canjes`) y la tarjeta sigue.
 - La tarjeta pública lleva la **identidad del negocio** (Apariencia), no la de tivu.
 
+### Paquetes de sesiones — Story 11.4
+
+La plantilla es una promoción con `tipo: "paquete"`: `cantidad` son las sesiones, `precio` lo que cuesta y `vigencia_dias` cuánto dura desde la venta (`null` = no vence). No suma sellos.
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| POST · PUT | `/promociones[/{id}]` | `servicios` gestionar | `{ tipo: "paquete", nombre, servicio_ids[], cantidad (2–50), precio, vigencia_dias?, visible_tienda }`. La respuesta añade `precio`, `vigencia_dias`, `vendidos` y `sesiones_usadas` |
+| POST | `/fidelidad/paquetes/vender` | `clientes` ver | `{ cliente_id, promocion_id, metodo?: efectivo·yape·plin·tarjeta·transferencia }` → 201 `{ data: paquete }` |
+| POST | `/fidelidad/paquetes/usar` | `clientes` ver | `{ paquete_id }` → `{ data: paquete }`. 422 si venció o no le quedan sesiones |
+
+`paquete`: `{ paquete_id, nombre, sesiones, usadas, quedan, vence_el, servicios[] }`. Escanear, buscar, `/clientes/{id}/tarjeta` y la tarjeta pública añaden `paquetes: [paquete]` (solo los que tienen sesiones y no vencieron, el que vence antes primero).
+
+**Reglas:**
+- Se vende en el local: el negocio cobra y aquí queda el registro con el precio de ese día.
+- La cita **atendida** de un servicio del paquete descuenta una sesión sola, del que vence antes. Una cita nunca descuenta dos veces, aunque se vuelva a marcar.
+- También se descuenta a mano desde el escáner (lo que pasa sin cita).
+
 ---
 
 ## 6. Lo que todavía no está cableado
