@@ -1909,6 +1909,21 @@ La plantilla es una promoción con `tipo: "paquete"`: `cantidad` son las sesione
 - La cita **atendida** de un servicio del paquete descuenta una sesión sola, del que vence antes. Una cita nunca descuenta dos veces, aunque se vuelva a marcar.
 - También se descuenta a mano desde el escáner (lo que pasa sin cita).
 
+### Combos — Story 11.2
+
+Una promoción con `tipo: "combo"`: sus servicios (2 a 6) y su `precio` juntos, que tiene que ser menor que la suma por separado (422 en `precio` si no).
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| POST · PUT | `/promociones[/{id}]` | `servicios` gestionar | `{ tipo: "combo", nombre, servicio_ids[], precio, vigente_desde?, vigente_hasta?, visible_tienda }`. La respuesta añade `precio_normal` y `combos_vendidos` |
+| GET | `/publico/{slug}/sucursal/{sede}` | sin sesión | añade `combos: [{ id, nombre, servicio_ids[], precio, precio_normal, ahorro }]`: visibles, vigentes y con todos sus servicios reservables en esa sede |
+
+**Reglas (`App\Promociones\Combos`, la misma que `aplicarCombos` del frontend):**
+- Al reservar en la tienda, si vienen **todos** sus servicios, una unidad de cada uno, se cobra el precio del combo. Lo decide el servidor; el carrito solo lo enseña antes.
+- Si caben varios, primero el que más ahorra; un servicio entra en un solo combo. Una línea con cantidad 2 o más no entra.
+- El precio se reparte entre sus líneas en proporción a su precio de lista (en céntimos; el último se lleva el redondeo). Cada línea guarda `promocion_id` y `precio_lista` en `cita_servicio`.
+- Vale también con citas separadas. Las citas del panel (un servicio) no llevan combos.
+
 ---
 
 ## 6. Lo que todavía no está cableado
