@@ -62,24 +62,24 @@ development_status:
 
   # Desde el 2026-11-15 el frontend vive en tivu.v2 (web/ de este repo
   # obsoleto). «done» = mergeado a develop en Backend-Sass y en tivu.v2.
-  epic-3: in-progress
+  epic-3: done
   3-1-el-código-de-la-cita-a-mano: done  # backend #12; v2: código en la bandeja, con copiar
   3-2-el-calendario-del-día-por-profesional: done  # v2 #57 (Codex) + #58; caso dorado compartido en docs/fixtures/ (node --test y Pest, AD-19)
   3-3-un-tablero-que-dice-la-verdad: done  # backend #55, v2 #45
   epic-3-retrospective: optional
 
-  epic-4: in-progress
+  epic-4: done
   4-1-un-solo-camino-para-avisar-con-registro-de-lo-enviado: done
   4-2-correos-que-parecen-del-negocio-y-están-en-español: done
   4-3-saber-si-el-correo-llegó: done  # webhook de Resend firmado + índice central; RESEND_WEBHOOK_SECRET puesto en producción (2026-11-18)
   4-4-los-recordatorios-salen-a-su-hora-y-se-reprograman-solos: done  # backend #35
-  4-5-cada-aviso-llega-a-quien-le-toca: in-progress  # 4.5a hecha (backend #36); 4.5b se completa con cada historia que conecta su disparador (S-* ya con la 8.6)
+  4-5-cada-aviso-llega-a-quien-le-toca: done  # 4.5a (backend #36); 4.5b completada con cada historia que conectó su disparador (S-* con la 8.6, P-* con la Épica 7, F-* con la 11.1/11.4)
   4-6-el-negocio-decide-qué-avisa-y-cada-quien-qué-recibe: done  # 4.6a y 4.6b mergeadas; «al menos una persona recibe los pagos por verificar» en backend #90, v2 #86
   4-7-la-cuota-de-correos-no-corta-lo-importante: done  # backend #82 + #83 (WhatsApp al equipo de tivu), v2 #79
   4-8-un-aviso-por-whatsapp-cuando-algo-necesita-atención: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
+  epic-5: done
   5-1-la-marca-del-negocio-en-todos-los-planes: done  # backend #69, #73 (URL públicas); v2 #61; probada en producción 2026-11-18
   5-2-las-imágenes-se-guardan-bien-o-no-se-guardan: done  # backend #84, #85, v2 #80; R2 activo en producción (img.tivuapp.com), imagenes:a-r2 corrido con --limpiar el 2026-11-19
   5-3-ver-cómo-queda-antes-de-que-lo-vea-nadie: done  # Claude: backend #74, v2 #66 + #67 (hora); probada en producción 2026-11-18
@@ -101,7 +101,7 @@ development_status:
   6-12-el-negocio-usa-su-propio-dominio: backlog
   epic-6-retrospective: optional
 
-  epic-7: backlog
+  epic-7: done
   7-1-configurar-el-cobro-por-qr: done  # Claude: backend #86, v2 #82
   7-2-pagar-al-reservar: done  # Claude: backend #86, v2 #82 (pagar ahora usa el plazo de pago también en opcional)
   7-3-subir-el-comprobante-sin-tener-cuenta: done  # Claude: backend #86, v2 #82; falta el WhatsApp de P-3 (7.4)
@@ -138,11 +138,11 @@ development_status:
   epic-10-retrospective: optional
 
   epic-11: in-progress
-  11-1-tarjeta-de-sellos: review  # backend #95, v2 #90 (+ #91 tamaño); probada en producción 2026-11-22 salvo cámara y canje; faltan los avisos (textos por aprobar)
-  11-2-combos: review  # Claude: plantilla, tienda con «Agregar combo», precio aplicado por el servidor al reservar
-  11-3-descuento-por-día-u-horario: backlog
-  11-4-paquetes-de-sesiones: review  # Claude: plantilla, venta en el local (ajustable por cliente), descuento por cita atendida o a mano. Pendiente (Jean 2026-11-22, después de los combos): paquetes con cupo por servicio («3 masajes + 2 faciales»)
-  11-5-ocasiones: backlog
+  11-1-tarjeta-de-sellos: done  # backend #95, v2 #90 (+ #91 tamaño); avisos F-1 a F-3 aprobados y mergeados; probada en producción 2026-11-22 salvo cámara y canje
+  11-2-combos: done  # backend #98, v2 #94 (2026-11-22); sin probar aún en producción
+  11-3-descuento-por-día-u-horario: review  # Claude: plantilla «Día u horario», huecos marcados en la tienda, precio aplicado por el servidor
+  11-4-paquetes-de-sesiones: done  # backend #96, v2 #92 (venta ajustable por cliente, F-4); el cupo por servicio («3 masajes + 2 faciales») va con la 11.3/11.5 (review)
+  11-5-ocasiones: review  # Claude: primera visita, cumpleaños (una vez al año) y referido (enlace de la tarjeta); en reservas de la tienda
   epic-11-retrospective: optional
 verificado:
   que_es: "Epica 0 del epics.md - construido, probado y en uso. No se replanifica."
