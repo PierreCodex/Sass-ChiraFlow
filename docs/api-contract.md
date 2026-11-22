@@ -473,6 +473,23 @@ y se anota en `soporte_acciones`. El historial **no se edita**: no hay rutas par
 El estado se calcula en este orden: suspendido → `por_confirmar` (tiene un pago
 pendiente) → `vencido` (venció y no está suspendido) → `activo` → `prueba`.
 
+### Planes y promociones editables — Story 8.7
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| GET | `/plataforma/planes` | — | `{ data: [plan], catalogo: [clave] }`. Todos los planes, también la prueba y los que no se venden, con `negocios` y `promo_cupos_usados` |
+| PUT | `/plataforma/planes/{id}` | cualquiera de: `nombre, descripcion, precio_mensual, precio_anual, max_profesionales, max_sucursales, max_whatsapp_mes, max_numeros_equipo, max_correos_mes, precio_profesional_extra, precio_whatsapp_extra, mensajes_whatsapp_extra, promo_activa, precio_promo, promo_duracion_meses, promo_hasta, promo_cupos, features[], activo, destacado` | `{ data: plan }`. 422: `features.*` fuera del catálogo, la prueba no se vende, promo activa sin precio o sin meses |
+
+**Reglas:**
+- **Precio congelado.** El primer pago de un plan guarda su precio de lista en `tenants.precio_pactado` (y `precio_pactado_plan_id`). Si el equipo cambia el precio, ese negocio sigue con el suyo hasta cambiar de plan. El fundador congela el precio normal del día de su primer pago, así que tras la promo paga eso para siempre.
+- **La promo se cierra sola** al pasar `promo_hasta` o al llenarse `promo_cupos` (negocios distintos que pagaron con promo). Quien ya la empezó, termina sus meses.
+- **El seeder ya no pisa los planes** en cada despliegue: solo crea los que faltan. Los precios se cambian desde aquí.
+- **Cada guardado** queda en `soporte_acciones` (`editar_plan`) con el antes y el después.
+- **El catálogo** de funciones vive en `App\Support\CatalogoFunciones`: una función nueva se programa una vez y desde aquí se activa por plan.
+- `GET /publico/planes` añade `promo_hasta`, `promo_cupos`, `promo_cupos_restantes` y `promo_abierta`. `GET /suscripcion` añade `precio_pactado`.
+
+**Precios de lanzamiento (2026-11-22):** Básico S/ 30 · Premium S/ 45 · Plan Fundador = Premium a S/ 15 los 3 primeros meses, 30 cupos · extras S/ 5 por profesional y S/ 9 por 50 WhatsApp.
+
 ### Tienda pública — sin sesión, bajo `/publico/*`
 
 | Método | Ruta | Query / payload | Respuesta |

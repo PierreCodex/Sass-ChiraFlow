@@ -117,7 +117,7 @@ development_status:
   8-4-entrar-al-panel-de-plataforma: review  # Claude: backend #89 (sobre la #4, que se puede cerrar), v2 #85
   8-5-la-ficha-de-un-negocio-con-todo-lo-que-hace-falta: review
   8-6-el-ciclo-de-vida-corre-solo-cada-día: done  # backend #62 + #63, v2 #55. SIN días de gracia (Jean, 2026-11-16): se corta a las 12:05 am del día siguiente al vencimiento
-  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: backlog
+  8-7-planes-y-promociones-editables-desde-el-panel-de-plataforma: review
   epic-8-retrospective: optional
 
   epic-9: in-progress
