@@ -431,6 +431,48 @@ En tivu.v2 vive en la cookie `tivu_plataforma`, aparte de la del negocio.
 - Cada acción de plataforma deja huella en `soporte_acciones` (quién, qué, sobre qué negocio, cuándo).
 - Crear un administrador: `php artisan plataforma:crear-admin correo --nombre= --rol=superadmin|soporte`.
 
+### Negocios y pagos desde plataforma — Story 8.5
+
+Mismo token y misma guardia que la 8.4. Toda acción pide **motivo** (salvo
+registrar un pago), pasa por `SuscripcionService` (queda en `suscripcion_cambios`)
+y se anota en `soporte_acciones`. El historial **no se edita**: no hay rutas para eso.
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| GET | `/plataforma/negocios?search&plan&estado&page&per_page` | — | `{ data: [fila], meta }`. `search` mira nombre, dirección, correo y titular. `plan` es el slug. `estado`: `prueba · activo · por_confirmar · vencido · suspendido` |
+| GET | `/plataforma/negocios/{id}` | — | `{ data: ficha }` |
+| POST | `…/{id}/plan` | `{ plan, meses (1–12), motivo, pago_id? }` | `{ data: ficha }`. Activa el plan desde hoy |
+| POST | `…/{id}/prueba` | `{ dias (1–7), motivo }` | `{ data: ficha }`. La prueba no pasa de 14 días |
+| POST | `…/{id}/pagos` | `{ plan, meses, monto, metodo: yape·plin·transferencia·efectivo·otro, fecha_pago (≤ hoy), nota? }` | 201 `{ data: ficha }`. El pago queda `por_confirmar` |
+| POST | `…/{id}/suspender` | `{ motivo }` | `{ data: ficha }`. S-3 al titular **con el motivo** |
+| POST | `…/{id}/reactivar` | `{ hasta (≥ hoy), motivo }` | `{ data: ficha }`. Solo si está suspendido; sin pago. S-4 al titular |
+| GET | `/plataforma/pagos?estado=por_confirmar·confirmado·rechazado` | — | `{ data: [pago + negocio], meta }`, 30 por página |
+| POST | `/plataforma/pagos/{id}/confirmar` | — | `{ data: pago }`. Activa el plan del pago por sus meses; el pago queda `pagado` |
+| POST | `/plataforma/pagos/{id}/rechazar` | `{ motivo }` | `{ data: pago }`. El motivo se suma a `nota` |
+
+```jsonc
+// fila (lista) — la ficha añade cambios, pagos, acciones y planes
+{
+  "id": "9b1f…", "nombre": "Barbería Pepito", "slug": "pepito", "tienda": "pepito.tivuapp.store",
+  "rubro": "Barbería", "titular": "Pepe Ruiz", "correo": "pepe@…", "telefono": "+51…",
+  "plan": { "slug": "premium", "nombre": "Premium" }, "fundador": false,
+  "estado": "activo", "dias_restantes": 24,
+  "sedes": 1, "profesionales": 3, "max_profesionales": 5, "citas_mes": 41, // null si su base aún no existe
+  "alta": "2026-11-10", "vence": "2026-12-15",
+  "cambios": [{ "id": 7, "tipo": "activar", "plan_anterior": "Prueba", "plan_nuevo": "Premium",
+               "estado_anterior": "prueba", "estado_nuevo": "activa", "vence_anterior": "…", "vence_nuevo": "…",
+               "pago_id": 12, "actor": "plataforma: Jean", "motivo": "…", "cuando": "ISO" }],
+  "pagos": [{ "id": 12, "negocio_id": "9b1f…", "fecha": "2026-11-21", "plan": "Premium", "meses": 1, "periodo": "1 mes",
+              "metodo": "yape", "monto": 149, "estado": "confirmado", "con_promo": false, "nota": null,
+              "revisado_por": "plataforma: Jean", "revisado_el": "ISO" }],
+  "acciones": [{ "accion": "cambiar_plan", "por": "Jean", "detalle": { … }, "cuando": "ISO" }],
+  "planes": [{ "slug": "basico", "nombre": "Básico", "precio_mensual": 99 }]
+}
+```
+
+El estado se calcula en este orden: suspendido → `por_confirmar` (tiene un pago
+pendiente) → `vencido` (venció y no está suspendido) → `activo` → `prueba`.
+
 ### Tienda pública — sin sesión, bajo `/publico/*`
 
 | Método | Ruta | Query / payload | Respuesta |
