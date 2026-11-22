@@ -1899,7 +1899,7 @@ La plantilla es una promoción con `tipo: "paquete"`: `cantidad` son las sesione
 | Método | Ruta | Permiso | Cuerpo / respuesta |
 |---|---|---|---|
 | POST · PUT | `/promociones[/{id}]` | `servicios` gestionar | `{ tipo: "paquete", nombre, servicio_ids[], cantidad (2–50), precio, vigencia_dias?, visible_tienda }`. La respuesta añade `precio`, `vigencia_dias`, `vendidos` y `sesiones_usadas` |
-| POST | `/fidelidad/paquetes/vender` | `clientes` ver | `{ cliente_id, promocion_id, metodo?: efectivo·yape·plin·tarjeta·transferencia }` → 201 `{ data: paquete }` |
+| POST | `/fidelidad/paquetes/vender` | `clientes` ver | `{ cliente_id, promocion_id, metodo?: efectivo·yape·plin·tarjeta·transferencia, precio?, sesiones? (1–100), vence_el? (≥ hoy), sin_vencimiento? }` → 201 `{ data: paquete }`. Lo opcional es lo pactado con ese cliente; sin ello, lo de la plantilla, que no cambia |
 | POST | `/fidelidad/paquetes/usar` | `clientes` ver | `{ paquete_id }` → `{ data: paquete }`. 422 si venció o no le quedan sesiones |
 
 `paquete`: `{ paquete_id, nombre, sesiones, usadas, quedan, vence_el, servicios[] }`. Escanear, buscar, `/clientes/{id}/tarjeta` y la tarjeta pública añaden `paquetes: [paquete]` (solo los que tienen sesiones y no vencieron, el que vence antes primero).
