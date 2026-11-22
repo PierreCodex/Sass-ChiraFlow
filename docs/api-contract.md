@@ -1959,6 +1959,8 @@ Una promoción con `tipo: "combo"`: sus servicios (2 a 6) y su `precio` juntos, 
 - Una sola vez por cliente (el cumpleaños, una por año), registrada en `promocion_ocasiones`. Si la cita se cancela, vuelve a estar disponible.
 - Si cumple varias, la que más descuenta. Va a la **primera cita** de la reserva como `citas.descuento` (+ `descuento_promocion_id`), sobre lo que ya cuesta con combos y horario; `monto_total` ya lo resta y lo sigue restando si se edita la cita.
 
+**En la cita del panel** (`GET /citas`, `GET /citas/{id}`): `descuento` (el de la ocasión, ya restado en `monto_total`) y `promociones: [{ nombre, ahorro }]` (combos y horario por línea, más la ocasión), para que recepción vea por qué el total es menor.
+
 **Todas las promociones de la tienda (combos, horario, ocasiones)** se aplican solo si el plan del negocio trae `promociones`; si no, la tienda no las enseña ni el servidor las cobra. Las citas creadas desde el panel no las llevan.
 
 ---
