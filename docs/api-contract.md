@@ -1809,6 +1809,30 @@ El carrito vive en memoria y **no en la query string** como en la app anterior:
 allí cada cambio recargaba la página. Los huecos se cachean solo 30 s: entre que
 el cliente elige y confirma, otro puede haberse llevado la hora.
 
+### Promociones · tarjeta de sellos (`/promociones`) — Story 11.1
+
+Función de Premium (`funcion:promociones`; sin ella, **403** `{ message, funcion: "promociones" }`).
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/promociones` | `servicios` ver | `{ data: [promo] }`, con `clientes`, `sellos` y `canjes` |
+| POST · PUT · DELETE | `/promociones[/{id}]` | `servicios` gestionar | `{ nombre, servicio_ids[], cantidad (2–20), recompensa_tipo: gratis·porcentaje·monto, recompensa_servicio_id \| recompensa_valor, vigente_desde?, vigente_hasta?, cuenta_atendidas, cuenta_qr, visible_tienda, local_ids? }` |
+| POST | `/fidelidad/escanear` | `clientes` ver | `{ token }`: el enlace de la tarjeta o su token. `{ data: { cliente, resultados: [progreso + suceso] } }`. 404 si no es una tarjeta del negocio |
+| GET | `/fidelidad/buscar?telefono=` | `clientes` ver | sin cámara: `{ data: [cliente + progreso] }` |
+| POST | `/fidelidad/sumar` | `clientes` ver | `{ cliente_id }`: la visita a mano |
+| POST | `/fidelidad/canjear` | `clientes` ver | `{ cliente_id, promocion_id }`. 422 si aún no completa la tarjeta |
+| GET | `/clientes/{id}/tarjeta` | `clientes` ver | `{ data: { enlace, progreso } }`: el enlace que se le comparte |
+| GET | `/publico/{slug}/tarjeta/{token}` | sin sesión | `{ data: { negocio (marca), cliente: { nombre }, enlace, promociones: [progreso] } }` |
+
+`progreso`: `{ promocion_id, nombre, cantidad, llevas, listo, recompensa, servicios[], suceso?: "sumado" | "ya_hoy" }`.
+
+**Reglas:**
+- El cliente no tiene cuenta. Su tarjeta (`tarjetas_cliente`) tiene un **token al azar**: es lo que lleva su QR y su enlace `{tienda}/tarjeta/{token}`, nunca su teléfono.
+- **Un sello por día y promoción**, venga de la cita atendida, del QR o de la suma a mano. Escanear dos veces no cuenta doble.
+- Solo cuentan las citas **atendidas** (`completada`) con un servicio de la promo, nunca las reservas. Volver atrás el estado no quita el sello.
+- Canjear descuenta los sellos de la recompensa (`promocion_canjes`) y la tarjeta sigue.
+- La tarjeta pública lleva la **identidad del negocio** (Apariencia), no la de tivu.
+
 ---
 
 ## 6. Lo que todavía no está cableado
