@@ -485,6 +485,10 @@ pendiente) → `vencido` (venció y no está suspendido) → `activo` → `prueb
 - **La promo se cierra sola** al pasar `promo_hasta` o al llenarse `promo_cupos` (negocios distintos que pagaron con promo). Quien ya la empezó, termina sus meses.
 - **El seeder ya no pisa los planes** en cada despliegue: solo crea los que faltan. Los precios se cambian desde aquí.
 - **Cada guardado** queda en `soporte_acciones` (`editar_plan`) con el antes y el después.
+- **Límites y funciones valen EN EL ACTO** para todos los negocios del plan (2026-11-22, «planes sincronizados»); solo el precio se congela. Se leen del plan fresco en cada petición:
+  - **Funciones → permisos:** `inventario` y `caja` dependen de su función (`Capacidades::MODULO_FUNCION`): sin ella, el módulo queda sin permiso (menú oculto, 403). `GET /capacidades` añade `funciones: [clave]` para que el menú esconda lo que el plan no trae (Promociones pide `promociones`).
+  - **Sedes:** `max_sucursales` se cumple al crear o reactivar una sede: 422 en `plan` («Tu plan … incluye N sedes activas…»). Las que ya superen un límite rebajado no se apagan solas.
+  - **WhatsApp a clientes:** cupo del mes = `max_whatsapp_mes` + `tenants.extra_whatsapp` (paquetes comprados) × `mensajes_whatsapp_extra`.
 - **El catálogo** de funciones vive en `App\Support\CatalogoFunciones`: una función nueva se programa una vez y desde aquí se activa por plan.
 - `GET /publico/planes` añade `promo_hasta`, `promo_cupos`, `promo_cupos_restantes` y `promo_abierta`. `GET /suscripcion` añade `precio_pactado`.
 
