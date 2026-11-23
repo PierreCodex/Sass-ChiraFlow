@@ -446,6 +446,7 @@ y se anota en `soporte_acciones`. El historial **no se edita**: no hay rutas par
 
 | Método | Ruta | Cuerpo | Respuesta |
 |---|---|---|---|
+| GET | `/plataforma/resumen` | — | `{ data: { negocios: { total, activos, prueba, por_confirmar, vencidos, suspendidos, prueba_termina_semana, nuevos: {actual, anterior} }, por_plan: [{clave, nombre, total}], cobrado: {actual, anterior}, pagos_por_confirmar, citas: {actual, anterior}, vencimientos: [fila] } }`. Métricas de plataforma: estados como en la lista; «actual» = del 1 a hoy, «anterior» = mismo tramo del mes pasado. `cobrado` = pagos `pagado` por `fecha_pago`. `citas` sin canceladas, sumando la base de cada negocio. `por_plan` sin suspendidos, «En prueba» aparte. `vencimientos`: los 4 más próximos sin suspendidos |
 | GET | `/plataforma/negocios?search&plan&estado&page&per_page` | — | `{ data: [fila], meta }`. `search` mira nombre, dirección, correo y titular. `plan` es el slug. `estado`: `prueba · activo · por_confirmar · vencido · suspendido` |
 | GET | `/plataforma/negocios/{id}` | — | `{ data: ficha }` |
 | POST | `…/{id}/plan` | `{ plan, meses (1–12), motivo, pago_id? }` | `{ data: ficha }`. Activa el plan desde hoy |
