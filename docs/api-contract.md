@@ -400,10 +400,17 @@ duplicarla.
 | PUT | `/locales/{localId}/servicios/{servicioId}` | `{ habilitado: bool }` | `{ data: LocalServicio }` | **Story 2.1.** Habilita o deshabilita el servicio en esta sede. `locales: gestionar` (sin él, 403 `sin_permiso`); sede fuera del alcance → 404 |
 | PUT | `/locales/{localId}/profesionales/{profesionalId}` | ver §3 | `{ data: LocalProfesional }` | `syncWithoutDetaching`: asigna y edita. **Parcial**: el interruptor manda `{habilitado}` a secas. Con alcance por sedes, un profesional sin fila en ninguna de sus sedes da **404**: el administrador de sede no se trae a nadie de otra (1.8, decidido el 2026-10-31) |
 | POST | `/inventario/{id}/movimiento` | `{ tipo, cantidad, motivo }` | `{ data: Producto }` | el backend recalcula `stock` |
-| GET | `/caja` | — | `{ data: EstadoCaja }` | sesión de hoy + movimientos, en una llamada |
-| POST | `/caja/abrir` | `{ monto_inicial }` | `{ data: CajaSesion }` | |
-| POST | `/caja/cerrar` | `{ monto_final }` | `{ data: CajaSesion }` | |
-| POST | `/caja/movimientos` | `{ tipo, monto, concepto }` | `{ data: MovimientoCaja }` | acumula en `ingresos`/`egresos` del día |
+| GET | `/caja?local_id` | — | `{ data: EstadoCaja }` | la caja de hoy de una sede (sin `local_id`, la principal); `puede:caja` |
+| POST | `/caja/abrir` | `{ local_id, monto_inicial }` | `{ data: EstadoCaja }` 201 | 422 si queda otra abierta o la de hoy ya se cerró; `caja,gestionar` |
+| POST | `/caja/cerrar` | `{ local_id, monto_contado }` | `{ data: EstadoCaja }` | guarda `efectivo_esperado` y `diferencia` |
+| POST | `/caja/movimientos` | `{ local_id, tipo, monto, concepto, metodo? }` | `{ data: EstadoCaja }` 201 | a mano (insumos, luz…); exige caja abierta |
+| GET | `/caja/historial?local_id&page` | — | `{ data: SesionHistorial[], meta }` | cajas cerradas, paginadas |
+| GET | `/caja/historial/{id}` | — | `{ data: { sesion, movimientos, totales, pagos_qr } }` | |
+| GET · PUT | `/caja/ajustes` | `{ exigir_captura?, tope_rebaja_pct? }` | `{ data: AjustesCaja }` | PUT con `configuracion,gestionar` |
+| GET | `/citas/{id}/saldo` | — | `{ data: SaldoCita }` | total − cobrado − pago por QR − paquete |
+| POST | `/citas/{id}/cobros` | multipart `{ monto, metodo, motivo?, operacion?, captura? }` | `{ data: SaldoCita & { sin_caja } }` 201 | otro monto que el saldo pide `motivo`; captura obligatoria en Yape/Plin si `exigir_captura` |
+| POST | `/citas/{id}/rebaja` | `{ tipo: monto\|porcentaje, valor, motivo }` | `{ data: SaldoCita }` | `valor: 0` la quita; respeta `tope_rebaja_pct` |
+| GET | `/caja/movimientos/{id}/captura` | — | imagen | URL firmada (30 min) que viene en `captura_url` |
 | GET | `/configuracion` | — | `{ data: Configuracion }` | |
 | PUT | `/configuracion` | **parche** de `Configuracion` (multipart si hay logo/cover) | `{ data: Configuracion }` | una petición por sección |
 | GET | `/configuracion/direccion/disponible` | `?slug=` | `{ data: { disponible, motivo? } }` | Story 6.1. `motivo`: `formato` \| `reservado` \| `ocupado`; el texto lo pone el panel. Requiere `configuracion: gestionar` |
@@ -486,6 +493,10 @@ pendiente) → `vencido` (venció y no está suspendido) → `activo` → `prueb
 - **La promo se cierra sola** al pasar `promo_hasta` o al llenarse `promo_cupos` (negocios distintos que pagaron con promo). Quien ya la empezó, termina sus meses.
 - **El seeder ya no pisa los planes** en cada despliegue: solo crea los que faltan. Los precios se cambian desde aquí.
 - **Cada guardado** queda en `soporte_acciones` (`editar_plan`) con el antes y el después.
+- **Límites y funciones valen EN EL ACTO** para todos los negocios del plan (2026-11-22, «planes sincronizados»); solo el precio se congela. Se leen del plan fresco en cada petición:
+  - **Funciones → permisos:** `inventario` y `caja` dependen de su función (`Capacidades::MODULO_FUNCION`): sin ella, el módulo queda sin permiso (menú oculto, 403). `GET /capacidades` añade `funciones: [clave]` para que el menú esconda lo que el plan no trae (Promociones pide `promociones`).
+  - **Sedes:** `max_sucursales` se cumple al crear o reactivar una sede: 422 en `plan` («Tu plan … incluye N sedes activas…»). Las que ya superen un límite rebajado no se apagan solas.
+  - **WhatsApp a clientes:** cupo del mes = `max_whatsapp_mes` + `tenants.extra_whatsapp` (paquetes comprados) × `mensajes_whatsapp_extra`.
 - **El catálogo** de funciones vive en `App\Support\CatalogoFunciones`: una función nueva se programa una vez y desde aquí se activa por plan.
 - `GET /publico/planes` añade `promo_hasta`, `promo_cupos`, `promo_cupos_restantes` y `promo_abierta`. `GET /suscripcion` añade `precio_pactado`.
 
@@ -1279,35 +1290,59 @@ en Servicios.
 
 ### Caja
 
+Plan A (Jean, 2026-11-22). **El cobro es de la cita; la caja es el cajón de
+una sede en un día.** Todo lo que entra o sale es un movimiento; uno hecho sin
+caja abierta queda «sin caja» (cuenta en el día, no en el arqueo). El arqueo
+cuenta **solo el efectivo**: Yape, Plin y tarjeta van por método.
+
 ```jsonc
-// GET /caja  → el estado completo de la pantalla
+// GET /caja?local_id=3
 {
-  "fecha": "2026-08-14",
-  "sesion": {                        // null = no se ha abierto caja hoy
-    "id": 12,
-    "fecha": "2026-08-14",
-    "monto_inicial": 200,
-    "ingresos": 1340.5,              // acumulados por el backend
-    "egresos": 85,
-    "monto_final": null,             // null = LA CAJA SIGUE ABIERTA
-    "abierta_por": "Ana Torres",
-    "abierta_en": "2026-08-14T08:12:00Z",
-    "cerrada_en": null
+  "fecha": "2026-11-22", "local_id": 3,
+  "ajustes": { "exigir_captura": false, "tope_rebaja_pct": null },
+  "sesion": {                         // null = hoy no se abrió
+    "id": 12, "local_id": 3, "fecha": "2026-11-22",
+    "monto_inicial": 100, "monto_contado": null,
+    "efectivo_esperado": null, "diferencia": null,   // se fijan al cerrar
+    "abierta_por": "Ana Torres", "abierta_en": "2026-11-22T13:02:00Z",
+    "cerrada_por": null, "cerrada_en": null, "abierta": true
   },
   "movimientos": [
-    { "id": 3, "tipo": "ingreso", "monto": 120, "concepto": "Cita 14:00",
-      "fecha": "2026-08-14", "creado_en": "2026-08-14T14:41:00Z",
-      "usuario": "Ana Torres" }
-  ]
+    { "id": 7, "tipo": "ingreso", "origen": "cita",   // cita · paquete · manual · devolucion
+      "metodo": "yape", "monto": 60, "concepto": "Facial · Ana Torres",
+      "motivo": null, "cita_id": 41, "operacion": "123456",
+      "con_captura": true, "captura_url": "/api/caja/movimientos/7/captura?expires=…&signature=…",
+      "sin_caja": false, "usuario": "Ana Torres", "creado_en": "2026-11-22T15:20:00Z" }
+  ],
+  "totales": {
+    "ingresos": 110, "egresos": 20,
+    "por_metodo": { "efectivo": 50, "yape": 60, "plin": 0, "tarjeta": 0, "transferencia": 0 },
+    "efectivo_esperado": 130,           // inicial + efectivo que entra − efectivo que sale
+    "capturas_yape": 1, "sin_captura_yape": 0
+  },
+  "pagos_qr": [ { "id": 3, "cita_id": 40, "codigo": "5NUB…", "monto": 30, "operacion": "…", "verificado_el": "…" } ],
+  "sin_caja": [ /* movimientos de hoy sin caja abierta */ ],
+  "por_cobrar": [ { "cita_id": 38, "codigo": "…", "cliente": "…", "servicios": "…", "fecha": "2026-11-21", "saldo": 30 } ]
 }
+
+// GET /citas/41/saldo
+{ "total": 60, "cobrado": 0, "pago_qr": 0, "cubierto_paquete": 0, "saldo": 60,
+  "cobros": [ /* sus movimientos */ ],
+  "ajustes": { … }, "caja_abierta": true,
+  "rebaja": 0, "rebaja_motivo": null, "rebaja_por": null }
 ```
 
-> ⚠️ **Divergencia deliberada con el backend anterior.** Allí `saldo` guardaba
-> primero el monto inicial y al cerrar se sobrescribía con el final: se perdía
-> con cuánto se abrió y no había forma de saber si la caja seguía abierta. Aquí
-> son **dos columnas** y `monto_final: null` es el marcador de "abierta". El
-> frontend calcula el saldo esperado (`inicial + ingresos − egresos`) y la
-> diferencia de arqueo; el backend no las manda.
+- `por_cobrar`: citas **atendidas** de los últimos 60 días con saldo > 0.
+- `pagos_qr`: los pagos por Yape de la tienda verificados hoy; no pasan por el
+  cajón.
+- **Rebaja** (en la cita): `rebaja`, `rebaja_motivo`, `rebaja_por`; `monto_total`
+  ya la resta, como el `descuento`, y editar la cita la conserva.
+- Una cita sin sede cobra en la sede principal. Vender un paquete
+  (`POST /fidelidad/paquetes/vender` con `metodo`) entra como movimiento
+  `origen: paquete` en la caja de la principal.
+- «Atender ahora»: `POST /citas` con `sin_reserva: true` acepta la hora de
+  este minuto (fuera de la rejilla, sin el «ya pasó»), con tal de que el
+  profesional no esté ocupado; sale con `canal: "local"`.
 
 ### Dashboard
 
@@ -1332,12 +1367,16 @@ Una sola llamada devuelve todo lo que pinta la pantalla:
 | Bloque | Forma |
 |---|---|
 | `rango` | `{ desde, hasta, prev_desde, prev_hasta }` — el período de comparación lo calcula el backend |
-| `actual` / `anterior` | `{ citas, completadas, canceladas, ingresos, ocupacion, inasistencias }` — los dos últimos en % |
+| `actual` / `anterior` | `{ citas, completadas, canceladas, ingresos, ocupacion, inasistencias }` — los dos últimos en %. `ingresos` = `monto_total` de las completadas; `inasistencias` = `no_asistio` ÷ (citas − canceladas); `ocupacion` con la jornada real de cada profesional |
 | `por_servicio` / `por_profesional` | `{ id, nombre, total, monto_total }[]` |
 | `horas` | `["09:00","10:00",…]` — franjas del negocio |
 | `por_hora` | `{ dia: "Lunes", data: number[] }[]` — alineado con `horas` |
-| `fuentes` | `{ clave, label, actual, anterior }[]` — `web` / `panel` / `publica` |
-| `diario` | `{ etiqueta: "12/08", actual, anterior: number\|null }[]` — la etiqueta ya viene formateada |
+| `fuentes` | `{ clave, label, actual, anterior }[]` — `citas.canal`: `tienda` / `panel` / `local` (este solo si hubo alguna) |
+| `diario` | `{ etiqueta: "12/08", actual, anterior }[]` — la etiqueta ya viene formateada; el período anterior tiene los mismos días |
+
+`?desde&hasta` son obligatorios, `hasta ≥ desde` y como mucho 366 días (422
+en `hasta`). Permiso `reportes`; alcance de sedes y «solo lo propio» como en
+`/dashboard`.
 
 Las variaciones porcentuales las calcula el frontend (`variacion()`).
 
@@ -1777,17 +1816,22 @@ roles        GET /roles                    (+ `modulos` fuera de `data`)
 ### Caja (`/caja`)
 
 ```
-GET /caja                          → { sesion, movimientos }
-sesion === null          → solo se ofrece "Abrir caja"
-monto_final === null     → abierta: se pueden registrar movimientos y cerrar
-monto_final !== null     → cerrada: solo lectura, con la diferencia de arqueo
+GET /caja?local_id                 → EstadoCaja (selector de sede si hay varias)
+sesion === null          → «Abrir caja»
+sesion.abierta           → Ingreso · Egreso · Cerrar caja
+!sesion.abierta          → solo lectura, con la diferencia del arqueo
+pestañas: Movimientos · Por cobrar · Sin caja · Pagos por QR · Cierres
 
-POST /caja/abrir        { monto_inicial }   ↻ caja
-POST /caja/movimientos  { tipo, monto, concepto }   ↻ caja
-POST /caja/cerrar       { monto_final }     ↻ caja
+Citas / Calendario:
+  «Marcar atendida» → PUT /citas/{id} → diálogo «¿Cobrar ahora?»
+     GET /citas/{id}/saldo → método · monto (otro monto → motivo) · captura Yape/Plin
+     POST /citas/{id}/cobros   ↻ caja, citas      «Cobrar después» → queda en Por cobrar
+     «Aplicar rebaja» → POST /citas/{id}/rebaja  ↻ caja, citas
+  «Atender ahora» → formulario sin fecha ni hueco → POST /citas { sin_reserva: true }
 ```
 
-Las tres acciones invalidan el estado completo: la pantalla no sirve por partes.
+Toda acción de caja invalida `caja` y `citas`: la ficha de la cita enseña lo
+cobrado y la pantalla de caja no sirve por partes.
 
 ### Reportes (`/reportes`)
 

@@ -280,11 +280,13 @@ sprint_5:
     apagado y obsoleto.
   hechas: ["3.1", "3.3", "6.11", "8.1", "8.2", "8.3", "8.6", "9.1", "9.2", "9.5"]
   en_revision: ["3.2"]
-  metricas_plataforma: review  # Claude 2026-11-23: GET /plataforma/resumen (backend feat/plataforma-resumen); v2 feat/plataforma-resumen, Resumen sin mocks
+  reportes: mergeada  # Backend #106, v2 #104 (2026-11-23); en producción falta quitarlo de NEXT_PUBLIC_MODULOS_OCULTOS. Claude 2026-11-23: GET /reportes y /reportes/exportar en backend feat/reportes; v2 feat/reportes-conectado (claves de canal); ocupación con la jornada real
+  metricas_plataforma: mergeada  # Backend #107, v2 #105 + #106 (quita el aviso de ejemplo). Claude 2026-11-23: GET /plataforma/resumen (backend feat/plataforma-resumen); v2 feat/plataforma-resumen, Resumen sin mocks
   pendiente_de_produccion:
     - "TIVU_WHATSAPP_EQUIPO_TIVU en Coolify y comprobar que el scheduler corre (8.6)"
     - "Pago de prueba con el Yape de otra persona (los propios vuelven high_risk)"
     - "Precio Fundador de Premium en S/ 3 para pruebas: volver a S/ 9 antes de promocionar"
+  caja_plan_a: mergeada  # Backend #105, v2 #103 (2026-11-23); probada la API en producción. Claude 2026-11-22: caja por sede y día, cobro en la cita (método, otro monto con motivo, captura Yape/Plin), arqueo de efectivo, por cobrar, sin caja, rebaja con motivo y tope, «Atender ahora»; backend feat/caja, v2 feat/caja
   quedan_segun_el_plan: ["4.3", "4.5b", "4.6", "4.7", "5.x", "6.10", "6.12", "7.x", "8.4", "8.5", "8.7", "9.3", "9.4", "9.6", "épica 10"]
 
   # -------------------------------------------------------------------------
