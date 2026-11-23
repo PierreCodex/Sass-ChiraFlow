@@ -284,6 +284,7 @@ sprint_5:
     - "TIVU_WHATSAPP_EQUIPO_TIVU en Coolify y comprobar que el scheduler corre (8.6)"
     - "Pago de prueba con el Yape de otra persona (los propios vuelven high_risk)"
     - "Precio Fundador de Premium en S/ 3 para pruebas: volver a S/ 9 antes de promocionar"
+  caja_plan_a: review  # Claude 2026-11-22: caja por sede y día, cobro en la cita (método, otro monto con motivo, captura Yape/Plin), arqueo de efectivo, por cobrar, sin caja, rebaja con motivo y tope, «Atender ahora»; backend feat/caja, v2 feat/caja
   quedan_segun_el_plan: ["4.3", "4.5b", "4.6", "4.7", "5.x", "6.10", "6.12", "7.x", "8.4", "8.5", "8.7", "9.3", "9.4", "9.6", "épica 10"]
 
   # -------------------------------------------------------------------------
