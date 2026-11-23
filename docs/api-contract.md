@@ -1809,6 +1809,26 @@ elegir plan + extras → POST /plan/{id}/solicitar    ↻ suscripcion, tickets
 desglose para que el equipo contacte al negocio; por eso invalida también la
 lista de tickets.
 
+### Soporte (`/soporte`) — conectado el 2026-11-22
+
+Los tickets son **centrales** (`soporte_tickets` + `soporte_mensajes`): el
+panel de plataforma ve todos los negocios. Siempre del negocio del token (otro
+negocio: 404). **Accesible aunque la suscripción esté vencida.** Permiso del
+rol: módulo `soporte` (`ver` para leer, `gestionar` para escribir).
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| GET | `/soporte/tickets?page&per_page(≤200)&search&estado` | — | `{ data: Ticket[], meta: { …, por_estado: { abierto, en_proceso, cerrado } } }` |
+| GET | `/soporte/tickets/{id}` | — | `{ data: Ticket + mensajes[] }` |
+| POST | `/soporte/tickets` | `{ asunto (4–150), mensaje (10–5000), prioridad: baja\|media\|alta }` | 201, el ticket con su primer mensaje |
+| POST | `/soporte/tickets/{id}/mensajes` | `{ texto (2–5000) }` | el ticket con la conversación; **si estaba cerrado, se reabre** |
+
+`Ticket`: `id, asunto, mensaje` (el primero), `respuesta` (la última del
+equipo, o null), `estado` (`abierto|en_proceso|cerrado`; el `resuelto` de la
+tabla se muestra como `cerrado`), `prioridad, autor, respondido_por,
+creado_en, actualizado_en`. `mensajes[]`: `{ id, autor: negocio|soporte,
+nombre, texto, creado_en }`. Límite: 10 tickets y 20 mensajes por minuto.
+
 ### Soporte (`/soporte`)
 
 ```
