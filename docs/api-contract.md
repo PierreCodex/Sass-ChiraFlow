@@ -1331,12 +1331,16 @@ Una sola llamada devuelve todo lo que pinta la pantalla:
 | Bloque | Forma |
 |---|---|
 | `rango` | `{ desde, hasta, prev_desde, prev_hasta }` — el período de comparación lo calcula el backend |
-| `actual` / `anterior` | `{ citas, completadas, canceladas, ingresos, ocupacion, inasistencias }` — los dos últimos en % |
+| `actual` / `anterior` | `{ citas, completadas, canceladas, ingresos, ocupacion, inasistencias }` — los dos últimos en %. `ingresos` = `monto_total` de las completadas; `inasistencias` = `no_asistio` ÷ (citas − canceladas); `ocupacion` con la jornada real de cada profesional |
 | `por_servicio` / `por_profesional` | `{ id, nombre, total, monto_total }[]` |
 | `horas` | `["09:00","10:00",…]` — franjas del negocio |
 | `por_hora` | `{ dia: "Lunes", data: number[] }[]` — alineado con `horas` |
-| `fuentes` | `{ clave, label, actual, anterior }[]` — `web` / `panel` / `publica` |
-| `diario` | `{ etiqueta: "12/08", actual, anterior: number\|null }[]` — la etiqueta ya viene formateada |
+| `fuentes` | `{ clave, label, actual, anterior }[]` — `citas.canal`: `tienda` / `panel` / `local` (este solo si hubo alguna) |
+| `diario` | `{ etiqueta: "12/08", actual, anterior }[]` — la etiqueta ya viene formateada; el período anterior tiene los mismos días |
+
+`?desde&hasta` son obligatorios, `hasta ≥ desde` y como mucho 366 días (422
+en `hasta`). Permiso `reportes`; alcance de sedes y «solo lo propio» como en
+`/dashboard`.
 
 Las variaciones porcentuales las calcula el frontend (`variacion()`).
 

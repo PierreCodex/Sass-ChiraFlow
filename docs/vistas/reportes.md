@@ -1,8 +1,9 @@
 # Reportes
 
 **Ruta:** `/reportes`
-**Estado:** ✅ Métricas y campos validados contra el código Laravel
-(`feat/planes-suscripcion`) · ⚠️ una gráfica cambia de forma a propósito
+**Estado:** ✅ Conectado (2026-11-23): `App\Services\Reporte` y
+`ReporteController` en backend-sass, permiso `reportes` · ⚠️ una gráfica cambia
+de forma a propósito
 **Archivos:**
 - `web/src/app/(dashboard)/reportes/page.tsx`
 - `web/src/features/reportes/`
@@ -39,8 +40,8 @@ Cada tarjeta lleva el valor grande, el del período anterior y la variación.
 |---|---|
 | Reservas totales | Citas del rango, cualquier estado |
 | Ocupación | Minutos reservados ÷ minutos disponibles × 100 |
-| Tasa de inasistencias | Canceladas ÷ total × 100 |
-| Ingresos | Suma de `monto` de las **completadas** |
+| Tasa de inasistencias | `no_asistio` ÷ (total − canceladas) × 100. Cancelar con aviso no es faltar |
+| Ingresos | Suma de `monto_total` de las **completadas** (servicios y productos), la misma cifra que el Inicio |
 
 **La flecha acompaña siempre al porcentaje.** En la app actual el signo va en
 el color (verde/rojo) y en una flecha unicode; aquí es un icono explícito, para
@@ -71,7 +72,10 @@ horario en los datos: el mapa lo hace evidente, que es parte de la gracia.
 
 ### 4. Origen de las reservas
 
-Barras agrupadas: Web · Panel · Pública, período actual contra anterior.
+Barras agrupadas por `citas.canal`: Tienda online (`tienda`) · Panel
+(`panel`) · Sin reserva (`local`, los atendidos al llegar con «Atender ahora»;
+solo sale si hubo alguno en uno de los dos períodos). Período actual contra
+anterior. Cuentan todas las citas, también las canceladas.
 
 ### 5. Ingresos diarios
 
@@ -130,7 +134,7 @@ Un solo endpoint devuelve la pantalla entera, como el `index` de Laravel.
       { "dia": "Lunes", "data": [3, 7, 2] }
     ],
     "fuentes": [
-      { "clave": "web", "label": "Web", "actual": 34, "anterior": 41 }
+      { "clave": "tienda", "label": "Tienda online", "actual": 34, "anterior": 41 }
     ],
     "diario": [
       { "etiqueta": "01/08", "actual": 412, "anterior": 655 }
@@ -172,25 +176,19 @@ hace tu backend (`fprintf($fh, chr(0xEF)...)`) y aquí se replica en el mock.
 Vale la pena dejarlo escrito porque es la métrica menos obvia:
 
 ```
-capacidad = minutos_del_dia × nº_profesionales × días_del_rango
-minutos_reales = suma de (hora_fin − hora_inicio) de las citas completadas
-ocupación = minutos_reales / capacidad × 100
+por cada profesional activo del alcance y cada día del rango:
+  jornada   = Disponibilidad::jornada(profesional, día)   (excepciones, horario propio o el del negocio)
+  capacidad += minutos de la jornada − descansos           (0 si ese día no atiende)
+  ocupado   += min(minutos de sus citas ese día, jornada)  (sin canceladas ni no_asistio)
+ocupación = ocupado / capacidad × 100
 ```
 
-`minutos_del_dia` sale de `horario.apertura` y `horario.cierre` de la
-configuración del negocio.
-
-Dos cosas a tener en cuenta al conectar:
-
-- **Usa el horario del negocio, no el de cada profesional.** Un profesional a
-  media jornada cuenta como disponible todo el día, así que la ocupación sale
-  más baja de lo real.
-- **Cuenta todos los días del rango, incluidos los cerrados.** Si el negocio no
-  abre domingos, cada domingo del rango suma capacidad que nunca existió.
-
-Ninguna de las dos rompe nada, pero la cifra es sistemáticamente pesimista.
-Si quieres que sea exacta, la capacidad debería salir del horario real de cada
-profesional (que ya está en Empleados) en vez del rango del negocio.
+Así se resolvieron las dos dudas que la app anterior dejaba abiertas: se usa
+el **horario real de cada profesional** (uno a media jornada no infla la
+capacidad) y **los días que no atiende no suman**. Lo reservado se topa en la
+jornada del día, así que un sobrecupo no pasa del 100 %. Cuentan las citas
+completadas y también las que aún no ocurrieron (pendientes, confirmadas):
+el tiempo está tomado.
 
 ---
 
@@ -258,16 +256,32 @@ cerrado, sábados medio turno, solo servicios y profesionales activos).
 
 ---
 
+## Cómo lo calcula el backend (2026-11-23)
+
+- **Alcance**: el del Inicio y la lista de citas. Un usuario limitado a unas
+  sedes ve sus números; con «solo lo propio», solo sus citas y su ficha.
+- **Rango**: `desde` y `hasta` obligatorios (`YYYY-MM-DD`), `hasta ≥ desde`,
+  como mucho **366 días** (422 en `hasta`). El anterior tiene los mismos días
+  y termina el día antes de `desde`, así que `diario[].anterior` nunca es null.
+- **Por servicio**: todos los activos (también en cero) más los inactivos que
+  tuvieron citas. `total` = unidades en citas no canceladas; `monto_total` =
+  líneas de las completadas. Orden: más citas, luego más monto.
+- **Por profesional**: los activos del alcance. `monto_total` es el
+  `monto_total` de sus completadas (con productos).
+- **Mapa de calor**: franjas del horario del negocio, estiradas si hubo citas
+  fuera de él; sin canceladas.
+- **CSV**: una fila por cita del rango (todas, con su estado), servicios
+  unidos con « + », monto con dos decimales. Nombre y teléfono del cliente
+  van con un `'` delante si empiezan por `=`, `+`, `-` o `@`: los escribe el
+  cliente en la tienda y Excel los ejecutaría como fórmula. Límite: 10
+  descargas por minuto.
+
 ## Pendiente
 
-- [ ] **Quitar `$totales` del controlador**: está duplicado en `$metricasActual`
-      y la vista no lo usa
-- [ ] Aplanar la respuesta como arriba (dos arrays paralelos → un array de
-      objetos)
-- [ ] Sacar los colores del backend (`borderColor` / `backgroundColor` en
-      `$porHora`)
-- [ ] ¿La ocupación debería usar el horario real de cada profesional?
-- [ ] ¿Debería descontar los días que el negocio no abre?
+- [x] Quitar `$totales`, aplanar la respuesta y sacar los colores del backend
+      (el backend nuevo ya nace así)
+- [x] La ocupación usa el horario real de cada profesional y no cuenta los
+      días que no atiende
 - [ ] ¿Filtrar el reporte por local? Ahora que hay varias sedes es la pregunta
       obvia, y `citas` ya tiene `local_id`
       (migración `2026_08_09_081559`)
