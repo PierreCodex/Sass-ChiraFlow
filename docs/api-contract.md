@@ -1164,7 +1164,8 @@ para las filas de la matriz. Duplicar no es un endpoint — es leer y hacer
 | `comision_porcentaje` | number | |
 | `monto_sueldo` | number? | solo si el tipo incluye sueldo |
 | `periodo_pago` | `semanal` \| `quincenal` \| `mensual` ? | |
-| `horario` | `DiaHorario[]` | |
+| `horario` | `DiaHorario[]` | `[]` = sin horario propio |
+| `horario_propio` | bool | solo lectura (2026-11-23). `false` = atiende el horario del negocio (Agenda). Mandar `horario: []` lo deja así |
 | `excepciones` | `ExcepcionHorario[]` | |
 
 ```jsonc
@@ -1404,7 +1405,10 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
   `descripcion?`, `email?`, `telefono?`, `whatsapp?`, `direccion?`,
   `informacion_adicional?`, `latitud?`, `longitud?`, `zona_horaria?`
 - **Agenda**: `horario_apertura?`, `horario_cierre?` (respaldo cuando un
-  profesional no tiene horario propio; por defecto 09:00–20:00)
+  profesional no tiene horario propio; por defecto 09:00–20:00) y
+  `horario_dias?` (2026-11-23): los días que abre, ISO `1` = lunes … `7` =
+  domingo, al menos uno. Sin configurar vuelven los 7 (lo que regía antes).
+  En multipart pueden ir como `"1,2,3,4,5,6"`.
 - **Marca**: `color_primario?`, `color_secundario?`, `logo_url?`, `cover_url?`
 
   **Apariencia (Story 5.1, implementada en el backend el 2026-11-18;** PRD
@@ -1660,8 +1664,10 @@ Precedencia de la jornada de un profesional en una fecha:
    (medio turno, refuerzo, cubrir a un compañero).
 3. Horario propio y el día está `activo` → ese horario, con sus breaks.
 4. Horario propio pero el día no está activo → no laborable.
-5. **Sin horario propio → rige el horario del negocio.** Un profesional recién
-   creado atiende, no queda sin agenda.
+5. **Sin horario propio → rige el horario del negocio**, en sus horas y en sus
+   **días** (`horario_dias`): un negocio que no abre domingos no ofrece
+   domingos. Un profesional recién creado sigue ese horario por defecto
+   (el panel manda `horario: []`), no queda sin agenda ni con uno inventado.
 
 Dos matices que el backend cerró al implementarlo (2026-09-06):
 
