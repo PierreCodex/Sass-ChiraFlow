@@ -1377,6 +1377,7 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
   "apariencia": {
     "portada_estilo": "foto",             // "solido" | "degradado" | "foto"
     "degradado": "atardecer",             // clave de la selección, o "de_mi_color"
+    "plantilla": "nocturna",              // "clasica" | "esencia" | "nocturna" | "galeria"
     "portada": {                          // null si no hay foto
       "url_2400": "…", "url_1600": "…", "url_800": "…",
       "enfoque": { "x": 0.42, "y": 0.35 } // 0–1, punto que se mantiene visible
@@ -1388,9 +1389,14 @@ Campos planos, aunque en la BD unos vivan en columnas y otros dentro del JSON
     Configuración si el color guardado no permite ninguno (un color de antes de
     la 5.1): el editor lo marca para corregirlo. En la tienda nunca es `null`.
   - **Payload multipart**: `color_primario`, `logo: File`, `portada: File`,
-    `apariencia[portada_estilo]`, `apariencia[degradado]`,
+    `apariencia[portada_estilo]`, `apariencia[degradado]`, `apariencia[plantilla]`,
     `apariencia[enfoque][x]` y `[y]` (van juntos), más `logo_eliminar` y
     `portada_eliminar`. Parche, como el resto: lo que no llega no se toca.
+  - **Plantilla de la tienda** (2026-11-22): el diseño de la página de
+    reservas. `clasica` por defecto (la de siempre); `esencia`, `nocturna` y
+    `galeria` salen de las maquetas aprobadas. Otro valor: 422 en
+    `apariencia.plantilla`. La tienda la recibe en `negocio.apariencia.plantilla`;
+    los datos (servicios, promociones, reservas) son los mismos en todas.
   - **Sin foto, nunca un hueco**: `portada_estilo: "foto"` sin foto da 422 en
     `portada` («Sube una foto…»). Si se quita la foto, la respuesta cae a
     `degradado` (si hay uno elegido) o a `solido`. Elegir `degradado` sin
