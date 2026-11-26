@@ -2632,21 +2632,18 @@ So that saber qué mejorar y que los nuevos clientes confíen en mí.
 **When** el dueño entra a Clientes → Encuestas
 **Then** ve la media, la distribución por estrellas, los comentarios por sede y profesional, y puede responder en público.
 
-**Given** una respuesta con comentario
-**When** el dueño elige publicarla
-**Then** sale en la tienda como reseña con su respuesta; el negocio **no puede borrar** una reseña, solo soporte puede ocultar un abuso.
+**Given** una respuesta en la que el cliente marcó «Pueden mostrar mi opinión»
+**When** se guarda
+**Then** sale sola en la tienda como reseña («Luis J.»), con la respuesta del negocio si la tiene; el negocio **no puede borrar** una reseña, solo soporte puede ocultar un abuso.
 
 **Given** la tienda de una sede sin reseñas publicadas
 **When** se abre
 **Then** no muestra estrellas ni números de ejemplo (`resenas: null`, como hoy).
 
-> **Referencias:** esquema propuesto en `docs/vistas/tienda-publica.md`
-> (tabla `resenas`, tres decisiones ya razonadas), tipos `Resena` y
-> `ResumenResenas` en `tivu.v2/src/features/publico/types.ts`. **Por decidir:**
-> si el negocio elige qué reseñas publicar o se publican todas (recomendado:
-> todas las de 4–5 sola, las de 1–3 las revisa el dueño, sin poder borrarlas);
-> textos del correo y del WhatsApp (se consultan, ver memoria «textos de
-> WhatsApp»).
+> **Referencias:** `spec-12-1-encuesta-y-resenas.md`. **Decidido el 2026-11-26:**
+> se publican todas las que el cliente permita (casilla desmarcada por
+> defecto); la media cuenta todas; sale 2 h después de atendida (de noche, a
+> las 9:00), máximo una cada 30 días; textos E-1 aprobados.
 
 ### Story 12.2: Ficha personal del cliente
 

@@ -1615,8 +1615,9 @@ los ids de los servicios del catálogo que presta **en esa sede**: la tienda
 solo ofrece para cada servicio a quien lo presta, y en una cita única a quien
 presta todos.
 
-⚠️ **Reseñas no existen en el backend**: no hay tabla ni campo. El esquema
-propuesto está en `vistas/tienda-publica.md`. `resenas: null` es válido.
+**Reseñas** (Story 12.1): solo si el plan trae `encuesta_satisfaccion`. `resenas` es la media
+de **todas** las respuestas de la sede (menos las ocultas por soporte); `ultimas_resenas`, las 6
+últimas que el cliente permitió publicar, con `cliente` = «Luis J.». Sin respuestas, `resenas: null`.
 
 ```jsonc
 // POST /publico/{slug}/sucursal/{localId}/reservar
@@ -2041,6 +2042,28 @@ Una promoción con `tipo: "combo"`: sus servicios (2 a 6) y su `precio` juntos, 
 **Todas las promociones de la tienda (combos, horario, ocasiones)** se aplican solo si el plan del negocio trae `promociones`; si no, la tienda no las enseña ni el servidor las cobra. Las citas creadas desde el panel no las llevan.
 
 ---
+
+### Encuestas y reseñas — Story 12.1
+
+Función de Premium (`funcion:encuesta_satisfaccion`; sin ella, **403** `{ message, funcion: "encuesta_satisfaccion" }`). Spec: `_bmad-output/implementation-artifacts/spec-12-1-encuesta-y-resenas.md`.
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/encuestas/resumen?local_id=` | `clientes` ver | `{ data: { promedio, total, distribucion: {"5":n…"1":n}, enviadas, tasa_respuesta } }` (`promedio` null sin respuestas) |
+| GET | `/encuestas?local_id=&profesional_id=&puntuacion=&search=&page=` | `clientes` ver | `{ data: [encuesta], meta }`: solo las **respondidas**, más recientes primero |
+| PUT | `/encuestas/{id}/respuesta` | `clientes` gestionar | `{ respuesta }` (1–500; `null` la quita) → `{ data: encuesta }` |
+| GET | `/publico/{slug}/opinion/{token}` | sin sesión | `{ data: { negocio (marca), cliente: { nombre }, cita: { servicio, profesional, sede, fecha }, estado: "pendiente" \| "respondida", respuesta: { puntuacion, comentario, publicar } \| null } }`. 404 desconocido; **410** vencido `{ message, negocio: { nombre, telefono, whatsapp } }` |
+| POST | `/publico/{slug}/opinion/{token}` | sin sesión | `{ puntuacion (1–5), comentario? (≤500), publicar (bool) }` → `{ data: { estado: "respondida" } }`. **409** si ya respondió; 410 vencido; 422 por campo |
+| PUT | `/plataforma/negocios/{id}/encuestas/{encuesta}/ocultar` | plataforma | `{ oculta (bool), motivo? }` (motivo obligatorio al ocultar) |
+
+`encuesta`: `{ id, cliente: { id, nombre }, profesional: { id, nombre } | null, local: { id, nombre }, servicio, fecha_cita, puntuacion, comentario, publicar, respondida_el, respuesta, respondida_por_negocio_el, oculta: bool, motivo_oculta }`.
+
+**Reglas:**
+- Sale **2 h después** de marcar la cita **atendida** (`completada`); entre 21:00 y 8:00 del negocio, a las 9:00. Máximo **una cada 30 días** por cliente; no sale si la cita se marca atendida más de 48 h después de su hora. Preferencia de clientes `encuesta` (plantilla **E-1**), encendida por defecto.
+- El enlace `{tienda}/opinion/{secreto}` es como el de «Gestionar mi cita»: 40 caracteres, en la base solo su sha256 (`accesos_encuesta`), sin ids. Vale **14 días** y **una sola respuesta**. Las estrellas del correo añaden `?nota=1..5`; abrir no guarda nada.
+- `publicar` nace en `false` (consentimiento expreso). Solo las publicadas salen en la tienda; la **media cuenta todas** las respuestas, menos las ocultas por soporte.
+- El negocio responde, no borra. Solo plataforma oculta (abuso), con motivo.
+- `solo_propios` ve solo las encuestas de sus citas; se respeta el alcance de sedes.
 
 ## 6. Lo que todavía no está cableado
 
