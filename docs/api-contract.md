@@ -2065,6 +2065,39 @@ Función de Premium (`funcion:encuesta_satisfaccion`; sin ella, **403** `{ messa
 - El negocio responde, no borra. Solo plataforma oculta (abuso), con motivo.
 - `solo_propios` ve solo las encuestas de sus citas; se respeta el alcance de sedes.
 
+### Ficha personal — Story 12.2
+
+Función de Premium `ficha_personal`, vía el **módulo `fichas`** de la matriz de permisos (`Capacidades::MODULO_FUNCION`: sin la función, `fichas` queda en `null` para todos y los endpoints responden **403**). Spec: `_bmad-output/implementation-artifacts/spec-12-2-ficha-personal.md`.
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/fichas/campos?todos=1` | `fichas` ver | `{ data: [campo], plantillas: [{ clave, nombre, campos: [etiqueta] }], sugerida: clave \| null }`. Sin `todos`, solo los activos |
+| POST | `/fichas/campos` | `fichas` + `configuracion` gestionar | `{ etiqueta (≤80, única entre activos), tipo, opciones? (lista: 1–20, ≤60 c/u), ayuda? (≤160) }` → 201 `{ data: campo }`. Máx. 40 activos |
+| PUT | `/fichas/campos/{id}` | ídem | lo mismo + `archivado` (bool). **422 `tipo`** si cambia de tipo con valores anotados |
+| PUT | `/fichas/campos/orden` | ídem | `{ ids: [id…] }` (los activos, en orden) → igual que GET |
+| DELETE | `/fichas/campos/{id}` | ídem | `{ data, archivado: bool }`: con valores se **archiva**; sin ellos se borra |
+| POST | `/fichas/plantillas/{clave}` | ídem | añade los campos de la plantilla que falten (por etiqueta) → GET + `agregados: n`. 404 clave desconocida |
+| GET | `/clientes/{id}/ficha` | `fichas` ver | `{ data: { cliente: { id, nombre }, campos: [campo + { valor, actualizado_el }], visitas: { data: [visita], meta } } }` (primera página, 20) |
+| GET | `/clientes/{id}/ficha/visitas?page=` | `fichas` ver | `{ data: [visita], meta }` |
+| PUT | `/clientes/{id}/ficha` | `fichas` gestionar | `{ valores: { campo_id: valor } }` (`null`/`""` borra) → `{ data: { campos } }`. 422 por `valores.{id}` |
+| GET | `/clientes/{id}/ficha/accesos` | `fichas` + `configuracion` gestionar | `{ data: [{ accion, usuario, cuando }] }` (últimos 100) |
+| GET | `/citas/{id}/visita` | `fichas` ver | `{ data: visita }` |
+| PUT | `/citas/{id}/visita` | `fichas` gestionar | `{ nota (≤3000, null borra) }` → `{ data: visita }`. **422 `cita`** si no está `en_curso` ni `completada` |
+| POST | `/citas/{id}/visita/fotos` | `fichas` gestionar | multipart `{ foto (JPG/PNG/WebP, ≤5 MB), momento: "antes" \| "despues" }` → 201 `{ data: visita }`. **Máx. 6** por visita (422 `foto`) |
+| DELETE | `/citas/{id}/visita/fotos/{foto}` | `fichas` gestionar | `{ data: visita }` (borra el archivo) |
+| GET | `/fichas/fotos/{id}?expires&signature` | `fichas` ver + firma | la imagen (disco privado, `Cache-Control: private`). Solo por la `url` de `foto` |
+
+`campo`: `{ id, etiqueta, tipo: "texto" | "si_no" | "lista" | "numero" | "fecha", opciones: [string] | null, ayuda, orden, archivado: bool }`. `valor` va tipado: texto/lista/fecha (`YYYY-MM-DD`) como string, `si_no` bool, `numero` number, o `null`.
+
+`visita`: `{ cita_id, fecha, estado, servicio, profesional: { id, nombre } | null, local: { id, nombre } | null, nota, nota_actualizada_el, fotos: [{ id, momento, url, subida_el }] }`. Son las citas `en_curso` o `completada` del cliente, de la más reciente a la más antigua. `url` es **firmada, relativa y de 30 min**: se pide por el BFF, con sesión.
+
+**Reglas:**
+- **Datos sensibles (Ley 29733).** Solo con el módulo `fichas`. Lo traen de serie el administrador general, el de sede y el **profesional**; **recepción no**. Quien es `solo_propios` (el profesional) ve y escribe solo la ficha de clientes con alguna cita suya no cancelada (**404** si no), y la nota/fotos solo de sus citas. Se respeta el alcance de sedes en las citas.
+- **Cada lectura y cada cambio** queda en `ficha_accesos` (`ver`, `editar`, `nota`, `foto`, `borrar_foto`), con cuenta, nombre, IP y hora.
+- La ficha **no sale nunca** en la tienda, en los avisos ni en `GET /clientes/{id}`.
+- Archivar un campo no borra lo anotado: los archivados con valor siguen en la ficha de ese cliente (`archivado: true`, de solo lectura).
+- **Borrar los datos personales** del cliente (Story 9.2) borra también su ficha, sus notas y sus fotos; el registro de accesos se queda (no lleva datos suyos).
+
 ## 6. Lo que todavía no está cableado
 
 Cosas que el backend tendrá que servir, pero que hoy ningún componente pide:

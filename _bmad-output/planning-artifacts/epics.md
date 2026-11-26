@@ -2669,9 +2669,11 @@ So that cualquiera del equipo lo atienda sabiendo su historia.
 **When** se guardan o se leen
 **Then** solo los ve quien tiene el permiso nuevo «ver fichas», cada lectura queda registrada y la ficha **no** sale nunca en la tienda ni en los avisos.
 
-> **Referencias:** `docs/vistas/clientes.md` (la ficha ya tiene `notas`,
-> `documento`, `fecha_nacimiento` e historial de citas). **Por decidir:** si el
-> profesional ve las fichas de todos los clientes o solo de los que atendió.
+> **Referencias:** `spec-12-2-ficha-personal.md`; `docs/vistas/clientes.md`
+> (la ficha ya tiene `notas`, `documento`, `fecha_nacimiento` e historial de
+> citas). **Decidido el 2026-11-26:** el profesional ve solo las fichas de sus
+> clientes; el permiso «Fichas personales» lo traen el admin de sede y el
+> profesional (recepción no); hasta 6 fotos por visita, privadas.
 
 ### Story 12.3: Presupuestos
 
