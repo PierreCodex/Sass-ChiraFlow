@@ -144,6 +144,23 @@ development_status:
   11-4-paquetes-de-sesiones: done  # backend #96, v2 #92 (venta ajustable por cliente, F-4); el cupo por servicio («3 masajes + 2 faciales») va con la 11.3/11.5 (review)
   11-5-ocasiones: review  # Claude: primera visita, cumpleaños (una vez al año) y referido (enlace de la tarjeta); en reservas de la tienda
   epic-11-retrospective: optional
+
+  # 2026-11-26: la auditoría de planes encontró en Premium cuatro funciones sin
+  # construir (se quitaron de la landing en tivu.v2#108). Se construyen; las de
+  # Pro (Épica 13) quedan para después.
+  epic-12: in-progress
+  12-1-encuesta-de-satisfacción-y-reseñas: in-progress  # spec-12-1-encuesta-y-resenas.md; decisiones y textos aprobados 2026-11-26
+  12-2-ficha-personal-del-cliente: in-progress  # spec-12-2-ficha-personal.md; decisiones 2026-11-26
+  12-3-presupuestos: backlog
+  12-4-gift-cards: backlog
+  epic-12-retrospective: optional
+
+  epic-13: backlog  # después de la Épica 12; Pro se activa a pedido
+  # 13.1 dominio propio: se sigue en 6-12-el-negocio-usa-su-propio-dominio
+  13-2-recordatorios-a-elegir: backlog
+  13-3-textos-propios: backlog
+  13-4-informe-de-avisos: backlog
+  epic-13-retrospective: optional
 verificado:
   que_es: "Epica 0 del epics.md - construido, probado y en uso. No se replanifica."
   evidencia: "312 pruebas Pest en verde (backend, 2026-09-19)"
