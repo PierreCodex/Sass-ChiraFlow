@@ -2592,6 +2592,171 @@ que haya que programar su promoción.
 
 ---
 
+## Épica 12: Lo que Premium promete y aún no existe
+
+**Meta:** que Premium entregue las cuatro funciones que vendía y que se
+quitaron de la landing y de Mi plan el 2026-11-26 por no existir: encuesta de
+satisfacción, ficha personal, gift cards y presupuestos. Al terminar cada una,
+vuelve a la lista de ventajas de Premium (`VENTAJAS_PLAN` en `tivu.v2`).
+
+**Origen:** auditoría de planes del 2026-11-26 (`D:/PERSONAL_JEAN/tivu-planes-2026-11-v2.pdf`)
+y PR tivu.v2#108. Decidido ese día: se construyen las cuatro; las de Pro
+esperan (Épica 13).
+**Lo que ya hay:** las claves `encuesta_satisfaccion`, `ficha_personal`,
+`giftcard` y `presupuestos` están en `CatalogoFunciones::PREMIUM_EXTRA`
+(Story 8.7) y el panel de plataforma ya las activa por plan. No hay código
+detrás: cada historia pone la función y la protege con su clave (`MODULO_FUNCION`,
+falla cerrada como caja e inventario).
+**Orden propuesto:** 12.1 → 12.2 → 12.3 → 12.4. La 12.1 primero porque de ella
+salen las reseñas que pide el diseño nuevo de la tienda; la 12.4 al final
+porque toca caja y cobros.
+**Agente por defecto:** Claude (backend y contrato) + Codex (pantallas).
+
+### Story 12.1: Encuesta de satisfacción y reseñas
+
+As a dueño,
+I want que cada cliente atendido reciba una encuesta corta y que las buenas opiniones se vean en mi tienda,
+So that saber qué mejorar y que los nuevos clientes confíen en mí.
+
+**Acceptance Criteria:**
+
+**Given** una cita que pasa a **atendida** en un negocio con `encuesta_satisfaccion`
+**When** pasa el tiempo configurado (por defecto 2 h)
+**Then** el cliente recibe por correo (y por WhatsApp si lo aceptó) un enlace de un solo uso para calificar de 1 a 5 y dejar un comentario opcional.
+
+**Given** el enlace
+**When** el cliente responde
+**Then** la respuesta queda ligada a la cita (`cita_id` obligatorio: solo opina quien fue atendido) y el enlace deja de servir.
+
+**Given** las respuestas
+**When** el dueño entra a Clientes → Encuestas
+**Then** ve la media, la distribución por estrellas, los comentarios por sede y profesional, y puede responder en público.
+
+**Given** una respuesta con comentario
+**When** el dueño elige publicarla
+**Then** sale en la tienda como reseña con su respuesta; el negocio **no puede borrar** una reseña, solo soporte puede ocultar un abuso.
+
+**Given** la tienda de una sede sin reseñas publicadas
+**When** se abre
+**Then** no muestra estrellas ni números de ejemplo (`resenas: null`, como hoy).
+
+> **Referencias:** esquema propuesto en `docs/vistas/tienda-publica.md`
+> (tabla `resenas`, tres decisiones ya razonadas), tipos `Resena` y
+> `ResumenResenas` en `tivu.v2/src/features/publico/types.ts`. **Por decidir:**
+> si el negocio elige qué reseñas publicar o se publican todas (recomendado:
+> todas las de 4–5 sola, las de 1–3 las revisa el dueño, sin poder borrarlas);
+> textos del correo y del WhatsApp (se consultan, ver memoria «textos de
+> WhatsApp»).
+
+### Story 12.2: Ficha personal del cliente
+
+As a dueño de una clínica, un spa o una barbería,
+I want guardar en la ficha de cada cliente lo que importa en mi rubro y lo que se le hizo en cada visita,
+So that cualquiera del equipo lo atienda sabiendo su historia.
+
+**Acceptance Criteria:**
+
+**Given** Configuración → Ficha personal
+**When** el dueño define sus campos (texto, sí/no, lista, número, fecha)
+**Then** quedan para todos sus clientes; tivu trae plantillas por rubro para empezar (clínica: alergias, antecedentes, medicación; spa: tipo de piel, contraindicaciones; barbería y salón: tipo de cabello, fórmula de tinte).
+
+**Given** la ficha de un cliente
+**When** alguien con permiso la abre
+**Then** ve sus campos y debajo una línea de tiempo por visita (fecha, servicio, profesional, nota de la atención y fotos de antes y después).
+
+**Given** una cita atendida
+**When** el profesional la cierra
+**Then** puede escribir la nota de esa visita y subir fotos desde la misma cita.
+
+**Given** datos de salud (Ley 29733, datos sensibles)
+**When** se guardan o se leen
+**Then** solo los ve quien tiene el permiso nuevo «ver fichas», cada lectura queda registrada y la ficha **no** sale nunca en la tienda ni en los avisos.
+
+> **Referencias:** `docs/vistas/clientes.md` (la ficha ya tiene `notas`,
+> `documento`, `fecha_nacimiento` e historial de citas). **Por decidir:** si el
+> profesional ve las fichas de todos los clientes o solo de los que atendió.
+
+### Story 12.3: Presupuestos
+
+As a dueño de una clínica dental o un centro de estética,
+I want armar un presupuesto de varios servicios o sesiones y mandárselo al cliente,
+So that cerrar tratamientos largos sin hacer cuentas a mano.
+
+**Acceptance Criteria:**
+
+**Given** Clientes → un cliente → Nuevo presupuesto
+**When** el dueño agrega servicios con cantidad, precio (el del catálogo, editable) y descuento
+**Then** se calcula el total y se guarda con número correlativo, vigencia (por defecto 15 días) y estado `borrador`.
+
+**Given** un presupuesto listo
+**When** el dueño lo envía
+**Then** el cliente recibe por correo (y WhatsApp si lo aceptó) un enlace a una página pública con la marca del negocio, el detalle y los botones «Aceptar» y «Tengo una consulta».
+
+**Given** que el cliente acepta
+**When** pulsa «Aceptar»
+**Then** el presupuesto pasa a `aceptado`, el dueño recibe el aviso y puede convertirlo en citas o en un paquete de sesiones (Story 11.4) con los precios del presupuesto.
+
+**Given** que vence sin respuesta
+**When** pasa la vigencia
+**Then** queda `vencido`; el dueño puede duplicarlo para reenviarlo.
+
+> **Por decidir:** si el presupuesto lleva adelanto con Yape al aceptar
+> (reutilizaría la Épica 7). Comprobante en PDF: no; la página pública hace de
+> documento, como la reserva.
+
+### Story 12.4: Gift cards
+
+As a dueño,
+I want vender tarjetas de regalo por un monto o por un servicio,
+So that vender en fechas como el Día de la Madre y traer clientes nuevos.
+
+**Acceptance Criteria:**
+
+**Given** Caja → Gift cards → Vender
+**When** el dueño registra la venta (monto o servicio, quién la compra, para quién, vigencia)
+**Then** se genera un código único y una tarjeta digital con la marca del negocio para enviar por WhatsApp o correo, y la venta entra a la caja como ingreso.
+
+**Given** el código
+**When** el cliente lo usa al reservar en la tienda o recepción lo canjea al cobrar
+**Then** se descuenta del saldo (una de monto puede usarse en varias visitas); una de servicio se canjea una vez.
+
+**Given** una gift card vencida, agotada o anulada
+**When** se intenta usar
+**Then** se rechaza con el motivo, en español y sin culpar al cliente.
+
+**Given** reportes
+**When** el dueño revisa
+**Then** ve vendidas, canjeadas y saldo pendiente; el canje **no** cuenta dos veces como venta.
+
+> **Referencias:** caja Plan A (cobro separado de la caja), Épica 11 (precio
+> aplicado por el servidor). **Por decidir:** si se pueden comprar en línea
+> desde la tienda (necesitaría el cobro de la Épica 7 o 10); si vencen
+> (recomendado: 6 o 12 meses, a elegir).
+
+**Resumen de la Épica 12:** 4 historias. Premium vuelve a prometer solo lo que
+cumple, y cada función se enciende por plan sin tocar código.
+
+---
+
+## Épica 13: Lo que Pro promete y aún no existe (después)
+
+**Meta:** las funciones de Pro que la auditoría del 2026-11-26 encontró sin
+construir. **Se dejan para después de la Épica 12** (decisión del 2026-11-26):
+Pro no se vende en la landing, se activa a pedido.
+
+- **13.1 Dominio propio** (`dominio_personalizado`, ya en el catálogo): la
+  tienda en `reservas.negocio.com`. Ya prevista como Story 6.12.
+- **13.2 Recordatorios a elegir:** hasta 3 recordatorios con la hora que
+  quiera el negocio (hoy son fijos: 24 h y 2 h).
+- **13.3 Textos propios:** editar los textos de los correos y WhatsApp a
+  clientes.
+- **13.4 Informe de avisos:** qué avisos salieron, cuáles fallaron y cuáles se
+  leyeron, por canal.
+
+Se escriben con criterios de aceptación cuando se retome.
+
+---
+
 ## Cobertura y cabos sueltos
 
 **Historias por épica:** 0 (registro, sin historias) · 1: 15 · 2: 3 · 3: 3 ·
