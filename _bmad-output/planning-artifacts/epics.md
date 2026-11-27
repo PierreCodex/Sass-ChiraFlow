@@ -2699,9 +2699,11 @@ So that cerrar tratamientos largos sin hacer cuentas a mano.
 **When** pasa la vigencia
 **Then** queda `vencido`; el dueño puede duplicarlo para reenviarlo.
 
-> **Por decidir:** si el presupuesto lleva adelanto con Yape al aceptar
-> (reutilizaría la Épica 7). Comprobante en PDF: no; la página pública hace de
-> documento, como la reserva.
+> **Referencias:** `spec-12-3-presupuestos.md`. **Decidido el 2026-11-26:**
+> sin adelanto al aceptar (el cobro va por la caja); aceptado, se agenda por
+> línea con su precio («2 de 6») o se vende como paquete; textos PR-1 y PR-2
+> aprobados. Comprobante en PDF: no; la página pública hace de documento,
+> como la reserva.
 
 ### Story 12.4: Gift cards
 

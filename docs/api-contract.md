@@ -2098,6 +2098,35 @@ Función de Premium `ficha_personal`, vía el **módulo `fichas`** de la matriz 
 - Archivar un campo no borra lo anotado: los archivados con valor siguen en la ficha de ese cliente (`archivado: true`, de solo lectura).
 - **Borrar los datos personales** del cliente (Story 9.2) borra también su ficha, sus notas y sus fotos; el registro de accesos se queda (no lleva datos suyos).
 
+### Presupuestos — Story 12.3
+
+Función de Premium (`funcion:presupuestos`; sin ella, **403** `{ message, funcion: "presupuestos" }`). Spec: `_bmad-output/implementation-artifacts/spec-12-3-presupuestos.md`.
+
+| Método | Ruta | Permiso | Cuerpo / respuesta |
+|---|---|---|---|
+| GET | `/presupuestos?cliente_id=&estado=&search=&page=` | `clientes` ver | `{ data: [presupuesto], meta }`, del número más alto al más bajo. `estado`: `borrador` \| `enviado` \| `aceptado` \| `vencido`. `search`: nombre del cliente o número |
+| GET | `/presupuestos/{id}` | `clientes` ver | `{ data: detalle }` |
+| POST | `/presupuestos` | `clientes` gestionar | `{ cliente_id, local_id?, vence_el? (≥ hoy; por defecto +15 días), nota? (≤1000), items: [{ servicio_id?, descripcion?, cantidad (1–100), precio_unitario?, descuento? }] (1–50) }` → 201 `{ data: detalle }`. Sin `descripcion`, el nombre del servicio; sin `precio_unitario`, el del catálogo. 422 `items.{i}.descuento` si pasa del importe de la línea |
+| PUT | `/presupuestos/{id}` | `clientes` gestionar | igual que POST. **409** si no está en `borrador` |
+| DELETE | `/presupuestos/{id}` | `clientes` gestionar | 204. **409** si no está en `borrador` |
+| POST | `/presupuestos/{id}/enviar` | `clientes` gestionar | → `{ data: detalle, canales: { correo, whatsapp } }`: pasa a `enviado` y manda **PR-1**. Reenviar mientras siga vigente. **409** aceptado o vencido; 422 `vence_el` si la vigencia ya pasó |
+| POST | `/presupuestos/{id}/enlace` | `clientes` gestionar | → `{ data: { url } }`, un enlace nuevo para compartir a mano. **409** en borrador o vencido |
+| POST | `/presupuestos/{id}/duplicar` | `clientes` gestionar | → 201 `{ data: detalle }`: borrador nuevo, mismas líneas y precios, vigencia desde hoy, `duplicado_de` |
+| POST | `/presupuestos/{id}/paquete` | `clientes` gestionar | `{ promocion_id (un paquete activo), metodo? }` → 201 `{ data: detalle, paquete }`. Vende un paquete (11.4) con `precio` = total y `sesiones` = suma de cantidades; entra en la caja. **409** si no está aceptado o ya se vendió |
+| GET | `/publico/{slug}/presupuesto/{token}` | sin sesión | `{ data: { negocio (marca + telefono, whatsapp), cliente: { nombre }, numero, estado: "enviado" \| "aceptado", sede, emitido_el, vence_el, nota, items: [{ descripcion, cantidad, precio_unitario, descuento, total }], subtotal, descuento, total, aceptado_el } }`. Marca `visto_el` la primera vez. 404 desconocido o borrador; **410** vencido `{ codigo: "caducado", numero, negocio }` |
+| POST | `/publico/{slug}/presupuesto/{token}/aceptar` | sin sesión | → igual que GET, con `estado: "aceptado"`. **409** si ya lo aceptó; 410 vencido. Avisa al dueño (**PR-2**) |
+
+`presupuesto`: `{ id, numero, cliente: { id, nombre }, local: { id, nombre } | null, estado, vence_el, subtotal, descuento, total, enviado_el, visto_el, aceptado_el, paquete_id, creado_por, creado_el }`. `detalle` suma `nota`, `duplicado_de` e `items: [{ id, servicio_id, descripcion, cantidad, precio_unitario, descuento, total, precio_por_sesion, agendadas }]`.
+
+**Agendar desde una línea:** `POST /citas` acepta `presupuesto_item_id` (solo al crear). 422 `presupuesto_item_id` si el presupuesto no está aceptado, es de otro cliente (`cliente_id` de la cita) o la línea ya tiene todas sus sesiones agendadas (las canceladas no cuentan). El panel manda `monto` = `precio_por_sesion`.
+
+**Reglas:**
+- Número **correlativo** por negocio. Precios y totales se guardan **congelados**: cambiar el catálogo no mueve un presupuesto armado.
+- Estados: `borrador` → `enviado` → `aceptado`. **`vencido` no se guarda**: es un `enviado` cuyo `vence_el` ya pasó. Vencido se duplica para reenviarlo.
+- Solo el borrador se edita o se borra. **No hay adelanto** al aceptar (decidido el 2026-11-26): el cobro va por la caja.
+- El enlace `{tienda}/presupuesto/{secreto}` es como el de la encuesta: 40 caracteres, en la base solo su sha256 (`accesos_presupuesto`); cada mensaje lleva el suyo. «Tengo una consulta» abre el WhatsApp del negocio (o su teléfono) con el número del presupuesto; no pasa por el backend.
+- **PR-1** (al cliente, correo y WhatsApp si lo aceptó) es esencial: lo pide el dueño a mano. **PR-2** (al dueño) se apaga en Mis avisos → «Presupuestos aceptados», que solo aparece con la función.
+
 ## 6. Lo que todavía no está cableado
 
 Cosas que el backend tendrá que servir, pero que hoy ningún componente pide:

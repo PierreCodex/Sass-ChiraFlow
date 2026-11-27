@@ -149,9 +149,9 @@ development_status:
   # construir (se quitaron de la landing en tivu.v2#108). Se construyen; las de
   # Pro (Épica 13) quedan para después.
   epic-12: in-progress
-  12-1-encuesta-de-satisfacción-y-reseñas: in-progress  # spec-12-1-encuesta-y-resenas.md; decisiones y textos aprobados 2026-11-26
-  12-2-ficha-personal-del-cliente: in-progress  # spec-12-2-ficha-personal.md; decisiones 2026-11-26
-  12-3-presupuestos: backlog
+  12-1-encuesta-de-satisfacción-y-reseñas: done  # mergeada 2026-11-26 (Backend #109, tivu.v2 #112 y #113); spec-12-1-encuesta-y-resenas.md; decisiones y textos aprobados 2026-11-26
+  12-2-ficha-personal-del-cliente: done  # mergeada 2026-11-26 (Backend #110, tivu.v2 #114); spec-12-2-ficha-personal.md; decisiones 2026-11-26
+  12-3-presupuestos: in-progress  # spec-12-3-presupuestos.md; decisiones y textos aprobados 2026-11-26
   12-4-gift-cards: backlog
   epic-12-retrospective: optional
 
